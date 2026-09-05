@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const js=fs.readFileSync(new URL('../app.js',import.meta.url),'utf8');
+const enhancements=fs.readFileSync(new URL('../enhancements.js',import.meta.url),'utf8');
 const server=fs.readFileSync(new URL('../server.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../styles.css',import.meta.url),'utf8');
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'));
@@ -18,6 +19,7 @@ for(const required of [
   'matchRequestSelect','nexusQuestion','nexusSuggestions','nexusAnswer','messagesList','profileForm'
 ]) assert(ids.has(required),`missing critical UI id ${required}`);
 
+assert.match(html,/enhancements\.js/,'Agency import/match enhancement module must be wired into the shell');
 assert.match(js,/nexusLogo"\)\.addEventListener\("click",\(\)=>showView\("nexus"\)\)/,'N logo must open Ask Nexus');
 assert.match(js,/\$\$\('\[data-question\]'\)/,'suggested questions must have click handlers');
 assert.match(js,/\/api\/auth\/user/,'must use normal authenticated session endpoint');
@@ -26,11 +28,15 @@ assert.match(js,/\/api\/person-card\/agency\/v1\/ask-nexus\/query/,'must use Age
 assert.match(js,/\/api\/person-card\/agency\/v1\/requests/,'must use persisted requests endpoint');
 assert.match(js,/\/api\/person-card\/agency\/v1\/applications/,'must use persisted application pipeline endpoint');
 assert.doesNotMatch(js,/tenant[_-]?id\s*[:=]/i,'client must not expose a tenant id selector/override');
+assert.doesNotMatch(enhancements,/tenant[_-]?id\s*[:=]/i,'enhancement client must not expose a tenant id selector/override');
 assert.doesNotMatch(html,/Login to ChatGPT|ChatGPT identity required/i,'normal Agency sign-in must not be presented as a ChatGPT identity gate');
 assert.doesNotMatch(css,/purple|#9a64ff/i,'NOSMO Agency UI must not introduce purple styling');
 assert.match(css,/--silent-gold:/,'Silent Gold token missing');
 assert.match(css,/--nexus-blue:/,'Nexus Blue token missing');
 assert.match(css,/--eco-green:/,'Eco Green token missing');
+assert.match(enhancements,/\/api\/person-card\/agency\/v1\/roster\/import/,'import UI must call tenant-scoped roster import');
+assert.match(enhancements,/\/api\/person-card\/agency\/v1\/requests\/\$\{encodeURIComponent\(requestId\)\}\/match/,'request UI must call persisted match generation');
+assert.match(enhancements,/workerApp confirmed|Worker App confirmed|Nothing is marked Worker App confirmed/i,'import review must state Worker App confirmation boundary');
 
 for(const route of [
   '/api/auth/user','/api/login','/api/callback','/api/logout',
@@ -57,4 +63,4 @@ assert(pkg.dependencies?.pg,'standalone Postgres runtime missing');
 assert(pkg.dependencies?.['openid-client'],'standalone OIDC runtime missing');
 assert(vercel.functions?.['server.js'],'Vercel must deploy the canonical Express server');
 
-console.log(`NOSMO Agency static smoke PASS: ${ids.size} UI ids checked; standalone API, consent boundary and tenant scoping contracts present.`);
+console.log(`NOSMO Agency static smoke PASS: ${ids.size} UI ids checked; standalone API, import/matching, consent boundary and tenant scoping contracts present.`);
