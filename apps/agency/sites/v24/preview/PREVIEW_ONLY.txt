@@ -1,0 +1,1 @@
+Preview-only adapter: canonical public bundle remains unchanged.
