@@ -1,0 +1,49 @@
+name: NOSMO Work V1.0101 Recovery Audit
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - .github/workflows/work-v1.0101-recovery-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/work-v1.0101-migration
+      - name: Audit recovered Work snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="apps/work/recovery-source"
+          test -f "$root/index.html"
+          test -f "$root/screen.html"
+          echo '=== FILE COUNT ==='
+          find "$root" -type f | wc -l
+          echo '=== FORBIDDEN SEPARATE AGENCY APP FILES ==='
+          test ! -e "$root/agency-desk.html"
+          test ! -e "$root/agency-invite.html"
+          test ! -e "$root/js/agency-desk.js"
+          test ! -e "$root/js/person-agency-invite.js"
+          echo PASS
+          echo '=== LEGACY/DONOR REFERENCES ==='
+          grep -RniE 'Kamil|Person Card Freeware|NEXUS COMMAND DECK|<span>Person</span>|<span>Work</span>|<span>Work Mode</span>' "$root" --exclude='RECOVERY_SOURCE.md' | head -120 || true
+          echo '=== BASELINE TARGET REFERENCES PRESENT ==='
+          grep -RniE 'NOSMO Work|NOSMO WORK|WORK TOOLS|Connected services|Worker Card|Documents|Jobs|Apps|Settings|ASK NEXUS|Ask Nexus' "$root" | head -160 || true
+          echo '=== PWA ==='
+          grep -F '"name": "NOSMO Work"' "$root/manifest.webmanifest"
+          grep -F '"display": "standalone"' "$root/manifest.webmanifest"
+          test -f "$root/sw.js"
+          echo '=== SAFE APPLICATION FLOW ==='
+          grep -F 'I SENT IT' "$root/js/contact-action-engine.js"
+          grep -F 'Opening a channel never counts as sent' "$root/js/contact-action-engine.js"
+          grep -F 'APPLIED' "$root/js/work-hub.js"
+          echo WORK_RECOVERY_AUDIT_PASS
