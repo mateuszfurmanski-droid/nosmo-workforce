@@ -20,6 +20,7 @@ for(const required of [
 ]) assert(ids.has(required),`missing critical UI id ${required}`);
 
 assert.match(html,/enhancements\.js/,'Agency import/match enhancement module must be wired into the shell');
+assert.match(html,/invite-ui\.js/,'Invite UI module must be loaded');
 assert.match(js,/nexusLogo"\)\.addEventListener\("click",\(\)=>showView\("nexus"\)\)/,'N logo must open Ask Nexus');
 assert.match(js,/\$\$\('\[data-question\]'\)/,'suggested questions must have click handlers');
 assert.match(js,/\/api\/auth\/user/,'must use normal authenticated session endpoint');
@@ -43,7 +44,7 @@ for(const route of [
   '/api/person-card/agency/account','/api/person-card/agency/profile',
   '/api/person-card/agency/candidates','/api/person-card/agency/activity',
   '/api/person-card/agency/v1/_health','/api/person-card/agency/v1/dashboard',
-  '/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import''/api/person-card/agency/v1/invites',
+  '/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import','/api/person-card/agency/v1/invites',
   '/api/person-card/agency/v1/requests','/api/person-card/agency/v1/requests/:requestId/match',
   '/api/person-card/agency/v1/requests/:requestId/applications',
   '/api/person-card/agency/v1/applications/:applicationId',
@@ -56,6 +57,9 @@ assert.match(server,/g\.scope='RECRUITER_SAFE'/,'connected Worker data must be c
 assert.match(server,/workerAppConfirmed:false/,'Agency import must not claim Worker App confirmation');
 assert.match(server,/algorithm:"deterministic-v1"/,'match generation must be explainable deterministic V1');
 assert.match(server,/privateWorkerFieldsIncluded:false/,'Ask Nexus must declare private Worker fields excluded');
+assert.match(server,/consentGranted:false/,'Invite must never auto-grant consent');
+assert.match(server,/recruiterSafeAccessGranted:false/,'Invite must never auto-grant recruiter-safe access');
+assert.match(server,/WORK_APP_BASE_URL_REQUIRED/,'Invite must fail closed when Worker App URL is not configured');
 assert.doesNotMatch(vercel.rewrites?.map((r)=>r.destination).join(' ')||'',/nexus-backend-yata|onrender\.com/i,'canonical deployment must not proxy Agency API to the old backend');
 assert.equal(pkg.type,'module');
 assert(pkg.dependencies?.express,'standalone Express runtime missing');
@@ -63,9 +67,4 @@ assert(pkg.dependencies?.pg,'standalone Postgres runtime missing');
 assert(pkg.dependencies?.['openid-client'],'standalone OIDC runtime missing');
 assert(vercel.functions?.['server.js'],'Vercel must deploy the canonical Express server');
 
-console.log(`NOSMO Agency static smoke PASS: ${ids.size} UI ids checked; standalone API, import/matching, consent boundary and tenant scoping contracts present.`);
-
-assert.match(server,/consentGranted:false/,'Invite must never auto-grant consent');
-assert.match(server,/recruiterSafeAccessGranted:false/,'Invite must never auto-grant recruiter-safe access');
-assert.match(server,/WORK_APP_BASE_URL_REQUIRED/,'Invite must fail closed when Worker App URL is not configured');
-assert.match(html,/invite-ui\.js/,'Invite UI module must be loaded');
+console.log(`NOSMO Agency static smoke PASS: ${ids.size} UI ids checked; standalone API, import/matching/invite, consent boundary and tenant scoping contracts present.`);
