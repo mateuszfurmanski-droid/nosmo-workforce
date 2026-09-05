@@ -1,0 +1,1 @@
+{"schema":"nexus-person-agency-ats-health/v1","status":"ok","databaseReady":true,"missingTables":[],"recruiterSafeProjection":true,"agencyScopedPipeline":true,"agencyScopedCloudRoster":true,"rosterAuditTrail":true,"agencyScopedRecruitmentPipeline":true,"placementReadinessGate":true,"payrollPreparedNotCalculated":true,"explicitWorkerConsentGate":true}

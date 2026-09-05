@@ -1,0 +1,134 @@
+{
+  "schema": "nosmo-agency-sites-capture/v1",
+  "projectId": "appgprj_6a967b267b348191904db8faca122765",
+  "sitesVersion": 24,
+  "sourceCandidate": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/",
+  "finalUrl": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/",
+  "capturedAt": "2026-09-05T14:28:18.647Z",
+  "markerMatches": [
+    "NOSMO AGENCY",
+    "Agency Desk",
+    "Worker-owned data",
+    "ASK NEXUS",
+    "Workers",
+    "Requests",
+    "Matches",
+    "Messages"
+  ],
+  "renderedSha256": "25bae2a5b386f27536177405243c43e76c4319dff8c751618c05e8e11a9fd3ee",
+  "rawResponseSha256": "dfcad531700541863ee196ad7e68d0e309f2ecffde4f451d2a5993c9abae232b",
+  "resources": [
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 21141,
+      "sha256": "dfcad531700541863ee196ad7e68d0e309f2ecffde4f451d2a5993c9abae232b",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/index-00c8d79229.html"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/nexus-logo-ui-mark-n.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 96520,
+      "sha256": "db19276359749c21ccb9e281e05e6dc2e9eb06f8a802a3dc422c1fe2430457e3",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/nexus-logo-ui-mark-n-cad785cc6c.png"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/nosmo-logo.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 202954,
+      "sha256": "f7bb2d90871124aef778f3e0f5a137768542724e798be765aaf2f9d744d27d69",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/nosmo-logo-ead829e7bc.png"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/rolldown-runtime-BM3Ffeng.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 1216,
+      "sha256": "101087c385ddfea7c37eb72790fd5aa7a3d647e85dc24171c830034ed27d3c90",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/rolldown-runtime-BM3Ffeng-3729e60055.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/framework-BOexRV2D.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 189805,
+      "sha256": "5861ff3d479c2038a77beba8377c03c80429d5f3519cf23ea6bdb7a2c6566842",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/framework-BOexRV2D-e48eb56ca7.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/emergency-core-Bm4UH8t1.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 18391,
+      "sha256": "62a82dc7e10505ca85b9c6e09029c864a2d7cf621d47d8ad49d02bf2d09fc559",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/emergency-core-Bm4UH8t1-97542206aa.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/index-0r1qI2wJ.css",
+      "status": 200,
+      "contentType": "text/css",
+      "bytes": 139804,
+      "sha256": "b8ef69edb0d05da0807bd00c6930f1158b277f0ada71487892b3f89492fe747a",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/index-0r1qI2wJ-7491d27c59.css"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/x-BwWSQcK2.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 2186,
+      "sha256": "2e71f43984944aed93e72d64b64013a33ce3f346167f17a631356beab8633a80",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/x-BwWSQcK2-0d024db138.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/index-B1QG66Mi.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 80936,
+      "sha256": "bb18d94fe2beb5506fd87a8ac1cbfbfb595faf04d3ccb4e35994c93016b17756",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/index-B1QG66Mi-51857fd230.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/page-D2n6_To6.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 205453,
+      "sha256": "9bc57158db903bd104c68daf240e5af9deaa35de1ce74491d14550eda39f8012",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/page-D2n6_To6-3a6640b617.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/layout-segment-context-C_bkBiuL.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 283,
+      "sha256": "f26a3d1249387153b098f6ba81fffc678694d49d7f50d8592f222055b2840d16",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/assets/layout-segment-context-C_bkBiuL-227905d009.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "bytes": 22070,
+      "sha256": "dac41f6911f35d0d506e419059cf2f8a9c6227dc276be2f0f1576b55d3f503d8",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/cdn-cgi/challenge-platform/scripts/jsd/main-ae9ceabd4d.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/cdn-cgi/challenge-platform/h/g/scripts/jsd/330e41bb475c/main.js?",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "bytes": 20831,
+      "sha256": "adbca5eaedbdb61e23d62f532f3578db3142ebf3937126a5666f54d5ddc3304a",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/cdn-cgi/challenge-platform/h/g/scripts/jsd/330e41bb475c/main-09a7e5f8a4.js"
+    },
+    {
+      "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/api/agency/health",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 352,
+      "sha256": "08d9437333150deb9462f487d87cb597c6ea68284dd279f97e38549020727202",
+      "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/api/agency/health-c103e870b6.json"
+    }
+  ]
+}
