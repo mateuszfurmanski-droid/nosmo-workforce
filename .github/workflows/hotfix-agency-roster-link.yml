@@ -29,6 +29,7 @@ jobs:
           if old1 not in s or old2 not in s:
               raise SystemExit('Expected linked_person_id SQL markers not found')
           s=s.replace(old1,new1).replace(old2,new2)
+          s=s.replace('linkedPersonId:row.linkedPersonId||row.linked_person_id||null','linkedPersonId:row.linkedPersonId||null')
           if 'linked_person_id' in s:
               raise SystemExit('linked_person_id reference remains')
           p.write_text(s)
