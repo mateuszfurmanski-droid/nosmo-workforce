@@ -1,0 +1,44 @@
+name: Build NOSMO Agency GitHub CDN Preview
+
+on:
+  push:
+    branches:
+      - preview/agency-sites-v24
+    paths:
+      - '.github/workflows/build-agency-github-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/agency-sites-v24
+      - name: Build preview-only path adapter
+        run: |
+          set -euo pipefail
+          rm -rf apps/agency/sites/v24/preview
+          cp -a apps/agency/sites/v24/public apps/agency/sites/v24/preview
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/agency/sites/v24/preview/index.html')
+          s=p.read_text()
+          s=s.replace('href="/', 'href="./').replace('src="/', 'src="./')
+          p.write_text(s)
+          p=Path('apps/agency/sites/v24/preview/assets/page-D2n6_To6.js')
+          s=p.read_text()
+          s=s.replace('/app-icons/', './app-icons/')
+          p.write_text(s)
+          PY
+          printf '%s\n' 'Preview-only adapter: canonical public bundle remains unchanged.' > apps/agency/sites/v24/preview/PREVIEW_ONLY.txt
+      - name: Commit preview adapter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/sites/v24/preview
+          git commit -m "chore(agency): generate GitHub CDN preview adapter"
+          git push origin HEAD:preview/agency-sites-v24
