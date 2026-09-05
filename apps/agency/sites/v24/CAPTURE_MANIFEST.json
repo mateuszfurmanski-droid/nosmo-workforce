@@ -132,7 +132,7 @@
     }
   ],
   "dependencyClosure": {
-    "completedAt": "2026-09-05T14:32:28.006Z",
+    "completedAt": "2026-09-05T14:37:58.797Z",
     "source": "https://nosmo-agency.mateusz-furmanski.chatgpt.site",
     "downloaded": [
       {
@@ -170,10 +170,30 @@
         "sha256": "7564e1a1d89f1b4e6e2ec3e31e9af820d1215a745da1e23a3bb018f78a65deae",
         "path": "public/assets/pdf.worker-BDW0vFpl.js",
         "dependencyClosure": true
+      },
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/app-icons/gmail.svg",
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "bytes": 354,
+        "sha256": "21b263638deb769267d610a85382792624bdae2fc47c1bc2f8ae6fb6a50413e9",
+        "path": "public/app-icons/gmail.svg",
+        "dependencyClosure": true
+      },
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/app-icons/whatsapp.svg",
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "bytes": 1231,
+        "sha256": "3e197e0e1f3e679ee09823c75e1c7bad3a19da9bd1ba01df395268b9ae91816f",
+        "path": "public/app-icons/whatsapp.svg",
+        "dependencyClosure": true
       }
     ],
     "unresolved": [],
     "publicFiles": [
+      "app-icons/gmail.svg",
+      "app-icons/whatsapp.svg",
       "assets/emergency-core-Bm4UH8t1.js",
       "assets/framework-BOexRV2D.js",
       "assets/index-0r1qI2wJ.css",
