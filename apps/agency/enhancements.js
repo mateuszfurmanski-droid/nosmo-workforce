@@ -65,6 +65,7 @@ async function parseRosterFile(file){
 function injectStyles(){
   const style=document.createElement("style");
   style.textContent=`
+    .modal-backdrop[hidden]{display:none!important;pointer-events:none!important}
     .import-drop{border:1px dashed var(--line-strong);border-radius:14px;padding:18px;text-align:center;background:var(--panel);cursor:pointer}.import-drop strong,.import-drop small{display:block}.import-drop small{margin-top:5px;color:var(--muted);font-size:9px}.import-preview{margin-top:10px;max-height:42vh;overflow:auto;border:1px solid var(--line);border-radius:12px}.import-row{display:grid;grid-template-columns:minmax(120px,1.2fr) 1fr 1fr;gap:8px;padding:8px 9px;border-bottom:1px solid var(--line);font-size:8px}.import-row:last-child{border-bottom:0}.import-row strong{font-size:9px}.import-row span{color:var(--muted)}.import-toolbar{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}.match-generate{border-color:color-mix(in srgb,var(--silent-gold) 45%,var(--line))!important;color:var(--silent-gold)!important}@media(max-width:420px){.import-row{grid-template-columns:1fr}.import-row span{white-space:normal}}
   `;
   document.head.appendChild(style);
