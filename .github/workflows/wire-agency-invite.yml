@@ -1,0 +1,109 @@
+name: Wire NOSMO Agency invite handoff
+
+on:
+  push:
+    branches:
+      - fix/agency-v1.0025-invite-consent
+    paths:
+      - '.github/workflows/wire-agency-invite.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/agency-v1.0025-invite-consent
+      - name: Patch Agency invite endpoint and UI entrypoint
+        shell: python
+        run: |
+          from pathlib import Path
+
+          server = Path('apps/agency/server.js')
+          text = server.read_text()
+          marker = 'app.get("/styles.css",(_req,res)=>res.sendFile(path.join(__dirname,"styles.css")));'
+          route = r'''
+app.get("/api/person-card/agency/v1/invites/_health",async(req,res)=>{
+  const agency=await requireAgency(req,res);if(!agency)return;
+  res.json({schema:"nosmo-agency-invite-health/v1",inviteSigningConfigured:Boolean(process.env.NEXUS_ONBOARDING_INVITE_SECRET?.trim()),workAppBaseConfigured:Boolean(process.env.WORK_APP_BASE_URL?.trim()),consentGrantedByInvite:false});
+});
+app.post("/api/person-card/agency/v1/invites",async(req,res)=>{
+  const agency=await requireAgency(req,res);if(!agency)return;
+  const secret=process.env.NEXUS_ONBOARDING_INVITE_SECRET?.trim();
+  if(!secret||secret.length<32){res.status(503).json({error:"NEXUS_ONBOARDING_INVITE_SECRET_NOT_CONFIGURED"});return}
+  const workBase=process.env.WORK_APP_BASE_URL?.trim();
+  if(!workBase){res.status(503).json({error:"WORK_APP_BASE_URL_REQUIRED"});return}
+  let onboardingUrl;
+  try{onboardingUrl=new URL(workBase)}catch{res.status(503).json({error:"WORK_APP_BASE_URL_INVALID"});return}
+  const expiresInDays=Math.max(1,Math.min(14,safeInt(req.body?.expiresInDays,7,14)));
+  const rosterWorkerId=clean(req.body?.rosterWorkerId,180)||null;
+  let trade=clean(req.body?.trade,120)||null,location=clean(req.body?.location,120)||null;
+  if(rosterWorkerId){
+    const roster=(await query(`select roster_worker_id as "rosterWorkerId",display_name as "displayName",record_json->>'trade' as trade,record_json->>'location' as location from nexus_person_agency_roster_workers where agency_id=$1 and roster_worker_id=$2 and status='ACTIVE' limit 1`,[agency.agencyId,rosterWorkerId])).rows[0];
+    if(!roster){res.status(404).json({error:"NEXUS_AGENCY_ROSTER_WORKER_NOT_FOUND"});return}
+    trade=trade||roster.trade||null;location=location||roster.location||null;
+  }
+  const recruiter=(await query(`select display_name as "displayName",job_title as "jobTitle" from nexus_person_agency_recruiter_profiles where auth_user_id=$1 and agency_id=$2 limit 1`,[req.user.id,agency.agencyId])).rows[0]||{};
+  const issuedAt=Date.now(),expiresAt=issuedAt+expiresInDays*24*60*60*1000,inviteId=uuid("agency-invite");
+  const payload={schema:"nexus-person-onboarding-invite/v1",inviteId,agency:agency.name,agencyId:agency.agencyId,recruiterName:recruiter.displayName||req.user.email||"Recruiter",recruiterTitle:recruiter.jobTitle||undefined,trade:trade||undefined,location:location||undefined,message:clean(req.body?.message,240),issuedAt,expiresAt};
+  const body=Buffer.from(JSON.stringify(payload),"utf8").toString("base64url");
+  const signature=crypto.createHmac("sha256",secret).update(body).digest("base64url");
+  const token=`${body}.${signature}`;
+  const digest=crypto.createHash("sha256").update(token,"utf8").digest("hex");
+  const client=await pool.connect();
+  try{
+    await client.query("begin");
+    await client.query(`insert into nexus_person_onboarding_invites (invite_id,token_digest,agency,agency_id,created_by_user_id,suggested_trade,suggested_location,message,status,expires_at,created_at,roster_worker_id) values ($1,$2,$3,$4,$5,$6,$7,$8,'ACTIVE',$9,now(),$10)`,[inviteId,digest,agency.name,agency.agencyId,req.user.id,trade,location,clean(req.body?.message,240)||null,new Date(expiresAt),rosterWorkerId]);
+    if(rosterWorkerId){await client.query(`update nexus_person_agency_roster_workers set connection_status='INVITED',invitation_sent_at=now(),invitation_expires_at=$3,updated_by_user_id=$4,updated_at=now() where agency_id=$1 and roster_worker_id=$2`,[agency.agencyId,rosterWorkerId,new Date(expiresAt),req.user.id])}
+    await client.query("commit");
+  }catch(error){await client.query("rollback");console.error("Agency invite persistence failed",error);res.status(503).json({error:"NEXUS_AGENCY_INVITE_PERSIST_FAILED"});return}finally{client.release()}
+  onboardingUrl.searchParams.set("inviteToken",token);onboardingUrl.searchParams.set("inviteId",inviteId);onboardingUrl.searchParams.set("agency",agency.name);
+  if(trade)onboardingUrl.searchParams.set("trade",trade);if(location)onboardingUrl.searchParams.set("location",location);
+  res.status(201).json({schema:"nexus-person-onboarding-invite-created/v1",inviteId,expiresAt:new Date(expiresAt).toISOString(),onboardingUrl:onboardingUrl.toString(),invitePersisted:true,tenantScoped:true,consentGranted:false,recruiterSafeAccessGranted:false,privateWorkerFieldsIncluded:false});
+});
+
+'''
+          if '/api/person-card/agency/v1/invites"' not in text:
+              if marker not in text: raise SystemExit('server marker missing')
+              text = text.replace(marker, route + marker)
+              server.write_text(text)
+
+          index = Path('apps/agency/index.html')
+          html = index.read_text()
+          hook = '  <script type="module" src="./enhancements.js"></script>'
+          invite = '  <script type="module" src="./invite-ui.js"></script>'
+          if invite not in html:
+              if hook not in html: raise SystemExit('index hook missing')
+              html = html.replace(hook, hook + '\n' + invite)
+              index.write_text(html)
+
+          smoke = Path('apps/agency/tests/static-smoke.mjs')
+          s = smoke.read_text()
+          old = "'/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import',"
+          new = "'/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import','/api/person-card/agency/v1/invites',"
+          if old in s and '/api/person-card/agency/v1/invites' not in s:
+              s = s.replace(old,new)
+          if 'Invite must never auto-grant consent' not in s:
+              s += "\nassert.match(server,/consentGranted:false/,'Invite must never auto-grant consent');\nassert.match(server,/recruiterSafeAccessGranted:false/,'Invite must never auto-grant recruiter-safe access');\nassert.match(server,/WORK_APP_BASE_URL_REQUIRED/,'Invite must fail closed when Worker App URL is not configured');\nassert.match(html,/invite-ui\\.js/,'Invite UI module must be loaded');\n"
+          smoke.write_text(s)
+
+          workflow = Path('.github/workflows/agency-v1-static.yml')
+          w = workflow.read_text()
+          needle = '          node --check apps/agency/enhancements.js\n'
+          add = needle + '          node --check apps/agency/invite-ui.js\n'
+          if 'node --check apps/agency/invite-ui.js' not in w:
+              if needle not in w: raise SystemExit('workflow syntax hook missing')
+              w = w.replace(needle,add)
+              workflow.write_text(w)
+      - name: Commit wired invite handoff
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/server.js apps/agency/index.html apps/agency/tests/static-smoke.mjs .github/workflows/agency-v1-static.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "feat(agency): wire signed Worker App invite handoff"
+          git push origin HEAD:fix/agency-v1.0025-invite-consent
