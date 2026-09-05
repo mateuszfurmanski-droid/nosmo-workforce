@@ -1,0 +1,54 @@
+name: NOSMO Agency salvaged backend coverage
+
+on:
+  push:
+    branches:
+      - fix/agency-sites-v24-backend-parity
+    paths:
+      - '.github/workflows/agency-salvage-backend-map.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/agency-sites-v24-backend-parity
+          fetch-depth: 0
+      - name: Read withdrawn backend without restoring its UI
+        run: |
+          git fetch origin fix/agency-v1.0025-invite-consent:refs/remotes/origin/fix/agency-v1.0025-invite-consent
+          git show origin/fix/agency-v1.0025-invite-consent:apps/agency/server.js > /tmp/agency-server.js
+          node <<'NODE'
+          const fs=require('fs');
+          const front=fs.readFileSync('apps/agency/sites/v24/public/assets/page-D2n6_To6.js','utf8');
+          const back=fs.readFileSync('/tmp/agency-server.js','utf8');
+          let m;
+          const calls=new Map();
+          const qRe=/Q\(`([^`]+)`(?:,\{method:`([A-Z]+)`)?/g;
+          while((m=qRe.exec(front))){const method=m[2]||'GET';calls.set(`${method} ${m[1]}`,{method,route:m[1]});}
+          const routes=[];
+          const rRe=/app\.(get|post|patch|delete|put)\("([^"]+)"/g;
+          while((m=rRe.exec(back)))routes.push({method:m[1].toUpperCase(),route:m[2]});
+          const nf=s=>s.replace(/\?.*$/,'').replace(/\$\{[^}]+\}/g,':param').replace(/:[A-Za-z0-9_]+/g,':param');
+          const nb=s=>s.replace(/^\/api\/person-card\/agency\/v1/,'').replace(/^\/api\/person-card\/agency/,'').replace(/:[A-Za-z0-9_]+/g,':param');
+          const mapped=[...calls.values()].map(c=>{
+            const f=nf(c.route);const hits=routes.filter(r=>r.method===c.method&&nb(r.route)===f);
+            return {...c,status:hits.length?'MAPPED':'MISSING',backendRoutes:hits.map(h=>h.route)};
+          }).sort((a,b)=>`${a.method} ${a.route}`.localeCompare(`${b.method} ${b.route}`));
+          const out={schema:'nosmo-agency-salvaged-backend-coverage/v1',sourceBranch:'fix/agency-v1.0025-invite-consent',frontendCallCount:mapped.length,mappedCount:mapped.filter(x=>x.status==='MAPPED').length,missingCount:mapped.filter(x=>x.status==='MISSING').length,calls:mapped};
+          fs.writeFileSync('apps/agency/SALVAGED_BACKEND_COVERAGE.json',JSON.stringify(out,null,2)+'\n');
+          console.log(JSON.stringify({frontendCallCount:out.frontendCallCount,mappedCount:out.mappedCount,missingCount:out.missingCount,missing:mapped.filter(x=>x.status==='MISSING')},null,2));
+          NODE
+      - name: Commit coverage report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/SALVAGED_BACKEND_COVERAGE.json
+          git diff --cached --quiet && exit 0
+          git commit -m "docs(agency): record salvaged backend API coverage"
+          git push origin HEAD:fix/agency-sites-v24-backend-parity
