@@ -20,14 +20,19 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p=Path('apps/agency/runtime/compat.js')
           s=p.read_text()
-          pattern=re.compile(r'''const existing=await query\(`select placement_id as \\"placementId\\" from nexus_person_agency_placements where agency_id=\$1 and application_id=\$2 limit 1`,\[agency\.agencyId,applicationId\]\),placementId=existing\.rows\[0\]\?\.placementId\|\|uuid\(\"agency-placement\"\);await query\(`insert into nexus_person_agency_placements .*? on conflict \(agency_id,application_id\) do update set status='PLACED',start_date=excluded\.start_date,end_date=excluded\.end_date,currency=excluded\.currency,rate_unit=excluded\.rate_unit,pay_rate_amount=excluded\.pay_rate_amount,bill_rate_amount=excluded\.bill_rate_amount,updated_by_user_id=excluded\.updated_by_user_id,updated_at=now\(\)`,\[placementId,agency\.agencyId,application\.requestId,applicationId,startDate,endDate,clean\(req\.body\?\.currency,12\)\?\.toUpperCase\(\)\|\|\"GBP\",rateUnit,safeNumber\(req\.body\?\.payRate\),safeNumber\(req\.body\?\.billRate\),JSON\.stringify\(\{readinessConfirmed:req\.body\?\.readinessConfirmed===true,payrollCalculated:false\}\),req\.user\.id\]\);''',re.S)
-          repl='''const existing=await query(`select placement_id as "placementId" from nexus_person_agency_placements where agency_id=$1 and application_id=$2 limit 1`,[agency.agencyId,applicationId]),placementId=existing.rows[0]?.placementId||uuid("agency-placement"),currency=clean(req.body?.currency,12)?.toUpperCase()||"GBP",payRate=safeNumber(req.body?.payRate),billRate=safeNumber(req.body?.billRate),placementRecord=JSON.stringify({readinessConfirmed:req.body?.readinessConfirmed===true,payrollCalculated:false});if(existing.rows.length)await query(`update nexus_person_agency_placements set request_id=$3,status='PLACED',start_date=$4,end_date=$5,currency=$6,rate_unit=$7,pay_rate_amount=$8,bill_rate_amount=$9,record_json=$10::jsonb,updated_by_user_id=$11,updated_at=now() where agency_id=$1 and placement_id=$2`,[agency.agencyId,placementId,application.requestId,startDate,endDate,currency,rateUnit,payRate,billRate,placementRecord,req.user.id]);else await query(`insert into nexus_person_agency_placements (placement_id,agency_id,request_id,application_id,status,start_date,end_date,currency,rate_unit,pay_rate_amount,bill_rate_amount,record_json,created_by_user_id,updated_by_user_id,created_at,updated_at) values ($1,$2,$3,$4,'PLACED',$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$12,now(),now())`,[placementId,agency.agencyId,application.requestId,applicationId,startDate,endDate,currency,rateUnit,payRate,billRate,placementRecord,req.user.id]);'''
-          s2,n=pattern.subn(repl,s,count=1)
-          if n != 1:
-              raise SystemExit(f'Expected one placement ON CONFLICT block, replaced {n}')
+          start='const existing=await query(`select placement_id as "placementId" from nexus_person_agency_placements where agency_id=$1 and application_id=$2 limit 1`'
+          end=';await query(`update nexus_person_agency_applications set stage=\'PLACED\''
+          a=s.find(start)
+          b=s.find(end,a)
+          if a < 0 or b < 0:
+              raise SystemExit(f'placement markers not found: start={a}, end={b}')
+          old=s[a:b]
+          if 'on conflict (agency_id,application_id)' not in old:
+              raise SystemExit('expected invalid placement ON CONFLICT is not inside target block')
+          repl='''const existing=await query(`select placement_id as "placementId" from nexus_person_agency_placements where agency_id=$1 and application_id=$2 limit 1`,[agency.agencyId,applicationId]),placementId=existing.rows[0]?.placementId||uuid("agency-placement"),currency=clean(req.body?.currency,12)?.toUpperCase()||"GBP",payRate=safeNumber(req.body?.payRate),billRate=safeNumber(req.body?.billRate),placementRecord=JSON.stringify({readinessConfirmed:req.body?.readinessConfirmed===true,payrollCalculated:false});if(existing.rows.length)await query(`update nexus_person_agency_placements set request_id=$3,status='PLACED',start_date=$4,end_date=$5,currency=$6,rate_unit=$7,pay_rate_amount=$8,bill_rate_amount=$9,record_json=$10::jsonb,updated_by_user_id=$11,updated_at=now() where agency_id=$1 and placement_id=$2`,[agency.agencyId,placementId,application.requestId,startDate,endDate,currency,rateUnit,payRate,billRate,placementRecord,req.user.id]);else await query(`insert into nexus_person_agency_placements (placement_id,agency_id,request_id,application_id,status,start_date,end_date,currency,rate_unit,pay_rate_amount,bill_rate_amount,record_json,created_by_user_id,updated_by_user_id,created_at,updated_at) values ($1,$2,$3,$4,'PLACED',$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$12,now(),now())`,[placementId,agency.agencyId,application.requestId,applicationId,startDate,endDate,currency,rateUnit,payRate,billRate,placementRecord,req.user.id])'''
+          s2=s[:a]+repl+s[b:]
           if 'on conflict (agency_id,application_id)' in s2:
               raise SystemExit('invalid placement ON CONFLICT remains')
           if 'linked_person_id' in s2:
