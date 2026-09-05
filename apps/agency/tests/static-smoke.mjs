@@ -9,7 +9,7 @@ const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),
 const vercel=JSON.parse(fs.readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
 
 const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m)=>m[1]));
-const jsIds=[...js.matchAll(/\$\("([^"]+)"\)/g)].map((m)=>m[1]);
+const jsIds=[...js.matchAll(/(?<!\$)\$\("([^"]+)"\)/g)].map((m)=>m[1]);
 const missing=[...new Set(jsIds.filter((id)=>!ids.has(id)))];
 assert.deepEqual(missing,[],`app.js references missing HTML ids: ${missing.join(', ')}`);
 
@@ -33,24 +33,15 @@ assert.match(css,/--nexus-blue:/,'Nexus Blue token missing');
 assert.match(css,/--eco-green:/,'Eco Green token missing');
 
 for(const route of [
-  '/api/auth/user',
-  '/api/login',
-  '/api/callback',
-  '/api/logout',
-  '/api/person-card/agency/account',
-  '/api/person-card/agency/profile',
-  '/api/person-card/agency/candidates',
-  '/api/person-card/agency/activity',
-  '/api/person-card/agency/v1/_health',
-  '/api/person-card/agency/v1/dashboard',
-  '/api/person-card/agency/v1/roster',
-  '/api/person-card/agency/v1/roster/import',
-  '/api/person-card/agency/v1/requests',
-  '/api/person-card/agency/v1/requests/:requestId/match',
+  '/api/auth/user','/api/login','/api/callback','/api/logout',
+  '/api/person-card/agency/account','/api/person-card/agency/profile',
+  '/api/person-card/agency/candidates','/api/person-card/agency/activity',
+  '/api/person-card/agency/v1/_health','/api/person-card/agency/v1/dashboard',
+  '/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import',
+  '/api/person-card/agency/v1/requests','/api/person-card/agency/v1/requests/:requestId/match',
   '/api/person-card/agency/v1/requests/:requestId/applications',
   '/api/person-card/agency/v1/applications/:applicationId',
-  '/api/person-card/agency/v1/placements',
-  '/api/person-card/agency/v1/ask-nexus/query'
+  '/api/person-card/agency/v1/placements','/api/person-card/agency/v1/ask-nexus/query'
 ]) assert(server.includes(route),`standalone server missing ${route}`);
 
 assert.match(server,/agencyContext\(req\.user\.id\)/,'server must derive Agency context from authenticated membership');
