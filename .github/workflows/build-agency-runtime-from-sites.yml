@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p apps/agency/runtime
-          git show fix/agency-v1.0025-invite-consent:apps/agency/server.js > apps/agency/runtime/server.js
+          git show origin/fix/agency-v1.0025-invite-consent:apps/agency/server.js > apps/agency/runtime/server.js
           rm -rf apps/agency/runtime/public
           cp -a apps/agency/sites/v24/public apps/agency/runtime/public
           node <<'NODE'
