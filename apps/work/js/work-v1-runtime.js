@@ -111,6 +111,7 @@
     setLanguage(localStorage.getItem(KEYS.lang)||'en');updateInstallUi();
   }
 
+  let availabilitySyncing=false;
   function currentAvailability(){
     const stored=safeJson(localStorage.getItem(KEYS.availability),{});
     let state=stored.state||stored.status||'';let date=stored.date||stored.availableFrom||'';
@@ -123,7 +124,10 @@
     return {state,date};
   }
   function saveAvailability(next){
-    const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};
+    if(availabilitySyncing)return;
+    availabilitySyncing=true;
+    try{
+      const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};
     localStorage.setItem(KEYS.availability,JSON.stringify(value));
     document.querySelectorAll('#availabilityState,#availability').forEach(select=>{ensureAvailabilityOptions(select);select.value=value.state;select.dispatchEvent(new Event('change',{bubbles:true}))});
     document.querySelectorAll('#availabilityDate,#availableFrom').forEach(input=>{input.value=value.date;input.dispatchEvent(new Event('change',{bubbles:true}))});
@@ -134,7 +138,8 @@
       localStorage.setItem(legacyKey,JSON.stringify(Object.assign({},legacy,{status:value.state,availableFrom:value.date,label:value.state==='busy'?'Busy':value.state==='from-date'?'Ready on date':'Available'})));
     }
     window.dispatchEvent(new CustomEvent('nosmo:availability-change',{detail:value}));
-    renderAvailabilityCompact();syncAvailabilityFields();
+      renderAvailabilityCompact();syncAvailabilityFields();
+    } finally { availabilitySyncing=false; }
   }
   function availabilityLabel(value=currentAvailability()){
     if(value.state==='busy')return get('busy');

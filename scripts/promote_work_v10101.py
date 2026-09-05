@@ -367,3 +367,26 @@ assert not (WORK/"js"/"person-agency-invite.js").exists()
 assert (WORK/"data"/"default-worker-profile.json").exists()
 assert not (WORK/"data"/"person-work-profile-kamil.json").exists()
 print("NOSMO_WORK_V1_0101_CANONICAL_PROMOTION_PASS")
+
+
+# V1.0101 availability re-entrancy patch
+runtime_path = WORK / "js" / "work-v1-runtime.js"
+runtime_text = runtime_path.read_text(encoding="utf-8")
+if "let availabilitySyncing=false;" not in runtime_text:
+    runtime_text = runtime_text.replace(
+        "  function currentAvailability(){",
+        "  let availabilitySyncing=false;\n  function currentAvailability(){",
+        1,
+    )
+runtime_text = runtime_text.replace(
+    "  function saveAvailability(next){\n    const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};",
+    "  function saveAvailability(next){\n    if(availabilitySyncing)return;\n    availabilitySyncing=true;\n    try{\n      const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};",
+    1,
+)
+runtime_text = runtime_text.replace(
+    "    renderAvailabilityCompact();syncAvailabilityFields();\n  }\n  function availabilityLabel",
+    "      renderAvailabilityCompact();syncAvailabilityFields();\n    } finally { availabilitySyncing=false; }\n  }\n  function availabilityLabel",
+    1,
+)
+assert "if(availabilitySyncing)return;" in runtime_text
+runtime_path.write_text(runtime_text, encoding="utf-8")
