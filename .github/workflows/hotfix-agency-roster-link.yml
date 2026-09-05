@@ -1,0 +1,51 @@
+name: Hotfix Agency roster Worker link
+
+on:
+  push:
+    branches: [fix/agency-runtime-roster-link]
+    paths: ['.github/workflows/hotfix-agency-roster-link.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/agency-runtime-roster-link
+      - name: Derive roster to Worker link from claimed invite
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('apps/agency/runtime/compat.js')
+          s=p.read_text()
+          old1='select roster_worker_id as "rosterWorkerId",linked_person_id as "linkedPersonId",display_name as "displayName",normalized_email as email,normalized_phone as phone,record_json,private_note as "privateNote",connection_status as "connectionStatus",invitation_sent_at as "invitationSentAt",invitation_expires_at as "invitationExpiresAt",created_at as "importedAt",updated_at as "updatedAt" from nexus_person_agency_roster_workers where agency_id=$1 and roster_worker_id=$2 and status=\'ACTIVE\' limit 1'
+          new1='select r.roster_worker_id as "rosterWorkerId",(select i.claimed_person_id from nexus_person_onboarding_invites i where i.agency_id=r.agency_id and i.roster_worker_id=r.roster_worker_id and i.claimed_person_id is not null order by i.claimed_at desc nulls last,i.created_at desc limit 1) as "linkedPersonId",r.display_name as "displayName",r.normalized_email as email,r.normalized_phone as phone,r.record_json,r.private_note as "privateNote",r.connection_status as "connectionStatus",r.invitation_sent_at as "invitationSentAt",r.invitation_expires_at as "invitationExpiresAt",r.created_at as "importedAt",r.updated_at as "updatedAt" from nexus_person_agency_roster_workers r where r.agency_id=$1 and r.roster_worker_id=$2 and r.status=\'ACTIVE\' limit 1'
+          old2='select roster_worker_id as "rosterWorkerId",linked_person_id as "linkedPersonId",display_name as "displayName",normalized_email as email,normalized_phone as phone,record_json,private_note as "privateNote",connection_status as "connectionStatus",invitation_sent_at as "invitationSentAt",invitation_expires_at as "invitationExpiresAt",created_at as "importedAt",updated_at as "updatedAt" from nexus_person_agency_roster_workers where agency_id=$1 and status=\'ACTIVE\' order by updated_at desc,display_name asc limit $2'
+          new2='select r.roster_worker_id as "rosterWorkerId",(select i.claimed_person_id from nexus_person_onboarding_invites i where i.agency_id=r.agency_id and i.roster_worker_id=r.roster_worker_id and i.claimed_person_id is not null order by i.claimed_at desc nulls last,i.created_at desc limit 1) as "linkedPersonId",r.display_name as "displayName",r.normalized_email as email,r.normalized_phone as phone,r.record_json,r.private_note as "privateNote",r.connection_status as "connectionStatus",r.invitation_sent_at as "invitationSentAt",r.invitation_expires_at as "invitationExpiresAt",r.created_at as "importedAt",r.updated_at as "updatedAt" from nexus_person_agency_roster_workers r where r.agency_id=$1 and r.status=\'ACTIVE\' order by r.updated_at desc,r.display_name asc limit $2'
+          if old1 not in s or old2 not in s:
+              raise SystemExit('Expected linked_person_id SQL markers not found')
+          s=s.replace(old1,new1).replace(old2,new2)
+          if 'linked_person_id' in s:
+              raise SystemExit('linked_person_id reference remains')
+          p.write_text(s)
+          PY
+      - name: Validate runtime contract
+        run: |
+          set -euo pipefail
+          node --check apps/agency/runtime/compat.js
+          node --check apps/agency/runtime/server.js
+          node apps/agency/runtime/tests/contract.mjs
+          grep -q 'claimed_person_id' apps/agency/runtime/compat.js
+          ! grep -q 'linked_person_id' apps/agency/runtime/compat.js
+          test "$(git diff --name-only -- apps/work | wc -l)" -eq 0
+      - name: Commit hotfix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/runtime/compat.js
+          git commit -m "fix(agency): derive roster Worker link from claimed invite"
+          git push origin HEAD:fix/agency-runtime-roster-link
