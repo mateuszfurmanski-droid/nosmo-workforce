@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020713">
+<title>NOSMO Person Card Freeware — Agency Desk</title>
+<style>
+:root{--bg:#020713;--panel:#071421;--blue:#2f86ff;--text:#f5f8ff;--muted:#aebbd0;--green:#22dc7d;--amber:#ffb84d}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#020713,#02060d);color:var(--text);font-family:Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}a,button,input,textarea{font:inherit;-webkit-tap-highlight-color:transparent}.page{width:100%;max-width:430px;margin:0 auto;padding:14px 12px 42px}.top{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:8px;align-items:center;margin:0 -12px 12px;padding:9px 16px;background:#000;border-bottom:1px solid rgba(54,126,224,.22)}.topBtn{width:42px;height:42px;border:1px solid rgba(55,119,207,.48);border-radius:14px;background:#071421;color:#fff;text-decoration:none;display:grid;place-items:center}.brand{text-align:center;font-weight:950;letter-spacing:.12em;color:#5ca8ff;font-size:12px}.hero,.panel{border:1px solid rgba(108,160,228,.22);border-radius:20px;background:linear-gradient(180deg,rgba(7,19,33,.92),rgba(2,8,17,.97));box-shadow:0 14px 36px rgba(0,0,0,.28)}.hero{padding:16px}.eyebrow{color:#79b5ff;font-size:9px;font-weight:950;letter-spacing:.11em;text-transform:uppercase}.hero h1{margin:5px 0;font-size:27px}.hero h1 span{color:var(--blue)}.hero p{margin:0;color:#b8c2d1;font-size:11px;line-height:1.45}.privacy{margin-top:11px;border:1px solid rgba(34,220,125,.25);border-radius:12px;background:rgba(7,31,25,.5);padding:10px;color:#bde8cf;font-size:9px;line-height:1.45}.accountState{margin-top:10px;border:1px solid rgba(75,125,194,.22);border-radius:12px;background:rgba(4,15,28,.68);padding:9px;color:#aebed2;font-size:9px;line-height:1.4}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}.summary div{border:1px solid rgba(75,125,194,.2);border-radius:12px;background:rgba(4,15,28,.7);padding:9px 4px;text-align:center}.summary strong{display:block;font-size:15px}.summary span{display:block;margin-top:3px;color:#91a3ba;font-size:7px;text-transform:uppercase}.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.quick a{border:1px solid rgba(75,125,194,.3);border-radius:13px;background:rgba(8,24,45,.78);color:#eef6ff;text-decoration:none;padding:11px}.quick strong{display:block;font-size:10px}.quick span{display:block;margin-top:4px;color:#92a6bf;font-size:8px;line-height:1.3}.sectionTitle{margin:15px 2px 8px;color:#8fc0ff;font-size:11px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}.accountPanel{padding:12px}.accountPanel[hidden]{display:none}.accountPanel label span,.sheet label span{display:block;color:#879bb4;font-size:8px;text-transform:uppercase;font-weight:900}.accountPanel input,.searchBar input,.sheet input,.sheet textarea{width:100%;margin-top:6px;border:1px solid rgba(75,125,194,.3);border-radius:10px;background:#06111e;color:#fff;padding:10px}.accountPanel button,.primaryBtn{width:100%;margin-top:9px;border:1px solid rgba(47,134,255,.6);border-radius:11px;background:linear-gradient(180deg,#1761c7,#0d3f85);color:#fff;padding:10px;font-weight:900;font-size:9px}.identityCard{padding:12px}.identityTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.identityName{font-size:15px;font-weight:950}.identitySub{margin-top:3px;color:#8fc0ff;font-size:9px}.identityMeta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.identityMeta div{border:1px solid rgba(75,125,194,.18);border-radius:10px;background:rgba(5,18,34,.7);padding:8px}.identityMeta span{display:block;color:#859bb7;font-size:7px;text-transform:uppercase}.identityMeta strong{display:block;margin-top:3px;font-size:9px;line-height:1.3}.editIdentity{width:100%;margin-top:9px;border:1px solid rgba(47,134,255,.45);border-radius:10px;background:#0a284d;color:#fff;padding:9px;font-size:8px;font-weight:900}.signIn{display:block;margin-top:9px;border:1px solid rgba(47,134,255,.6);border-radius:11px;background:#0d3f85;color:#fff;text-decoration:none;padding:10px;text-align:center;font-size:9px;font-weight:900}.searchBar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-bottom:8px}.searchBar input{margin:0}.searchBar button{border:1px solid rgba(47,134,255,.45);border-radius:10px;background:#0a284d;color:#fff;padding:0 12px;font-size:9px;font-weight:900}.candidateList{display:grid;gap:9px}.candidate{padding:12px}.candidateTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.candidateName{font-size:15px;font-weight:950}.candidateTrade{margin-top:4px;color:#8fc0ff;font-size:10px;font-weight:850}.candidateLocation{margin-top:4px;color:#9cadc2;font-size:9px}.badge{display:inline-flex;border-radius:999px;padding:5px 7px;font-size:7px;font-weight:950;white-space:nowrap}.available{color:#83f0b0;background:rgba(34,220,125,.12);border:1px solid rgba(34,220,125,.28)}.pipeline{color:#ffd08a;background:rgba(255,184,77,.12);border:1px solid rgba(255,184,77,.28)}.candidateMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.meta{border:1px solid rgba(75,125,194,.18);border-radius:10px;background:rgba(5,18,34,.7);padding:8px}.meta span{display:block;color:#859bb7;font-size:7px;text-transform:uppercase}.meta strong{display:block;margin-top:3px;font-size:9px;line-height:1.25}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.actions button{border:1px solid rgba(47,134,255,.45);border-radius:10px;background:#0a284d;color:#fff;padding:9px;text-align:center;font-size:8px;font-weight:900}.actions .secondary{background:#08182d;border-color:rgba(75,125,194,.28)}.activity{padding:12px}.activityRow{border-top:1px solid rgba(75,125,194,.18);padding:9px 0}.activityRow:first-child{border-top:0}.activityRow strong{display:block;font-size:9px}.activityRow span{display:block;margin-top:3px;color:#8fa5c0;font-size:8px;line-height:1.35}.empty{border:1px dashed rgba(75,125,194,.25);border-radius:12px;padding:12px;color:#91a3ba;font-size:9px;line-height:1.4}.boundary{margin-top:13px;border:1px solid rgba(47,134,255,.22);border-radius:13px;background:rgba(9,29,53,.42);padding:10px;color:#aebfd4;font-size:9px;line-height:1.45}.boundary strong{color:#dceaff}.footer{padding:16px 0 2px;text-align:center;color:#678fbe;font-size:9px}.sheetBackdrop{position:fixed;z-index:100;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.72)}.sheetBackdrop.open{display:flex}.sheet{width:min(430px,100vw);max-height:88vh;overflow:auto;border:1px solid rgba(73,137,224,.45);border-radius:22px 22px 0 0;background:#041122;padding:15px 14px 24px}.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.sheet h3{margin:0;color:#8ec0ff;font-size:18px}.closeBtn{width:34px;height:34px;border:1px solid rgba(73,137,224,.35);border-radius:10px;background:#08182d;color:#fff;font-size:20px}.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.detailRow{border:1px solid rgba(75,125,194,.2);border-radius:10px;padding:9px}.detailRow span{display:block;color:#8fa5c0;font-size:7px;text-transform:uppercase}.detailRow strong{display:block;margin-top:4px;font-size:9px;line-height:1.3}.sheet label{display:block;margin-top:9px}.sheet textarea{min-height:80px;resize:vertical}.draftPreview{margin-top:10px;border:1px solid rgba(75,125,194,.22);border-radius:11px;background:#06111e;padding:10px;color:#cbd8e8;font-size:9px;line-height:1.45;white-space:pre-wrap}.sheetStatus{margin-top:8px;color:#93a5bc;font-size:8px;line-height:1.4}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="top">
+  <a class="topBtn" href="./index.html?view=recruiter" aria-label="Recruiter view">‹</a>
+  <div class="brand">NOSMO · PERSON CARD</div>
+  <a class="topBtn" href="./index.html" aria-label="Worker view">W</a>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Authenticated agency / recruiter workspace</div>
+  <h1>AGENCY <span>DESK</span></h1>
+  <p>Multi-worker ATS view over the canonical NOSMO Person and Work Profile records. No second Person Card database is created.</p>
+  <div class="privacy">Only workers who explicitly granted this agency recruiter-safe access appear in the pipeline. This is a recruiter-safe server projection. Contact details, CV text and private documents are not returned by the Agency ATS candidate API.</div>
+  <div class="accountState" id="agencyAccountState">Checking authenticated agency account…</div>
+  <div class="summary">
+    <div><strong id="candidateCount">0</strong><span>Candidates</span></div>
+    <div><strong id="shortlistCount">0</strong><span>Shortlisted</span></div>
+    <div><strong id="requestCount">0</strong><span>Requested</span></div>
+    <div><strong id="offerCount">0</strong><span>Offered</span></div>
+  </div>
+  <div class="quick">
+    <a href="./agency-invite.html"><strong>Invite worker</strong><span>Create secure onboarding link</span></a>
+    <a href="./directory.html"><strong>Worker registry</strong><span>Legacy registry entry point</span></a>
+    <a href="./index.html?view=recruiter"><strong>Recruiter view</strong><span>Recruiter-safe Person Card</span></a>
+    <a href="./index.html"><strong>Worker app</strong><span>Switch to worker view</span></a>
+  </div>
+</section>
+
+<div class="sectionTitle">Agency account</div>
+<section class="panel accountPanel" id="accountSetup" hidden>
+  <label><span>Agency / company name</span><input id="agencyName" maxlength="160" placeholder="e.g. NorthBuild Recruitment"></label>
+  <button type="button" id="createAgencyAccount">Create Agency Account</button>
+  <a class="signIn" id="agencySignIn" href="/api/login?returnTo=/agency-desk.html" hidden>Sign in to Agency Desk</a>
+  <div class="sheetStatus" id="accountSetupStatus">One authenticated user can create the first agency account. The schema supports multiple members per agency.</div>
+</section>
+
+<div class="sectionTitle">Agency &amp; recruiter profile</div>
+<section class="panel identityCard" id="agencyIdentityCard" hidden>
+  <div class="identityTop">
+    <div>
+      <div class="identityName" id="agencyIdentityName">Agency</div>
+      <div class="identitySub" id="recruiterIdentityLine">Recruiter profile</div>
+    </div>
+    <span class="badge pipeline" id="agencyVerificationBadge">UNVERIFIED</span>
+  </div>
+  <div class="identityMeta">
+    <div><span>Agency location</span><strong id="agencyIdentityLocation">Not set</strong></div>
+    <div><span>Website</span><strong id="agencyIdentityWebsite">Not set</strong></div>
+    <div><span>Recruiter email</span><strong id="recruiterIdentityEmail">Not set</strong></div>
+    <div><span>Recruiter phone</span><strong id="recruiterIdentityPhone">Not set</strong></div>
+  </div>
+  <button type="button" class="editIdentity" id="editAgencyIdentity">Edit Agency &amp; Recruiter Profile</button>
+</section>
+
+<div class="sectionTitle">Candidate pipeline</div>
+<div class="searchBar">
+  <input id="candidateSearch" placeholder="Search name, trade or location">
+  <button type="button" id="candidateSearchButton">Search</button>
+</div>
+<div id="candidateList" class="candidateList"><div class="empty">Agency account required before loading candidates.</div></div>
+
+<div class="sectionTitle">Agency activity</div>
+<section class="panel activity" id="agencyActivity"><div class="empty">No agency activity loaded.</div></section>
+
+<div class="boundary"><strong>Privacy boundary:</strong> Agency Desk can manage pipeline state and create Request Pack / Offer Work drafts for a candidate, but those actions do not expose private documents or create a placement. A worker remains the authority over their Person Card data.</div>
+<div class="footer">NOSMO Person Card Freeware · Agency ATS</div>
+</main>
+
+<div class="sheetBackdrop" id="agencyProfileBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true">
+    <div class="sheetHead"><h3>Agency &amp; Recruiter Profile</h3><button class="closeBtn" id="closeAgencyProfile" type="button">×</button></div>
+    <form id="agencyProfileForm">
+      <div class="sectionTitle">Agency profile</div>
+      <label><span>Agency / company name</span><input id="profileAgencyName" maxlength="160"></label>
+      <label><span>Website</span><input id="profileAgencyWebsite" maxlength="240" placeholder="https://..."></label>
+      <label><span>Company / registration number</span><input id="profileAgencyRegistration" maxlength="120"></label>
+      <label><span>Office / base location</span><input id="profileAgencyLocation" maxlength="180"></label>
+      <label><span>About agency</span><textarea id="profileAgencyDescription" maxlength="800"></textarea></label>
+      <div class="sectionTitle">Recruiter profile</div>
+      <label><span>Display name</span><input id="profileRecruiterName" maxlength="160"></label>
+      <label><span>Job title</span><input id="profileRecruiterTitle" maxlength="120" placeholder="Recruiter / Account Manager"></label>
+      <label><span>Email</span><input id="profileRecruiterEmail" maxlength="160"></label>
+      <label><span>Phone</span><input id="profileRecruiterPhone" maxlength="80"></label>
+      <label><span>Profile photo URL</span><input id="profileRecruiterPhoto" maxlength="500"></label>
+      <label><span>Bio</span><textarea id="profileRecruiterBio" maxlength="800"></textarea></label>
+      <button class="primaryBtn" type="submit">Save profiles</button>
+      <div class="sheetStatus" id="agencyProfileStatus">Recruiter identity is tied to the authenticated NOSMO account.</div>
+    </form>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="candidateDetailBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true">
+    <div class="sheetHead"><h3 id="candidateDetailTitle">Candidate</h3><button class="closeBtn" id="closeCandidateDetail" type="button">×</button></div>
+    <div id="candidateDetailBody" class="detailGrid"></div>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="candidateActionBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true">
+    <div class="sheetHead"><h3 id="candidateActionTitle">Candidate action</h3><button class="closeBtn" id="closeCandidateAction" type="button">×</button></div>
+    <form id="candidateActionForm">
+      <div id="requestFields">
+        <label><span>Requested items</span><input id="requestItems" maxlength="240" value="CV, certificates, references"></label>
+        <label><span>Purpose</span><input id="requestPurpose" maxlength="240" value="Candidate review for a work opportunity"></label>
+      </div>
+      <div id="offerFields" hidden>
+        <label><span>Role</span><input id="offerRole" maxlength="160"></label>
+        <label><span>Location</span><input id="offerLocation" maxlength="160"></label>
+        <label><span>Start</span><input id="offerStart" maxlength="80"></label>
+        <label><span>Rate</span><input id="offerRate" maxlength="120"></label>
+        <label><span>Duration</span><input id="offerDuration" maxlength="120"></label>
+      </div>
+      <button class="primaryBtn" type="submit" id="prepareCandidateAction">Prepare draft</button>
+      <div class="draftPreview" id="candidateDraftPreview">No draft prepared.</div>
+      <button class="primaryBtn" type="button" id="copyCandidateDraft">Copy draft</button>
+      <div class="sheetStatus" id="candidateActionStatus">Drafting an action does not send it automatically.</div>
+    </form>
+  </section>
+</div>
+
+<script src="./js/agency-desk.js?v=2"></script>
+</body>
+</html>

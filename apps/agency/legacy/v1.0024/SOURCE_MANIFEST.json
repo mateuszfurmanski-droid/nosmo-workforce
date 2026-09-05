@@ -1,0 +1,172 @@
+{
+  "schema": "nosmo-agency-source-preservation/v1",
+  "product": "NOSMO Agency",
+  "baseline": "V1.0024",
+  "sourceRepository": "mateuszfurmanski-droid/nosmo-nexus-mvp",
+  "sourceCommit": "2d9110354e6084a3f5922e0acafc9f9a31ad1934",
+  "targetRepository": "mateuszfurmanski-droid/nosmo-workforce",
+  "workerFrontendCopied": false,
+  "nexusCoreCopied": false,
+  "files": [
+    {
+      "blobSha": "cba68739ef840267a928ea652e2b259953556bea",
+      "sourcePath": "modules/person-card-freeware/agency-desk.html",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/agency-desk.html"
+    },
+    {
+      "blobSha": "a3774c666bd57ab08d36e3ef329dca13314a0074",
+      "sourcePath": "modules/person-card-freeware/agency-invite.html",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/agency-invite.html"
+    },
+    {
+      "blobSha": "4e66f6d972f5787b51bd596f0a6d8001cf8b3aa6",
+      "sourcePath": "modules/person-card-freeware/directory.html",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/directory.html"
+    },
+    {
+      "blobSha": "0b6ab99646a81a82e3b805d1995dcdd17dd31879",
+      "sourcePath": "modules/person-card-freeware/css/asia-hub-theme.css",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/css/asia-hub-theme.css"
+    },
+    {
+      "blobSha": "d2ed2b6329376f36795d695fff566ccc2ea4659a",
+      "sourcePath": "modules/person-card-freeware/js/agency-desk.js",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/js/agency-desk.js"
+    },
+    {
+      "blobSha": "fd1c61b0cc532efda8fdd415a5fd2af44f081c67",
+      "sourcePath": "modules/person-card-freeware/js/person-agency-invite.js",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/js/person-agency-invite.js"
+    },
+    {
+      "blobSha": "a3b1f8612ccb2aebb93ec721b144bb4e4cb953f6",
+      "sourcePath": "modules/person-card-freeware/js/contact-action-engine.js",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/js/contact-action-engine.js"
+    },
+    {
+      "blobSha": "86718aab76b89a1e38940efc387216621f076b2c",
+      "sourcePath": "modules/person-card-freeware/js/canonical-work-profile-bridge.js",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/js/canonical-work-profile-bridge.js"
+    },
+    {
+      "blobSha": "2de125c9caf4c7eb974e13be36cd3817f0583573",
+      "sourcePath": "modules/person-card-freeware/data-fetcher/index.html",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/import/index.html"
+    },
+    {
+      "blobSha": "3159b23e84388f6fe5a728b473d9ae139dd2e0cc",
+      "sourcePath": "modules/person-card-freeware/data-fetcher/app.js",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/import/app.js"
+    },
+    {
+      "blobSha": "13d9c5731cae3c53d6836aa6c2e8d06e0163a1a8",
+      "sourcePath": "modules/person-card-freeware/data-fetcher/styles.css",
+      "targetPath": "apps/agency/legacy/v1.0024/frontend/import/styles.css"
+    },
+    {
+      "blobSha": "76ea7a6814f3116b04a96e0d8c4fb58d41e1fe55",
+      "sourcePath": "modules/person-card-freeware/source-manifest.json",
+      "targetPath": "apps/agency/legacy/v1.0024/provenance/original-source-manifest.json"
+    },
+    {
+      "blobSha": "bfa6ee485a4205006d72776e946a3043df0088ae",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/agency.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/agency.ts"
+    },
+    {
+      "blobSha": "4d3a6354aa28972711a2529cffc97b28154a14f4",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/agency-v1-finalisation.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/agency-v1-finalisation.ts"
+    },
+    {
+      "blobSha": "8657277ab87adb43b66a7d70f8461dc989ab8b86",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/standalone-host.ts"
+    },
+    {
+      "blobSha": "841704e93a7fb625ba5e26f4341d7355e3cfe0c3",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/job-object.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/matching/job-object.ts"
+    },
+    {
+      "blobSha": "b54b332772679d21389eb19106074daf1585bfa7",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/job-ai-match.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/matching/job-ai-match.ts"
+    },
+    {
+      "blobSha": "caad3a730c4b1da4a219ff10203842817386d0d2",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/job-search.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/matching/job-search.ts"
+    },
+    {
+      "blobSha": "14734ba3cb66c38230bfbb71826bf55f82df1bbb",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/job-adzuna.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/matching/job-adzuna.ts"
+    },
+    {
+      "blobSha": "e5c92fe93d680e70d5b2adda23b22f292e8a3656",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/onboarding-invite.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/contracts/worker-consent/onboarding-invite.ts"
+    },
+    {
+      "blobSha": "7bf85701274c59edd2a380a0500830d2866ebcb4",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/onboarding.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/contracts/worker-consent/onboarding.ts"
+    },
+    {
+      "blobSha": "c12de944c2b8ee2e5f64924a5fd932d8582ecfd8",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/person-work-profile-persistence.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/contracts/worker-consent/person-work-profile-persistence.ts"
+    },
+    {
+      "blobSha": "4b0c6fdc7894470418107915ab4e4650f1b0e4aa",
+      "sourcePath": "lib/db/src/schema/nexusPerson.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/schema/nexusPerson.ts"
+    },
+    {
+      "blobSha": "f6e7dc1f2b44f7e9e1be69a5294f5c5828aea6ea",
+      "sourcePath": "lib/db/src/schema/nexusPersonAgency.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/schema/nexusPersonAgency.ts"
+    },
+    {
+      "blobSha": "6b61c252d50fd763567e800cbe01f96fb9c0516e",
+      "sourcePath": "lib/db/src/schema/nexusPersonWorkProfile.ts",
+      "targetPath": "apps/agency/legacy/v1.0024/backend/schema/nexusPersonWorkProfile.ts"
+    },
+    {
+      "blobSha": "016167ee3f5052a0f28723faee7cd3939b6fd44e",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/sql/001-person-card-agency-persistence.sql",
+      "targetPath": "apps/agency/legacy/v1.0024/database/001-person-card-agency-persistence.sql"
+    },
+    {
+      "blobSha": "f0453d70866abc6e4994feab5c4a3070ee1a08f4",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/sql/002-agency-v1-roster-pipeline.sql",
+      "targetPath": "apps/agency/legacy/v1.0024/database/002-agency-v1-roster-pipeline.sql"
+    },
+    {
+      "blobSha": "d246e27f5fa206573371929b6276e6e420cd26ad",
+      "sourcePath": "artifacts/api-server/src/person-card-freeware/sql/verify-person-card-agency-e2e.sql",
+      "targetPath": "apps/agency/legacy/v1.0024/tests/verify-person-card-agency-e2e.sql"
+    },
+    {
+      "blobSha": "5ef0daf5b0b76f2f40bc2de02c482a367228b1a7",
+      "sourcePath": "modules/person-card-freeware/tests/agency-ui-api-e2e-setup.sql",
+      "targetPath": "apps/agency/legacy/v1.0024/tests/agency-ui-api-e2e-setup.sql"
+    },
+    {
+      "blobSha": "679fee1ec37d7e8ffee7a15b94c4238297afea2a",
+      "sourcePath": "modules/person-card-freeware/tests/agency-ui-api-e2e.cjs",
+      "targetPath": "apps/agency/legacy/v1.0024/tests/agency-ui-api-e2e.cjs"
+    },
+    {
+      "blobSha": "788918b2ddee441ace639ea3cc625f8efacda988",
+      "sourcePath": "modules/person-card-freeware/tests/agency-v1-api-e2e-fixture.sql",
+      "targetPath": "apps/agency/legacy/v1.0024/tests/agency-v1-api-e2e-fixture.sql"
+    },
+    {
+      "blobSha": "f53272ff7767caa07d1a21f19d31b56ba8f2004a",
+      "sourcePath": "modules/person-card-freeware/tests/agency-v1-api-e2e.cjs",
+      "targetPath": "apps/agency/legacy/v1.0024/tests/agency-v1-api-e2e.cjs"
+    }
+  ]
+}
