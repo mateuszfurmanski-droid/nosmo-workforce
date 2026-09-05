@@ -6,6 +6,11 @@ on:
       - migration/agency-v1.0024
     paths:
       - .github/workflows/migrate-agency-v1.0024.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/migrate-agency-v1.0024.yml
   workflow_dispatch:
 
 permissions:
@@ -18,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Preserve exact Agency V1.0024 source
@@ -28,6 +34,7 @@ jobs:
           SRC_COMMIT="2d9110354e6084a3f5922e0acafc9f9a31ad1934"
           RAW="https://raw.githubusercontent.com/${SRC_REPO}/${SRC_COMMIT}"
           ROOT="apps/agency/legacy/v1.0024"
+          TARGET_BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
           copy_exact() {
             src="$1"
@@ -136,4 +143,4 @@ jobs:
             exit 0
           fi
           git commit -m "migrate(agency): preserve V1.0024 source pack"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${TARGET_BRANCH}"
