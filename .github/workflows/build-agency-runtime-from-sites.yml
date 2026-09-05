@@ -5,6 +5,7 @@ on:
     branches: [fix/agency-sites-v24-backend-parity]
     paths:
       - 'apps/agency/runtime/compat.js'
+      - 'apps/agency/runtime/tests/contract.mjs'
       - '.github/workflows/build-agency-runtime-from-sites.yml'
   workflow_dispatch:
 
@@ -71,11 +72,12 @@ jobs:
             ]
           }
           JSON
-      - name: Syntax and byte identity checks
+      - name: Syntax, API contract and byte identity checks
         run: |
           set -euo pipefail
           node --check apps/agency/runtime/server.js
           node --check apps/agency/runtime/compat.js
+          node apps/agency/runtime/tests/contract.mjs
           diff -qr apps/agency/sites/v24/public apps/agency/runtime/public
           grep -q 'installAgencyCompat' apps/agency/runtime/server.js
           grep -q 'acceptedSitesRoot' apps/agency/runtime/server.js
