@@ -1,0 +1,79 @@
+name: Deploy NOSMO Agency runtime preview
+
+on:
+  push:
+    branches: [deploy/agency-runtime-preview]
+    paths:
+      - '.github/workflows/deploy-agency-runtime-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_xYGLaQSQvOQxxs3S5O6cfkQR
+      VERCEL_PROJECT_ID: prj_PuaPLBCXCfzno0U0FB1QTE3IteDT
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: deploy/agency-runtime-preview
+
+      - name: Require Vercel deployment secret
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo 'VERCEL_TOKEN_MISSING'
+            exit 17
+          fi
+          echo 'Vercel token is configured.'
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@48.11.0
+
+      - name: Link isolated preview project
+        working-directory: apps/agency/runtime
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_xYGLaQSQvOQxxs3S5O6cfkQR","projectId":"prj_PuaPLBCXCfzno0U0FB1QTE3IteDT"}' > .vercel/project.json
+
+      - name: Pull preview environment
+        working-directory: apps/agency/runtime
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - name: Re-run frozen UI and API contract gate
+        working-directory: apps/agency/runtime
+        run: npm run check
+
+      - name: Build preview
+        working-directory: apps/agency/runtime
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token="$VERCEL_TOKEN"
+
+      - name: Deploy preview only
+        id: deploy
+        working-directory: apps/agency/runtime
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          url="$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "NOSMO_AGENCY_PREVIEW_URL=$url"
+
+      - name: Record basic HTTP status
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set +e
+          echo "ROOT_HTTP_STATUS=$(curl -L -sS -o /dev/null -w '%{http_code}' "$PREVIEW_URL/")"
+          echo "HEALTH_HTTP_STATUS=$(curl -L -sS -o /dev/null -w '%{http_code}' "$PREVIEW_URL/api/agency/health")"
+          exit 0
