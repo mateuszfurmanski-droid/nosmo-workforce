@@ -1,0 +1,169 @@
+{
+  "schema": "nosmo-agency-salvaged-backend-coverage/v1",
+  "sourceBranch": "fix/agency-v1.0025-invite-consent",
+  "frontendCallCount": 23,
+  "mappedCount": 11,
+  "missingCount": 12,
+  "calls": [
+    {
+      "method": "GET",
+      "route": "/account",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/account"
+      ]
+    },
+    {
+      "method": "GET",
+      "route": "/activity?limit=50",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/activity"
+      ]
+    },
+    {
+      "method": "GET",
+      "route": "/candidates?limit=200",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/candidates"
+      ]
+    },
+    {
+      "method": "GET",
+      "route": "/health",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "GET",
+      "route": "/pipeline",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "GET",
+      "route": "/profile",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/profile"
+      ]
+    },
+    {
+      "method": "GET",
+      "route": "/roster",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/v1/roster"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "route": "/applications/${encodeURIComponent(e.applicationId)}",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/v1/applications/:applicationId"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "route": "/placements/${encodeURIComponent(e.placementId)}",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "PATCH",
+      "route": "/profile",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/profile"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "route": "/requests/${encodeURIComponent(e.requestId)}",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "PATCH",
+      "route": "/roster/${encodeURIComponent(e.rosterWorkerId)}",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/account",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/account"
+      ]
+    },
+    {
+      "method": "POST",
+      "route": "/applications/${encodeURIComponent(a.applicationId)}/events",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/applications/${encodeURIComponent(e.applicationId)}/events",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/applications/${encodeURIComponent(i.applicationId)}/events",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/applications/${encodeURIComponent(Ke.applicationId)}/placement",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/invites",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/v1/invites"
+      ]
+    },
+    {
+      "method": "POST",
+      "route": "/nexus/query",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/requests",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/v1/requests"
+      ]
+    },
+    {
+      "method": "POST",
+      "route": "/requests/${encodeURIComponent(t.requestId)}/applications",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/roster/${encodeURIComponent(e.rosterWorkerId)}/events",
+      "status": "MISSING",
+      "backendRoutes": []
+    },
+    {
+      "method": "POST",
+      "route": "/roster/import",
+      "status": "MAPPED",
+      "backendRoutes": [
+        "/api/person-card/agency/v1/roster/import"
+      ]
+    }
+  ]
+}

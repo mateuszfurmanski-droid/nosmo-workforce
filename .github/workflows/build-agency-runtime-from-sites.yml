@@ -1,0 +1,93 @@
+name: Build accepted NOSMO Agency runtime
+
+on:
+  push:
+    branches: [fix/agency-sites-v24-backend-parity]
+    paths:
+      - 'apps/agency/runtime/compat.js'
+      - 'apps/agency/runtime/tests/contract.mjs'
+      - '.github/workflows/build-agency-runtime-from-sites.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/agency-sites-v24-backend-parity
+          fetch-depth: 0
+      - name: Rebuild runtime from accepted UI and backend-only donor
+        run: |
+          set -euo pipefail
+          mkdir -p apps/agency/runtime
+          git show origin/fix/agency-v1.0025-invite-consent:apps/agency/server.js > apps/agency/runtime/server.js
+          rm -rf apps/agency/runtime/public
+          cp -a apps/agency/sites/v24/public apps/agency/runtime/public
+          node <<'NODE'
+          const fs=require('fs');
+          const p='apps/agency/runtime/server.js';
+          let s=fs.readFileSync(p,'utf8');
+          s='import { installAgencyCompat } from "./compat.js";\n'+s;
+          const old='app.get("/styles.css",(_req,res)=>res.sendFile(path.join(__dirname,"styles.css")));\napp.get("/app.js",(_req,res)=>res.sendFile(path.join(__dirname,"app.js")));\napp.get(["/","/index.html"],(_req,res)=>res.sendFile(path.join(__dirname,"index.html")));';
+          const replacement=`installAgencyCompat(app,{pool,query,clean,record,array,uuid,norm,safeInt,safeNumber,requireAgency,connectedRows,safeCandidate});\nconst acceptedSitesRoot=path.join(__dirname,"public");\napp.use(express.static(acceptedSitesRoot,{index:false,fallthrough:true}));\napp.get(["/","/index.html"],(_req,res)=>res.sendFile(path.join(acceptedSitesRoot,"index.html")));`;
+          if(!s.includes(old)) throw new Error('DONOR_STATIC_MARKER_NOT_FOUND');
+          s=s.replace(old,replacement);
+          fs.writeFileSync(p,s);
+          NODE
+          cat > apps/agency/runtime/package.json <<'JSON'
+          {
+            "name": "@nosmo/agency-sites-v24-runtime",
+            "version": "1.0.25",
+            "private": true,
+            "type": "module",
+            "engines": {"node": "24.x"},
+            "scripts": {
+              "start": "node server.js",
+              "check": "node --check server.js && node --check compat.js && node tests/contract.mjs"
+            },
+            "dependencies": {
+              "cookie-parser": "^1.4.7",
+              "express": "^5.2.1",
+              "openid-client": "^6.8.4",
+              "pg": "^8.16.3"
+            }
+          }
+          JSON
+          cat > apps/agency/runtime/vercel.json <<'JSON'
+          {
+            "$schema": "https://openapi.vercel.sh/vercel.json",
+            "cleanUrls": true,
+            "functions": {"server.js": {"maxDuration": 30}},
+            "headers": [
+              {"source": "/(.*)", "headers": [
+                {"key": "X-Content-Type-Options", "value": "nosniff"},
+                {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+                {"key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()"}
+              ]},
+              {"source": "/index.html", "headers": [{"key": "Cache-Control", "value": "no-store"}]}
+            ]
+          }
+          JSON
+      - name: Syntax, API contract and byte identity checks
+        run: |
+          set -euo pipefail
+          node --check apps/agency/runtime/server.js
+          node --check apps/agency/runtime/compat.js
+          node apps/agency/runtime/tests/contract.mjs
+          diff -qr apps/agency/sites/v24/public apps/agency/runtime/public
+          grep -q 'installAgencyCompat' apps/agency/runtime/server.js
+          grep -q 'acceptedSitesRoot' apps/agency/runtime/server.js
+          test "$(git diff --name-only -- apps/work | wc -l)" -eq 0
+      - name: Commit generated backend-only runtime
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/runtime
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "feat(agency): assemble accepted Sites UI with compatible backend"
+          git push origin HEAD:fix/agency-sites-v24-backend-parity

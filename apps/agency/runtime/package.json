@@ -1,0 +1,17 @@
+{
+  "name": "@nosmo/agency-sites-v24-runtime",
+  "version": "1.0.25",
+  "private": true,
+  "type": "module",
+  "engines": {"node": "24.x"},
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check compat.js && node tests/contract.mjs"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "openid-client": "^6.8.4",
+    "pg": "^8.16.3"
+  }
+}
