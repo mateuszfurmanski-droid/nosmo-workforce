@@ -1,0 +1,59 @@
+{
+  "schema": "nexus-person-work-profile/v1",
+  "id": "work-profile-local-worker",
+  "personId": "local-worker",
+  "version": "V1.0101",
+  "demoMode": false,
+  "availability": {
+    "status": "available",
+    "label": "Available",
+    "availableFrom": ""
+  },
+  "preferences": {
+    "primaryTrade": "",
+    "targetRoles": [],
+    "locations": [],
+    "employmentTypes": [],
+    "paymentPreferences": [],
+    "rate": {
+      "amount": null,
+      "currency": "GBP",
+      "unit": "hour",
+      "display": "Not set"
+    }
+  },
+  "readiness": {
+    "cv": {
+      "state": "pending",
+      "source": "local"
+    },
+    "certificates": {
+      "state": "pending",
+      "source": "local"
+    },
+    "references": {
+      "state": "pending",
+      "source": "local"
+    },
+    "vault": {
+      "state": "local",
+      "source": "local"
+    }
+  },
+  "sourceConnectors": [],
+  "jobMatches": [],
+  "agencies": [],
+  "jobGateway": {
+    "schema": "nexus-job-gateway-client/v1",
+    "status": "standalone-api",
+    "endpoint": "/api/person-card/jobs/search",
+    "provider": "Adzuna",
+    "connectorId": "adzuna-jobs",
+    "queryDefaults": {
+      "country": "gb",
+      "results": 20
+    },
+    "productionTarget": "/api/person-card/jobs/search",
+    "note": "Provider credentials remain server-side."
+  }
+}
