@@ -1,4 +1,4 @@
-name: NOSMO Agency V1 static checks
+name: NOSMO Agency V1 checks
 
 on:
   push:
@@ -46,3 +46,30 @@ jobs:
             echo 'Agency change touched apps/work' >&2
             exit 1
           fi
+
+  agency-browser:
+    runs-on: ubuntu-latest
+    needs: agency-static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: apps/agency/package.json
+      - name: Install browser test dependencies
+        run: npm install --prefix apps/agency --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium
+        run: cd apps/agency && npx playwright install --with-deps chromium
+      - name: Start static Agency shell
+        shell: bash
+        run: |
+          python3 -m http.server 4179 --bind 127.0.0.1 --directory apps/agency >/tmp/nosmo-agency-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4179/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nosmo-agency-http.log
+          exit 1
+      - name: Browser smoke
+        run: npm --prefix apps/agency run test:browser
