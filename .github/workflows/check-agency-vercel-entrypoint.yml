@@ -2,11 +2,8 @@ name: Check NOSMO Agency Vercel entrypoint
 
 on:
   push:
-    branches: [fix/agency-vercel-entrypoint]
-    paths:
-      - 'apps/agency/runtime/api/[...path].js'
-      - 'apps/agency/runtime/vercel.json'
-      - '.github/workflows/check-agency-vercel-entrypoint.yml'
+    branches:
+      - fix/agency-vercel-entrypoint
 
 permissions:
   contents: read
@@ -25,7 +22,7 @@ jobs:
           node --check apps/agency/runtime/compat.js
           node --check 'apps/agency/runtime/api/[...path].js'
           node apps/agency/runtime/tests/contract.mjs
-          node -e "const c=require('./apps/agency/runtime/vercel.json'); if(!c.functions?.['api/[...path].js']) process.exit(1)"
+          node -e "const c=require('./apps/agency/runtime/vercel.json'); if(!c.functions || !c.functions['api/[...path].js']) process.exit(1)"
           grep -q 'export { default } from "../server.js"' 'apps/agency/runtime/api/[...path].js'
           diff -qr apps/agency/sites/v24/public apps/agency/runtime/public
           test "$(git diff main...HEAD --name-only -- apps/work | wc -l)" -eq 0
