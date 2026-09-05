@@ -26,7 +26,7 @@ jobs:
           python -m http.server 4173 --directory apps/work >/tmp/nosmo-work-http.log 2>&1 &
           echo $! >/tmp/nosmo-work-http.pid
           for i in $(seq 1 30); do
-            curl -fsS http://127.0.0.1:4173/index.html >/dev/null && exit 0
+            curl -fsS http://localhost:4173/index.html >/dev/null && exit 0
             sleep 1
           done
           cat /tmp/nosmo-work-http.log
@@ -44,9 +44,8 @@ jobs:
           from selenium.webdriver.common.by import By
           from selenium.webdriver.support.ui import WebDriverWait
           from selenium.webdriver.support import expected_conditions as EC
-          import time
 
-          base='http://127.0.0.1:4173/'
+          base='http://localhost:4173/'
           options=Options()
           options.add_argument('--headless=new')
           options.add_argument('--no-sandbox')
@@ -54,6 +53,7 @@ jobs:
           options.add_argument('--window-size=390,844')
           options.set_capability('goog:loggingPrefs', {'browser':'ALL'})
           driver=webdriver.Chrome(options=options)
+          driver.set_script_timeout(12)
           wait=WebDriverWait(driver,10)
 
           def labels():
@@ -108,7 +108,8 @@ jobs:
               assert_no_overflow('documents')
 
               driver.get(base+'index.html')
-              driver.execute_async_script('''var done=arguments[0]; if(!("serviceWorker" in navigator)){done("unsupported");return;} navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done("ERR:"+e.message));''')
+              sw_scope=driver.execute_async_script('''var done=arguments[0]; if(!("serviceWorker" in navigator)){done("unsupported");return;} navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done("ERR:"+e.message));''')
+              assert sw_scope.startswith(base), sw_scope
 
               severe=[x for x in driver.get_log('browser') if x.get('level')=='SEVERE' and 'favicon' not in x.get('message','').lower()]
               assert not severe, severe
