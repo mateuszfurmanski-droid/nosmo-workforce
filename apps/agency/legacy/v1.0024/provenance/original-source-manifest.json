@@ -1,0 +1,50 @@
+{
+  "schema": "nosmo-person-card-freeware-source-manifest/v1",
+  "auditedAt": "2026-08-27",
+  "targetBranch": "codex/person-card-freeware",
+  "frozenDonor": {
+    "repo": "mateuszfurmanski-droid/NOSMO-website",
+    "path": "person-card-kamil-v47.html",
+    "version": "v47top1",
+    "blobSha": "6b33057751dacb58555fc3462f2b6b811f53d48d"
+  },
+  "frontend": {
+    "repo": "mateuszfurmanski-droid/NOSMO-website",
+    "pr": 39,
+    "branch": "codex/person-card-v47-work-ai-recruitment",
+    "head": "fde179a4ad0e08ce418821b7b1017099ec9d3f14"
+  },
+  "backend": {
+    "repo": "mateuszfurmanski-droid/nosmo-nexus-mvp",
+    "pr": 182,
+    "branch": "codex/addon060-job-gateway-adzuna",
+    "head": "d1de9c4aa5d7f9ed44284bea5ceed752f493456c"
+  },
+  "obsolete": [
+    {
+      "repo": "mateuszfurmanski-droid/nosmo-nexus-mvp",
+      "pr": 180,
+      "reason": "wrong visual donor; superseded"
+    }
+  ],
+  "boundaries": {
+    "relationshipTree": false,
+    "dataFetcher": true,
+    "nexusRuntimeRequired": false
+  },
+  "workModeV2": {
+    "status": "dormant-contract-package",
+    "sameApplication": true,
+    "loadedByV1": false,
+    "architecture": {
+      "repo": "mateuszfurmanski-droid/nosmo-nexus",
+      "pr": 26,
+      "authority": "ADDON_029"
+    },
+    "packagePath": "modules/person-card-freeware/work-mode-v2",
+    "privacy": {
+      "installedInventoryMayLeaveDevice": false,
+      "privateByDefault": true
+    }
+  }
+}
