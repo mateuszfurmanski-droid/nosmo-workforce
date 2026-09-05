@@ -21,6 +21,7 @@ async function mockAgencyApi(page,capture={}){
     if(path===`/api/person-card/agency/v1/requests/${request.requestId}/applications`)return json({applications:[{applicationId:'app1',rosterWorkerId:'r1',displayName:'Alex Turner',stage:'SHORTLISTED',readinessStatus:'READY',matchStrength:'STRONG',matchReasons:['Trade/role aligns with Joiner','Required licences are recorded'],matchGaps:[]}]});
     if(path==='/api/person-card/agency/v1/ask-nexus/query'&&method==='POST'){capture.nexus=(capture.nexus||0)+1;return json({answerType:'AVAILABLE_WORKERS',answer:'2 workers are ready for Leeds.',tenantScoped:true,evidence:[{displayName:'Alex Turner',trade:'Joiner',location:'Leeds'}]})}
     if(path==='/api/person-card/agency/v1/roster/import'&&method==='POST'){capture.importBody=JSON.parse(req.postData()||'{}');return json({created:capture.importBody.records?.length||0,updated:0,skipped:0,tenantScoped:true})}
+    if(path==='/api/person-card/agency/v1/invites'&&method==='POST'){capture.inviteBody=JSON.parse(req.postData()||'{}');return json({schema:'nexus-person-onboarding-invite-created/v1',inviteId:'agency-invite-qa',expiresAt:'2026-09-12T12:00:00.000Z',onboardingUrl:'https://work.example.invalid/onboarding?inviteToken=signed.qa&inviteId=agency-invite-qa',invitePersisted:true,tenantScoped:true,consentGranted:false,recruiterSafeAccessGranted:false,privateWorkerFieldsIncluded:false},201)}
     if(path===`/api/person-card/agency/v1/requests/${request.requestId}/match`&&method==='POST'){capture.match=(capture.match||0)+1;return json({requestId:request.requestId,candidateCount:3,created:3,updated:0,explainable:true,algorithm:'deterministic-v1',tenantScoped:true})}
     if(path.startsWith('/api/person-card/agency/v1/applications/')&&method==='PATCH')return json({applicationId:'app1',stage:'CONTACTED',readinessStatus:'READY'});
     return json({error:`UNMOCKED_${method}_${path}`},404);
@@ -72,4 +73,23 @@ test('roster import review and Generate matches are wired',async({page},testInfo
   await expect(page.locator('#view-matches')).toHaveClass(/active/);
   await expect(page.locator('#matchRequestSelect')).toHaveValue(request.requestId);
   await expect(page.locator('#matchesList')).toContainText('Alex Turner');
+});
+
+test('signed Worker invite is explicit and does not imply consent',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='phone-narrow','single-browser invite workflow test');
+  const capture={};await mockAgencyApi(page,capture);await page.goto('/');
+  await page.locator('[data-nav="workers"]').first().click();
+  await page.getByRole('button',{name:'Invite',exact:true}).click();
+  await expect(page.locator('#inviteWorkerModal')).toBeVisible();
+  await page.locator('#inviteRosterWorker').selectOption('r1');
+  await expect(page.locator('#inviteTrade')).toHaveValue('Joiner');
+  await expect(page.locator('#inviteLocation')).toHaveValue('Leeds');
+  await page.locator('#createInviteLink').click();
+  await expect.poll(()=>capture.inviteBody?.rosterWorkerId||'').toBe('r1');
+  await expect(page.locator('#inviteStatus')).toContainText('consent has not been granted');
+  await expect(page.locator('#inviteUrlText')).toContainText('work.example.invalid');
+  await expect(page.locator('#whatsappInviteLink')).toHaveAttribute('href',/wa\.me/);
+  await expect(page.locator('#emailInviteLink')).toHaveAttribute('href',/^mailto:/);
+  expect(capture.inviteBody.trade).toBe('Joiner');
+  expect(capture.inviteBody.location).toBe('Leeds');
 });
