@@ -21,10 +21,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: apps/agency/package.json
+      - name: Install standalone runtime dependencies
+        run: npm install --prefix apps/agency --ignore-scripts --no-audit --no-fund
       - name: JavaScript syntax
         run: |
           node --check apps/agency/app.js
           node --check apps/agency/server.js
+      - name: Runtime module load
+        env:
+          VERCEL: '1'
+          DATABASE_URL: 'postgresql://placeholder:placeholder@localhost:5432/placeholder'
+          OIDC_CLIENT_ID: 'ci-contract-only'
+        run: node -e "import('./apps/agency/server.js').then(() => process.exit(0))"
       - name: Static contract smoke
         run: node apps/agency/tests/static-smoke.mjs
       - name: Protect NOSMO Work boundary
