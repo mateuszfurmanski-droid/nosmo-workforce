@@ -1,0 +1,40 @@
+name: Capture NOSMO Agency Sites v24
+
+on:
+  push:
+    branches:
+      - fix/agency-sites-v24-1to1
+    paths:
+      - '.github/workflows/capture-agency-sites-v24.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/agency-sites-v24-1to1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser capture dependency
+        run: |
+          mkdir -p /tmp/nosmo-capture
+          cd /tmp/nosmo-capture
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          ln -s /tmp/nosmo-capture/node_modules "$GITHUB_WORKSPACE/node_modules"
+      - name: Capture exact public Sites build
+        run: node .github/scripts/capture-agency-sites.mjs
+      - name: Commit immutable capture
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/agency/sites/v24-capture
+          git commit -m "chore(agency): capture exact public Sites v24 build"
+          git push origin HEAD:fix/agency-sites-v24-1to1
