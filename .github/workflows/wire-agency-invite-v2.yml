@@ -37,15 +37,11 @@ jobs:
           if old in s and '/api/person-card/agency/v1/invites' not in s:s=s.replace(old,new)
           if 'Invite must never auto-grant consent' not in s:s+="\nassert.match(server,/consentGranted:false/,'Invite must never auto-grant consent');\nassert.match(server,/recruiterSafeAccessGranted:false/,'Invite must never auto-grant recruiter-safe access');\nassert.match(server,/WORK_APP_BASE_URL_REQUIRED/,'Invite must fail closed when Worker App URL is not configured');\nassert.match(html,/invite-ui\\.js/,'Invite UI module must be loaded');\n"
           smoke.write_text(s)
-          wf=Path('.github/workflows/agency-v1-static.yml');w=wf.read_text();needle='          node --check apps/agency/enhancements.js\n'
-          if 'node --check apps/agency/invite-ui.js' not in w:
-              if needle not in w: raise SystemExit('workflow syntax hook missing')
-              wf.write_text(w.replace(needle,needle+'          node --check apps/agency/invite-ui.js\n'))
       - name: Commit wired invite handoff
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/agency/server.js apps/agency/index.html apps/agency/tests/static-smoke.mjs .github/workflows/agency-v1-static.yml
+          git add apps/agency/server.js apps/agency/index.html apps/agency/tests/static-smoke.mjs
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "feat(agency): wire signed Worker App invite handoff"
           git push origin HEAD:fix/agency-v1.0025-invite-consent
