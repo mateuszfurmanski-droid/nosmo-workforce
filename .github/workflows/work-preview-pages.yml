@@ -1,0 +1,58 @@
+name: NOSMO Work Preview Pages
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - apps/work/**
+      - .github/workflows/work-preview-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: nosmo-work-preview-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Work migration branch
+        uses: actions/checkout@v4
+
+      - name: Build Work-only preview artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site/work
+          cp -a apps/work/. _site/work/
+          rm -rf _site/work/recovery-source
+          rm -f _site/work/.qa-trigger
+          cat > _site/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOSMO Work</title><script>location.replace('./work/');</script><a href="./work/">Open NOSMO Work</a>
+          HTML
+          test -f _site/work/index.html
+          test -f _site/work/manifest.webmanifest
+          test -f _site/work/sw.js
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Work preview
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy Work preview
+        id: deployment
+        uses: actions/deploy-pages@v4
