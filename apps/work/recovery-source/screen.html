@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f7fb">
+<title>NOSMO Work</title>
+<style>
+:root{--bg:#020713;--panel:#071421;--line:#1b3e65;--blue:#2f86ff;--blue2:#86bdff;--text:#f5f8ff;--muted:#b8c2d1;--green:#22dc7d;--amber:#ffb84d;--red:#ff5f6d}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#020713,#02060d);color:var(--text);font-family:Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}button,a{-webkit-tap-highlight-color:transparent}
+.page{width:100%;max-width:430px;margin:0 auto;padding:14px 12px 96px}
+.top{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:8px;margin:0 -12px 12px;padding:9px 16px;background:#000;border-bottom:1px solid rgba(54,126,224,.22)}
+.back{width:42px;height:42px;border:1px solid rgba(55,119,207,.48);border-radius:14px;background:#071421;color:#fff;text-decoration:none;display:grid;place-items:center;font-size:27px}
+.brand{text-align:center;font-weight:950;letter-spacing:.12em;color:#5ca8ff;font-size:13px}.topGhost{width:42px}
+.hero,.panel{border:1px solid rgba(108,160,228,.22);border-radius:20px;background:linear-gradient(180deg,rgba(7,19,33,.9),rgba(2,8,17,.97));box-shadow:0 14px 36px rgba(0,0,0,.28)}
+.hero{padding:16px}.eyebrow{color:#79b5ff;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.hero h1{margin:6px 0 5px;font-size:27px}.hero p{margin:0;color:var(--muted);font-size:12px;line-height:1.42}
+.privacyNote{margin-top:11px;border:1px solid rgba(34,220,125,.25);border-radius:12px;background:rgba(7,31,25,.5);padding:10px 11px;color:#bde8cf;font-size:10px;line-height:1.4}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}.summary div{border:1px solid rgba(75,125,194,.2);border-radius:12px;background:rgba(4,15,28,.7);padding:9px 5px;text-align:center}.summary strong{display:block;font-size:15px}.summary span{display:block;margin-top:3px;color:#9cadc2;font-size:8px;text-transform:uppercase}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:13px 0 9px}.toolbar h2{margin:0;font-size:15px;color:#8fc0ff;text-transform:uppercase;letter-spacing:.07em}.addBtn{border:1px solid rgba(47,134,255,.6);border-radius:12px;background:linear-gradient(180deg,#1761c7,#0d3f85);color:white;padding:9px 11px;font-weight:850;font-size:11px;cursor:pointer}
+.group{margin-top:10px}.groupTitle{margin:12px 2px 7px;color:#7fb4ff;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.docList{display:grid;gap:8px}.doc{border:1px solid rgba(108,160,228,.18);border-radius:15px;background:rgba(4,15,28,.74);padding:11px}.docTop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:start}.docName{font-size:13px;font-weight:850;line-height:1.2}.docType{margin-top:3px;color:#8fa5c0;font-size:9px;text-transform:uppercase;letter-spacing:.06em}.docMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}.expiry{color:#aab9cc;font-size:10px}.status{display:inline-flex;align-items:center;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:950;letter-spacing:.05em}.status.valid{color:#83f0b0;background:rgba(34,220,125,.12);border:1px solid rgba(34,220,125,.28)}.status.expiring{color:#ffd08a;background:rgba(255,184,77,.12);border:1px solid rgba(255,184,77,.3)}.status.expired{color:#ff9aa2;background:rgba(255,95,109,.12);border:1px solid rgba(255,95,109,.3)}.status.no-expiry{color:#a9caff;background:rgba(47,134,255,.12);border:1px solid rgba(47,134,255,.28)}
+.viewBtn{border:1px solid rgba(75,125,194,.32);border-radius:9px;background:#08182d;color:#fff;padding:7px 9px;font-size:9px;font-weight:850;cursor:pointer}.placeholderTag{display:inline-block;margin-top:6px;color:#b7c2d2;border:1px dashed rgba(155,177,205,.32);border-radius:7px;padding:3px 5px;font-size:8px}
+.empty{padding:18px;text-align:center;color:#9cadc2;font-size:11px}
+.sheetBackdrop{position:fixed;z-index:80;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center}.sheetBackdrop.open{display:flex}.sheet{width:min(430px,100vw);max-height:86vh;overflow:auto;border:1px solid rgba(73,137,224,.45);border-radius:22px 22px 0 0;background:#041122;padding:16px 14px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.65)}.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:12px}.sheet h3{margin:0;color:#8ec0ff;font-size:20px}.closeBtn{width:34px;height:34px;border:1px solid rgba(73,137,224,.35);border-radius:10px;background:#08182d;color:white;font-size:20px}.detail{margin-top:12px;display:grid;gap:8px}.detailRow{border:1px solid rgba(75,125,194,.2);border-radius:11px;padding:9px}.detailRow span{display:block;color:#8fa5c0;font-size:8px;text-transform:uppercase}.detailRow strong{display:block;margin-top:3px;font-size:12px}.formGrid{display:grid;gap:9px;margin-top:12px}.formGrid label span{display:block;color:#9fb1c7;font-size:9px;margin-bottom:4px}.formGrid input,.formGrid select{width:100%;border:1px solid rgba(75,125,194,.3);border-radius:10px;background:#06111e;color:white;padding:10px}.saveBtn{width:100%;margin-top:12px;border:1px solid rgba(47,134,255,.6);border-radius:12px;background:#1761c7;color:white;padding:11px;font-weight:900}.localOnly{margin-top:10px;color:#8fa5c0;font-size:9px;line-height:1.4}
+.appWindowNav{position:fixed;z-index:65;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,100vw);height:72px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:rgba(0,5,13,.97);border-top:1px solid rgba(67,132,221,.35);box-shadow:0 -12px 30px rgba(0,0,0,.48)}
+.appWindowNav a{min-width:0;border:1px solid rgba(75,125,194,.2);border-radius:13px;color:#aebbd0;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:9px;font-weight:850}.appWindowNav a svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.appWindowNav a.active{color:#fff;border-color:rgba(47,134,255,.64);background:linear-gradient(180deg,rgba(23,81,151,.48),rgba(7,28,55,.72))}.appWindowNav a.active svg{color:#5ba2ff}
+.workCardPanel{margin-top:11px;border:1px solid rgba(108,160,228,.2);border-radius:18px;background:rgba(4,15,28,.78);padding:12px}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 1px 7px}.sectionHead h2{margin:0;color:#8fc0ff;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.sectionHead button{border:1px solid rgba(47,134,255,.4);border-radius:9px;background:#08182d;color:#dceaff;padding:7px 9px;font-size:9px;font-weight:850}.profileGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.profileField{border:1px solid rgba(75,125,194,.18);border-radius:12px;background:rgba(5,18,34,.7);padding:9px}.profileField span{display:block;color:#859bb7;font-size:8px;text-transform:uppercase;letter-spacing:.05em}.profileField strong{display:block;margin-top:4px;font-size:11px;line-height:1.25}.workActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.secondaryBtn,.shareBtn{border-radius:11px;padding:10px;font-size:10px;font-weight:900;cursor:pointer}.secondaryBtn{border:1px solid rgba(75,125,194,.34);background:#08182d;color:#fff}.shareBtn{border:1px solid rgba(47,134,255,.65);background:linear-gradient(180deg,#1761c7,#0d3f85);color:#fff}.projectList,.historyList,.referenceList,.noteList{display:grid;gap:8px}.projectCard,.historyCard,.referenceCard,.noteCard{border:1px solid rgba(108,160,228,.18);border-radius:15px;background:rgba(4,15,28,.74);padding:11px}.projectName,.historyRole,.referenceName{font-size:13px;font-weight:900}.projectCompany,.historyCompany,.referenceMeta{margin-top:3px;color:#8fa5c0;font-size:9px}.projectRole{margin-top:8px;color:#dce8f8;font-size:10px;font-weight:800}.projectDates,.historyDates,.noteMeta{margin-top:5px;color:#95a8bf;font-size:9px}.projectDescription,.historyDescription,.referenceText,.noteText{margin-top:8px;color:#c8d3e2;font-size:10px;line-height:1.4}.tagRow{display:flex;flex-wrap:wrap;gap:7px}.skillTag,.ticketTag{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(75,125,194,.25);border-radius:999px;background:rgba(5,18,34,.82);padding:7px 9px;font-size:9px}.skillTag strong,.ticketTag strong{font-size:9px}.verifyDot{width:7px;height:7px;border-radius:50%;background:#8b97a8}.verified .verifyDot{background:var(--green)}.verified{border-color:rgba(34,220,125,.3)}.unverified{border-color:rgba(255,184,77,.25)}.badgeMeta{color:#91a3ba;font-size:8px}.workBoundary{margin-top:12px;border:1px solid rgba(47,134,255,.22);border-radius:12px;background:rgba(9,29,53,.42);padding:10px;color:#aebfd4;font-size:9px;line-height:1.45}.workBoundary strong{color:#dceaff}.workToast{position:fixed;z-index:120;left:50%;bottom:82px;transform:translateX(-50%) translateY(12px);max-width:360px;width:calc(100% - 40px);padding:10px 12px;border:1px solid rgba(75,125,194,.35);border-radius:12px;background:#06111e;color:#e7f1ff;text-align:center;font-size:10px;opacity:0;pointer-events:none;transition:.2s}.workToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modeToolbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}.modeToolbar button{border-radius:11px;padding:10px 11px;font-size:10px;font-weight:900;cursor:pointer}.modeToolbar .scan{border:1px solid rgba(47,134,255,.65);background:linear-gradient(180deg,#1761c7,#0d3f85);color:#fff}.modeToolbar .privacy{border:1px solid rgba(75,125,194,.34);background:#08182d;color:#fff}.modeStatus{margin-top:9px;border:1px solid rgba(75,125,194,.18);border-radius:10px;background:rgba(4,15,28,.58);padding:9px;color:#aebed2;font-size:9px;line-height:1.4}.modeSection{margin-top:14px}.modeSection h2{margin:0 0 8px;color:#8fc0ff;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.modeSubhead{margin:10px 1px 6px;color:#b9c9dc;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.modeCategoryGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.modeCategoryCard{display:flex;gap:9px;align-items:flex-start;border:1px solid rgba(108,160,228,.18);border-radius:14px;background:rgba(4,15,28,.74);padding:10px}.modeCategoryIcon{width:28px;height:28px;flex:0 0 28px;border:1px solid rgba(47,134,255,.35);border-radius:9px;display:grid;place-items:center;background:#08182d;color:#7fb4ff;font-weight:950;font-size:11px}.modeCategoryCard strong{display:block;font-size:10px}.modeCategoryCard span{display:block;margin-top:4px;color:#8fa5c0;font-size:8px;line-height:1.35}.modeAppList{display:grid;gap:8px}.modeAppCard{border:1px solid rgba(108,160,228,.18);border-radius:15px;background:rgba(4,15,28,.74);padding:11px}.modeAppCard.added{border-color:rgba(34,220,125,.25)}.modeAppCard.detected{border-color:rgba(47,134,255,.38)}.modeAppTop{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}.modeAppTop strong{display:block;font-size:12px}.modeAppTop div>span{display:block;margin-top:3px;color:#8fa5c0;font-size:8px;text-transform:capitalize}.modeAppCard p{margin:8px 0 0;color:#aebed2;font-size:9px;line-height:1.4}.modeBadge{display:inline-flex;white-space:nowrap;border-radius:999px;padding:5px 7px;font-size:7px;font-weight:950;letter-spacing:.04em}.modeBadge.ready,.modeBadge.open{color:#83f0b0;background:rgba(34,220,125,.12);border:1px solid rgba(34,220,125,.28)}.modeBadge.planned{color:#a9caff;background:rgba(47,134,255,.12);border:1px solid rgba(47,134,255,.28)}.modeBadge.detectedBadge{color:#ffd08a;background:rgba(255,184,77,.12);border:1px solid rgba(255,184,77,.3)}.modeActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.modeActions button{border:1px solid rgba(47,134,255,.45);border-radius:9px;background:#0b284c;color:#fff;padding:8px 9px;font-size:8px;font-weight:850}.modeActions button.remove,.modeActions button.quiet{border-color:rgba(75,125,194,.28);background:#08182d;color:#c7d2e2}.modeEmpty{border:1px dashed rgba(75,125,194,.28);border-radius:12px;padding:12px;color:#93a5bc;font-size:9px;line-height:1.4}.privacySnapshot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.privacySnapshot div{border:1px solid rgba(75,125,194,.2);border-radius:10px;padding:8px;background:rgba(5,18,34,.7)}.privacySnapshot span{display:block;color:#859bb7;font-size:7px;text-transform:uppercase}.privacySnapshot strong{display:block;margin-top:4px;font-size:11px}.privacyRules{margin:10px 0 0;padding-left:18px;color:#aebed2;font-size:9px;line-height:1.5}.reserved{margin-top:22px;border:1px dashed rgba(75,125,194,.38);border-radius:18px;padding:20px;color:#aab8cb;text-align:center}.reserved h1{color:#fff}.reserved p{line-height:1.45}
+.hubTabs{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:10px 0;padding:6px;border:1px solid rgba(75,125,194,.22);border-radius:15px;background:rgba(2,7,19,.96)}.hubTab{min-width:0;border:1px solid transparent;border-radius:10px;background:transparent;color:#91a3ba;padding:9px 2px;font-size:8px;font-weight:950}.hubTab.active{border-color:rgba(47,134,255,.55);background:#0b2b52;color:#fff}.hubPanel[hidden]{display:none}.hubDashboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}.hubMetric{border:1px solid rgba(75,125,194,.2);border-radius:12px;background:rgba(4,15,28,.7);padding:10px 6px;text-align:center}.hubMetric strong{display:block;font-size:18px}.hubMetric span{display:block;margin-top:3px;color:#91a3ba;font-size:7px;text-transform:uppercase}.hubToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin:10px 0}.hubToolbar input,.hubToolbar select,.hubForm input,.hubForm select,.hubForm textarea{width:100%;min-width:0;border:1px solid rgba(75,125,194,.3);border-radius:10px;background:#06111e;color:#fff;padding:10px;font:inherit}.hubToolbar button,.hubPrimary,.hubSecondary{border-radius:10px;padding:10px;font-size:9px;font-weight:900}.hubPrimary{border:1px solid rgba(47,134,255,.65);background:#1761c7;color:#fff}.hubSecondary{border:1px solid rgba(75,125,194,.34);background:#08182d;color:#fff}.attention{border:1px solid rgba(255,184,77,.3);border-radius:14px;background:rgba(55,34,8,.38);padding:11px;margin:10px 0}.attention strong{font-size:11px;color:#ffd08a}.attention p{margin:5px 0 0;color:#c8d3e2;font-size:9px;line-height:1.4}.jobHubList{display:grid;gap:9px}.hubCard{border:1px solid rgba(108,160,228,.2);border-radius:15px;background:rgba(4,15,28,.78);padding:11px;overflow:hidden}.hubCardTop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.hubCard h3{margin:0;font-size:14px;line-height:1.25}.hubCompany{margin-top:3px;color:#8fc0ff;font-size:10px;font-weight:800}.hubMeta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.hubMeta span{border:1px solid rgba(75,125,194,.22);border-radius:999px;background:#071421;padding:5px 7px;color:#c8d3e2;font-size:8px}.hubMatch{width:45px;height:45px;border:1px solid rgba(34,220,125,.3);border-radius:50%;display:grid;place-items:center;color:#83f0b0;font-size:11px;font-weight:950}.hubReason{margin:8px 0 0;color:#b7c5d8;font-size:9px;line-height:1.4}.hubReason b{color:#dceaff}.hubActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.hubActions button,.hubActions a{border:1px solid rgba(75,125,194,.32);border-radius:9px;background:#08182d;color:#fff;padding:8px;text-decoration:none;font-size:8px;font-weight:900}.hubActions .apply{border-color:rgba(47,134,255,.55);background:#0d3f85}.hubStatus{display:inline-flex;border-radius:999px;padding:5px 7px;font-size:7px;font-weight:950;white-space:nowrap;color:#a9caff;background:rgba(47,134,255,.12);border:1px solid rgba(47,134,255,.28)}.hubStatus.reply,.hubStatus.interview,.hubStatus.offer{color:#83f0b0;border-color:rgba(34,220,125,.3);background:rgba(34,220,125,.1)}.hubStatus.rejected,.hubStatus.closed{color:#ff9aa2;border-color:rgba(255,95,109,.3);background:rgba(255,95,109,.1)}.hubForm{display:grid;gap:8px}.hubForm label span{display:block;margin-bottom:4px;color:#9fb1c7;font-size:8px}.hubForm textarea{min-height:90px;resize:vertical}.agentBox{border:1px solid rgba(47,134,255,.32);border-radius:15px;background:linear-gradient(145deg,rgba(8,38,73,.72),rgba(4,15,28,.86));padding:12px;margin:10px 0}.agentBox h2{margin:0;color:#8fc0ff;font-size:14px}.agentBox p{margin:6px 0;color:#b7c5d8;font-size:9px;line-height:1.45}.cvRef{border:1px dashed rgba(75,125,194,.35);border-radius:11px;padding:9px;color:#b7c5d8;font-size:9px}.cvRef a{color:#8fc0ff}.recordHistory{margin:8px 0 0;padding-left:17px;color:#aebed2;font-size:8px;line-height:1.6}
+</style>
+<link rel="stylesheet" href="./css/asia-hub-theme.css?v=2">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./css/work-v1-final.css?v=1">
+<script>(function(){try{var t=localStorage.getItem('nosmo-work:v1:theme');if(!t&&matchMedia('(prefers-color-scheme: light)').matches)t='light';document.documentElement.dataset.workTheme=t||'dark'}catch(_){document.documentElement.dataset.workTheme='dark'}})();</script>
+</head>
+<body>
+<main class="page">
+  <header class="top"><a class="back" href="./index.html" aria-label="Back to Person Card">‹</a><div class="brand">NOSMO · PERSON CARD</div><div class="topGhost"></div></header>
+
+  <section id="documentsScreen" hidden>
+    <section class="hero">
+      <div class="eyebrow">Window 2 · Worker-owned records</div>
+      <h1>DOCUMENTS</h1>
+      <p>One place for professional cards, certificates, training, CV, ID / Right to Work placeholders and other work documents.</p>
+      <div class="privacyNote">Local/demo mode. Document metadata added here stays on this device. Nothing is uploaded or shared with a server, employer or agency without your explicit approval.</div>
+      <div class="summary" aria-label="Document status summary">
+        <div><strong id="countValid">0</strong><span>Valid</span></div>
+        <div><strong id="countExpiring">0</strong><span>Expiring</span></div>
+        <div><strong id="countExpired">0</strong><span>Expired</span></div>
+        <div><strong id="countNoExpiry">0</strong><span>No expiry</span></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <h2>My documents</h2>
+      <button class="addBtn" id="addDocument" type="button">+ Add document</button>
+    </div>
+    <div id="documentGroups"></div>
+  </section>
+
+  <section id="workScreen" hidden>
+    <section class="hero">
+      <div class="eyebrow">Window 3 · Professional worker profile</div>
+      <h1>NOSMO WORK</h1>
+      <p>Your Work Card, job search, applications and employer contacts in one worker-owned centre.</p>
+      <div class="privacyNote">Local/demo mode. Work Card data stays on this device. Nothing is uploaded or disclosed to an employer, agency or server without an explicit user action.</div>
+    </section>
+
+    <nav class="hubTabs" aria-label="NOSMO Work sections">
+      <button class="hubTab active" type="button" data-hub-tab="card">WORK CARD</button>
+      <button class="hubTab" type="button" data-hub-tab="jobs">JOBS</button>
+      <button class="hubTab" type="button" data-hub-tab="applications">APPLICATIONS</button>
+      <button class="hubTab" type="button" data-hub-tab="employers">EMPLOYERS</button>
+    </nav>
+
+    <div class="hubPanel" data-hub-panel="card">
+    <section class="workCardPanel">
+      <div class="profileGrid">
+        <div class="profileField"><span>Current role / trade</span><strong id="profileCurrentRole">—</strong></div>
+        <div class="profileField"><span>Availability</span><strong id="profileAvailability">—</strong></div>
+        <div class="profileField"><span>Preferred work location</span><strong id="profilePreferredLocation">—</strong></div>
+        <div class="profileField"><span>Employment type</span><strong id="profileEmploymentType">—</strong></div>
+      </div>
+      <div class="workActions">
+        <button class="secondaryBtn" id="editWorkCard" type="button">Edit Work Card</button>
+        <button class="shareBtn" id="shareWorkCard" type="button">Share Work Card</button>
+      </div>
+    </section>
+
+    <div class="sectionHead"><h2>Recent projects</h2><button id="addProject" type="button">+ Add project</button></div>
+    <div id="recentProjects" class="projectList"></div>
+
+    <div class="sectionHead"><h2>Work history</h2></div>
+    <div id="workHistory" class="historyList"></div>
+
+    <div class="sectionHead"><h2>References</h2></div>
+    <div id="workReferences" class="referenceList"></div>
+
+    <div class="sectionHead"><h2>Skills</h2></div>
+    <div id="workSkills" class="tagRow"></div>
+
+    <div class="sectionHead"><h2>Licences / tickets</h2></div>
+    <div id="workLicences" class="tagRow"></div>
+
+    <div class="sectionHead"><h2>Employer / agency notes</h2></div>
+    <div id="workNotesList" class="noteList"></div>
+
+    <div class="workBoundary"><strong>Worker-owned:</strong> Work Agent reads this canonical Work Card, Person Card and Documents references. Work Mode V2 runs only in the fourth window and does not scan from Work Card.</div>
+    </div>
+
+    <div class="hubPanel" data-hub-panel="jobs" hidden>
+      <section class="agentBox"><h2>NOSMO CONSTRUCTION JOBS</h2><p>Construction roles only. Matches vacancies against your Work Card, trade, skills, tickets, location and availability. It never invents experience or marks an application sent.</p><div id="workAgentContext" class="cvRef"></div></section>
+      <div class="hubToolbar"><input id="jobSearchInput" type="search" placeholder="Search jobs / employers" aria-label="Search jobs or employers"><button class="hubPrimary" id="addJobButton" type="button">+ Add job</button></div>
+      <div class="hubToolbar"><select id="constructionTradeFilter" aria-label="Filter by construction trade"><option value="">All construction trades</option></select><select id="jobStatusFilter" aria-label="Filter jobs by status"><option value="">All statuses</option></select></div>
+      <button class="hubSecondary" id="runWorkAgent" type="button">Search construction jobs</button>
+      <div id="jobSourceNotice" class="modeStatus">CONSTRUCTION ONLY · Local/demo matches. Non-construction vacancies are excluded from manual, imported and gateway results.</div>
+      <div id="jobHubList" class="jobHubList"></div>
+    </div>
+
+    <div class="hubPanel" data-hub-panel="applications" hidden>
+      <div class="hubDashboard"><div class="hubMetric"><strong id="applicationsSent">0</strong><span>Sent confirmed</span></div><div class="hubMetric"><strong id="repliesToCheck">0</strong><span>Replies</span></div><div class="hubMetric"><strong id="needsAction">0</strong><span>Needs action</span></div></div>
+      <div class="attention"><strong>Needs attention</strong><p id="attentionCopy">No confirmed follow-up is due.</p></div>
+      <div class="sectionHead"><h2>Recent applications</h2></div><div id="applicationHubList" class="jobHubList"></div>
+    </div>
+
+    <div class="hubPanel" data-hub-panel="employers" hidden>
+      <div class="hubToolbar"><input id="employerSearchInput" type="search" placeholder="Search employers / agencies"><button class="hubPrimary" id="addEmployerButton" type="button">+ Add</button></div>
+      <div class="modeStatus">Worker-side contact records. Agency Desk remains the recruiter workspace; these records are compatible with future consent-gated linking.</div>
+      <div id="employerHubList" class="jobHubList"></div>
+    </div>
+  </section>
+
+  <section id="workModeScreen" hidden>
+    <section class="hero">
+      <div class="eyebrow">Window 4 · Local work app access</div>
+      <h1>WORK MODE</h1>
+      <p>Use supported work applications from inside the same NOSMO Person Card Freeware app. You decide what is scanned, added, opened or removed.</p>
+      <div class="privacyNote">App discovery happens only on this device. NOSMO does not upload or store a list of your installed apps.</div>
+      <div class="modeToolbar">
+        <button class="scan" id="scanWorkApps" type="button">Scan for work apps</button>
+        <button class="privacy" id="workModePrivacyInfo" type="button">Privacy info</button>
+      </div>
+      <div class="modeStatus" id="workModeStatus">Nothing has been scanned yet.</div>
+    </section>
+
+    <section class="modeSection">
+      <h2>Connected / Available Work Apps</h2>
+      <div class="modeSubhead">Added to Work Mode</div>
+      <div id="workModeTiles" class="modeAppList"></div>
+      <div class="modeSubhead">Detected applications</div>
+      <div id="workModeDetectedApps" class="modeAppList"></div>
+      <div class="modeSubhead">Available work apps</div>
+      <div id="workModeAvailableApps" class="modeAppList"></div>
+    </section>
+
+    <section class="modeSection">
+      <h2>Work app categories</h2>
+      <div id="workModeCategories" class="modeCategoryGrid"></div>
+    </section>
+
+    <div class="workBoundary"><strong>User control:</strong> detection does not add an app. Add to Work Mode, Open and Remove from Work Mode are separate user actions. OPEN means launch only; it does not grant NOSMO access to the app's content.</div>
+  </section>
+
+  <section id="reservedScreen" class="reserved" hidden>
+    <div class="eyebrow">Four-window architecture</div>
+    <h1 id="reservedTitle">Reserved window</h1>
+    <p id="reservedCopy">This route is reserved inside the same Person Card Freeware application.</p>
+    <p>This route stays inside the same Person Card Freeware application.</p>
+  </section>
+</main>
+
+<div class="sheetBackdrop" id="viewBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="Document details">
+    <div class="sheetHead"><h3 id="viewTitle">Document</h3><button class="closeBtn" id="closeView" type="button">×</button></div>
+    <div class="detail" id="viewDetails"></div>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="addBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="Add document">
+    <div class="sheetHead"><h3>Add document</h3><button class="closeBtn" id="closeAdd" type="button">×</button></div>
+    <form id="documentForm">
+      <div class="formGrid">
+        <label><span>Document name</span><input id="docName" required maxlength="100" placeholder="e.g. CSCS Blue Skilled Worker"></label>
+        <label><span>Type</span><select id="docType" required>
+          <option value="cards">CSCS / ECS / other card</option>
+          <option value="certificates">Certificate</option>
+          <option value="training">Training</option>
+          <option value="cv">CV</option>
+          <option value="identity">ID / Right to Work</option>
+          <option value="other">Other professional document</option>
+        </select></label>
+        <label><span>Expiry date (optional)</span><input id="docExpiry" type="date"></label>
+      </div>
+      <button class="saveBtn" type="submit">Save locally</button>
+      <div class="localOnly">This demo stores document metadata in localStorage only. It does not upload a document file or send this information to a server.</div>
+    </form>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="workProfileBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="Edit Work Card">
+    <div class="sheetHead"><h3>Edit Work Card</h3><button class="closeBtn" id="closeWorkProfile" type="button">×</button></div>
+    <form id="workProfileForm">
+      <div class="formGrid">
+        <label><span>Current role / trade</span><input id="workCurrentRole" required maxlength="100" placeholder="e.g. Carpenter / Joiner"></label>
+        <label><span>Availability</span><select id="workAvailability">
+          <option>Available now</option>
+          <option>Available from date</option>
+          <option>Not available</option>
+        </select></label>
+        <label id="workAvailableFromRow" hidden><span>Available from</span><input id="workAvailableFrom" type="date"></label>
+        <label><span>Preferred work location</span><input id="workPreferredLocation" maxlength="120" placeholder="e.g. Leeds / West Yorkshire"></label>
+        <label><span>Employment type</span><select id="workEmploymentType">
+          <option>CIS / Contract</option>
+          <option>PAYE</option>
+          <option>Self-employed</option>
+          <option>Temporary / Agency</option>
+          <option>Permanent</option>
+        </select></label>
+      </div>
+      <button class="saveBtn" type="submit">Save locally</button>
+      <div class="localOnly">This changes only the local Work Card profile. It does not update an employer or agency system.</div>
+    </form>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="projectBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="Add recent project">
+    <div class="sheetHead"><h3>Add recent project</h3><button class="closeBtn" id="closeProject" type="button">×</button></div>
+    <form id="projectForm">
+      <div class="formGrid">
+        <label><span>Project name</span><input id="projectName" required maxlength="120" placeholder="e.g. City Centre Refurbishment"></label>
+        <label><span>Company</span><input id="projectCompany" required maxlength="100" placeholder="Employer / contractor"></label>
+        <label><span>Role</span><input id="projectRole" required maxlength="100" placeholder="e.g. Joiner"></label>
+        <label><span>Start date</span><input id="projectStart" type="date"></label>
+        <label><span>End date</span><input id="projectEnd" type="date"></label>
+        <label><span>Short description</span><input id="projectDescription" maxlength="220" placeholder="What you did on the project"></label>
+      </div>
+      <button class="saveBtn" type="submit">Add locally</button>
+      <div class="localOnly">Project metadata is stored on this device only in the current freeware demo.</div>
+    </form>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="workModePrivacyBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="Work Mode privacy information">
+    <div class="sheetHead"><h3>Privacy &amp; Work Apps</h3><button class="closeBtn" id="closeWorkModePrivacy" type="button">×</button></div>
+    <div class="privacyNote" id="workModePrivacyCopy">App discovery happens only on this device. NOSMO does not upload or store a list of your installed apps.</div>
+    <ul class="privacyRules">
+      <li>The scan checks only the controlled supported-app list.</li>
+      <li>The installed-app inventory stays on this device.</li>
+      <li>Detection alone creates no Work Mode tile or connection.</li>
+      <li>You choose which detected apps to add.</li>
+      <li>OPEN launches an app only. It does not read its content.</li>
+      <li>Removing a tile does not uninstall the app.</li>
+    </ul>
+    <div class="privacySnapshot" id="workModePrivacySnapshot"></div>
+    <button class="saveBtn" id="acceptWorkModePrivacy" type="button">I understand</button>
+  </section>
+</div>
+
+<div class="sheetBackdrop" id="workHubBackdrop" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-label="NOSMO Work record">
+    <div class="sheetHead"><h3 id="workHubSheetTitle">Work record</h3><button class="closeBtn" id="closeWorkHubSheet" type="button">×</button></div>
+    <div id="workHubSheetBody"></div>
+  </section>
+</div>
+
+<div class="workToast" id="workToast" role="status"></div>
+
+<nav class="appWindowNav" aria-label="Person Card Freeware main windows">
+  <a href="./index.html" data-screen="person">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg><span>Person</span>
+  </a>
+  <a href="./screen.html?screen=documents" data-screen="documents">
+    <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 12h6M9 16h6"/></svg><span>Documents</span>
+  </a>
+  <a href="./screen.html?screen=work" data-screen="work">
+    <svg viewBox="0 0 24 24"><path d="M9 6V4h6v2M4 8h16v11H4zM4 12h16"/></svg><span>Work</span>
+  </a>
+  <a href="./screen.html?screen=work-mode" data-screen="work-mode">
+    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg><span>Work Mode</span>
+  </a>
+</nav>
+
+<script>
+const LOCAL_KEY="nosmo-person-card-freeware:documents/v1";
+const WORK_LOCAL_KEY="nosmo-person-card-freeware:work-card/v2";
+const WORK_LEGACY_KEY="nosmo-person-card-freeware:work-card/v1";
+const now=new Date("2026-08-27T00:00:00Z");
+const demoDocuments=[
+  {id:"demo-cscs",name:"CSCS / trade card placeholder",type:"cards",expiry:"2027-06-15",source:"demo"},
+  {id:"demo-iso3834",name:"ISO 3834 Welding Coordinator",type:"certificates",expiry:"",source:"demo",note:"Training progress: 75% complete"},
+  {id:"demo-first-aid",name:"First Aid training placeholder",type:"training",expiry:"2026-09-20",source:"demo"},
+  {id:"demo-cv",name:"Current Work Profile CV",type:"cv",expiry:"",source:"demo"},
+  {id:"demo-rtw",name:"Right to Work placeholder",type:"identity",expiry:"",source:"demo",placeholder:true},
+  {id:"demo-id",name:"ID document placeholder",type:"identity",expiry:"",source:"demo",placeholder:true},
+  {id:"demo-welding",name:"Welding & fabrication records",type:"other",expiry:"2026-07-01",source:"demo",note:"Verification pending"}
+];
+
+const labels={
+  cards:"CSCS / ECS / OTHER CARDS",
+  certificates:"CERTIFICATES",
+  training:"TRAINING",
+  cv:"CV",
+  identity:"ID / RIGHT TO WORK",
+  other:"OTHER PROFESSIONAL DOCUMENTS"
+};
+
+function loadLocal(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(LOCAL_KEY)||"[]");
+    return Array.isArray(parsed)?parsed:[];
+  }catch(_){return []}
+}
+function statusFor(doc){
+  if(!doc.expiry)return {key:"no-expiry",label:"NO EXPIRY"};
+  const expiry=new Date(doc.expiry+"T23:59:59Z");
+  const days=Math.ceil((expiry-now)/86400000);
+  if(days<0)return {key:"expired",label:"EXPIRED"};
+  if(days<=60)return {key:"expiring",label:"EXPIRING"};
+  return {key:"valid",label:"VALID"};
+}
+function allDocuments(){return [...demoDocuments,...loadLocal()]}
+function formatExpiry(expiry){
+  if(!expiry)return "No expiry date";
+  return new Date(expiry+"T00:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+}
+function render(){
+  const docs=allDocuments();
+  const counts={valid:0,expiring:0,expired:0,"no-expiry":0};
+  docs.forEach(d=>counts[statusFor(d).key]++);
+  document.getElementById("countValid").textContent=counts.valid;
+  document.getElementById("countExpiring").textContent=counts.expiring;
+  document.getElementById("countExpired").textContent=counts.expired;
+  document.getElementById("countNoExpiry").textContent=counts["no-expiry"];
+  const host=document.getElementById("documentGroups");
+  host.innerHTML=Object.entries(labels).map(([type,label])=>{
+    const group=docs.filter(d=>d.type===type);
+    return '<section class="group"><div class="groupTitle">'+label+'</div><div class="docList">'+
+      (group.length?group.map(doc=>{
+        const st=statusFor(doc);
+        return '<article class="doc"><div class="docTop"><div><div class="docName">'+esc(doc.name)+'</div><div class="docType">'+esc(label)+'</div>'+
+          (doc.placeholder?'<span class="placeholderTag">PLACEHOLDER · NO FILE ATTACHED</span>':'')+
+          '</div><button class="viewBtn" type="button" data-view="'+esc(doc.id)+'">View</button></div>'+
+          '<div class="docMeta"><span class="expiry">'+esc(formatExpiry(doc.expiry))+'</span><span class="status '+st.key+'">'+st.label+'</span></div></article>';
+      }).join(""):'<div class="empty">No documents in this section.</div>')+
+      '</div></section>';
+  }).join("");
+  host.querySelectorAll("[data-view]").forEach(btn=>btn.addEventListener("click",()=>openView(btn.dataset.view)));
+}
+function openView(id){
+  const doc=allDocuments().find(d=>d.id===id); if(!doc)return;
+  const st=statusFor(doc);
+  document.getElementById("viewTitle").textContent=doc.name;
+  document.getElementById("viewDetails").innerHTML=
+    '<div class="detailRow"><span>Type</span><strong>'+esc(labels[doc.type])+'</strong></div>'+
+    '<div class="detailRow"><span>Expiry</span><strong>'+esc(formatExpiry(doc.expiry))+'</strong></div>'+
+    '<div class="detailRow"><span>Status</span><strong>'+st.label+'</strong></div>'+
+    '<div class="detailRow"><span>Storage</span><strong>'+(doc.source==="local"?"Local metadata on this device":"Demo / placeholder data")+'</strong></div>'+
+    (doc.note?'<div class="detailRow"><span>Note</span><strong>'+esc(doc.note)+'</strong></div>':'')+
+    (doc.placeholder?'<div class="detailRow"><span>Attachment</span><strong>No file attached</strong></div>':'');
+  toggle("viewBackdrop",true);
+}
+
+const demoWorkCard={
+  profile:{
+    currentRole:"Trade role placeholder",
+    availability:"Available now",
+    preferredLocation:"Leeds / West Yorkshire",
+    employmentType:"CIS / Contract"
+  },
+  recentProjects:[
+    {id:"project-demo-1",name:"City Centre Refurbishment",company:"Demo contractor",role:"Joiner",start:"2026-07-01",end:"2026-08-20",description:"Second-fix and finishing works across a live refurbishment project.",source:"demo"},
+    {id:"project-demo-2",name:"Residential Fit-Out",company:"Previous contractor placeholder",role:"Carpenter / Joiner",start:"2026-03-10",end:"2026-05-30",description:"Internal doors, ironmongery and final finishing works.",source:"demo"}
+  ],
+  workHistory:[
+    {id:"history-demo-1",company:"Demo contractor",role:"Joiner",start:"2026-07-01",end:"Present",description:"Current assignment placeholder."},
+    {id:"history-demo-2",company:"Previous contractor placeholder",role:"Carpenter / Joiner",start:"2025-09-01",end:"2026-05-30",description:"Construction and fit-out work history placeholder."}
+  ],
+  references:[
+    {id:"ref-demo-1",name:"Reference placeholder",meta:"Previous site manager · verification pending",text:"Contact details remain private until the worker chooses to share them."}
+  ],
+  skills:[
+    {name:"Second Fix Joinery",level:"Advanced",verification:"unverified"},
+    {name:"Door Installation",level:"Experienced",verification:"unverified"},
+    {name:"Fit-Out",level:"Experienced",verification:"unverified"},
+    {name:"Site Coordination",level:"Working",verification:"unverified"}
+  ],
+  licences:[
+    {name:"CSCS / trade card",status:"VALID",verification:"unverified"},
+    {name:"First Aid",status:"Training / placeholder",verification:"unverified"}
+  ],
+  notes:[
+    {id:"note-demo-1",source:"Agency",date:"2026-08-20",text:"Demo note only. Employer / agency notes shown here are worker-visible placeholders in local mode."}
+  ]
+};
+
+function cloneWorkCard(){return JSON.parse(JSON.stringify(demoWorkCard))}
+function loadWorkCard(){
+  const canonical=window.NOSMO_WORK_PROFILE_BRIDGE?.getCard?.();
+  if(canonical)return canonical;
+  try{
+    const saved=JSON.parse(localStorage.getItem(WORK_LOCAL_KEY)||"null");
+    if(saved&&typeof saved==="object"&&!Array.isArray(saved)){
+      return {
+        profile:{...demoWorkCard.profile,...(saved.profile||{})},
+        recentProjects:Array.isArray(saved.recentProjects)?saved.recentProjects:demoWorkCard.recentProjects,
+        workHistory:Array.isArray(saved.workHistory)?saved.workHistory:demoWorkCard.workHistory,
+        references:Array.isArray(saved.references)?saved.references:demoWorkCard.references,
+        skills:Array.isArray(saved.skills)?saved.skills:demoWorkCard.skills,
+        licences:Array.isArray(saved.licences)?saved.licences:demoWorkCard.licences,
+        notes:Array.isArray(saved.notes)?saved.notes:demoWorkCard.notes
+      };
+    }
+    const legacy=JSON.parse(localStorage.getItem(WORK_LEGACY_KEY)||"[]");
+    if(Array.isArray(legacy)&&legacy.length){
+      const card=cloneWorkCard();
+      card.recentProjects=legacy.map(r=>({
+        id:r.id||("legacy-"+Date.now()),
+        name:r.project||"Project",
+        company:r.employer||"Employer",
+        role:r.role||"Role",
+        start:r.start||"",
+        end:r.end||"",
+        description:r.notes||"",
+        source:"legacy-local"
+      }));
+      return card;
+    }
+  }catch(_){}
+  return cloneWorkCard();
+}
+function saveWorkCard(card){
+  if(window.NOSMO_WORK_PROFILE_BRIDGE?.getProfile?.())return window.NOSMO_WORK_PROFILE_BRIDGE.saveCard(card);
+  localStorage.setItem(WORK_LOCAL_KEY,JSON.stringify(card));
+}
+function formatWorkDate(value){
+  if(!value)return "Not set";
+  if(value==="Present")return value;
+  return new Date(value+"T00:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]))}
+
+function renderWork(){
+  const card=loadWorkCard();
+  document.getElementById("profileCurrentRole").textContent=card.profile.currentRole||"Not set";
+  document.getElementById("profileAvailability").textContent=card.profile.availability||"Not set";
+  document.getElementById("profilePreferredLocation").textContent=card.profile.preferredLocation||"Not set";
+  document.getElementById("profileEmploymentType").textContent=card.profile.employmentType||"Not set";
+
+  document.getElementById("recentProjects").innerHTML=card.recentProjects.length?card.recentProjects.map(p=>
+    '<article class="projectCard"><div class="projectName">'+esc(p.name)+'</div><div class="projectCompany">'+esc(p.company)+'</div>'+
+    '<div class="projectRole">'+esc(p.role)+'</div><div class="projectDates">'+esc(formatWorkDate(p.start))+' — '+esc(p.end?formatWorkDate(p.end):"Present")+'</div>'+
+    '<div class="projectDescription">'+esc(p.description||"No description added.")+'</div></article>'
+  ).join(""):'<div class="empty">No recent projects added.</div>';
+
+  document.getElementById("workHistory").innerHTML=card.workHistory.length?card.workHistory.map(h=>
+    '<article class="historyCard"><div class="historyRole">'+esc(h.role)+'</div><div class="historyCompany">'+esc(h.company)+'</div>'+
+    '<div class="historyDates">'+esc(formatWorkDate(h.start))+' — '+esc(formatWorkDate(h.end))+'</div>'+
+    '<div class="historyDescription">'+esc(h.description||"")+'</div></article>'
+  ).join(""):'<div class="empty">No work history added.</div>';
+
+  document.getElementById("workReferences").innerHTML=card.references.length?card.references.map(r=>
+    '<article class="referenceCard"><div class="referenceName">'+esc(r.name)+'</div><div class="referenceMeta">'+esc(r.meta||"")+'</div>'+
+    '<div class="referenceText">'+esc(r.text||"")+'</div></article>'
+  ).join(""):'<div class="empty">No references added.</div>';
+
+  document.getElementById("workSkills").innerHTML=card.skills.length?card.skills.map(skill=>
+    '<span class="skillTag '+(skill.verification==="verified"?"verified":"unverified")+'"><span class="verifyDot"></span><strong>'+esc(skill.name)+'</strong><span class="badgeMeta">'+esc(skill.level||"")+' · '+esc((skill.verification||"unverified").toUpperCase())+'</span></span>'
+  ).join(""):'<div class="empty">No skills added.</div>';
+
+  document.getElementById("workLicences").innerHTML=card.licences.length?card.licences.map(ticket=>
+    '<span class="ticketTag '+(ticket.verification==="verified"?"verified":"unverified")+'"><span class="verifyDot"></span><strong>'+esc(ticket.name)+'</strong><span class="badgeMeta">'+esc(ticket.status||"")+' · '+esc((ticket.verification||"unverified").toUpperCase())+'</span></span>'
+  ).join(""):'<div class="empty">No licences or tickets added.</div>';
+
+  document.getElementById("workNotesList").innerHTML=card.notes.length?card.notes.map(note=>
+    '<article class="noteCard"><div class="noteMeta">'+esc(note.source||"Note")+' · '+esc(formatWorkDate(note.date))+'</div><div class="noteText">'+esc(note.text||"")+'</div></article>'
+  ).join(""):'<div class="empty">No employer / agency notes.</div>';
+}
+
+function toggle(id,open){
+  const el=document.getElementById(id);el.classList.toggle("open",open);el.setAttribute("aria-hidden",String(!open));
+}
+function showWorkToast(message){
+  const el=document.getElementById("workToast");
+  el.textContent=message;el.classList.add("show");
+  clearTimeout(showWorkToast.timer);
+  showWorkToast.timer=setTimeout(()=>el.classList.remove("show"),2200);
+}
+function workCardShareText(card){
+  const project=card.recentProjects[0];
+  const skills=card.skills.map(s=>s.name).join(", ");
+  const tickets=card.licences.map(t=>t.name+" ("+(t.status||"")+")").join(", ");
+  return [
+    "NOSMO WORK CARD",
+    "Role: "+(card.profile.currentRole||"Not set"),
+    "Availability: "+(card.profile.availability||"Not set"),
+    "Preferred location: "+(card.profile.preferredLocation||"Not set"),
+    "Employment type: "+(card.profile.employmentType||"Not set"),
+    project?"Recent project: "+project.name+" · "+project.company+" · "+project.role:"",
+    skills?"Skills: "+skills:"",
+    tickets?"Licences / tickets: "+tickets:""
+  ].filter(Boolean).join("\n");
+}
+
+document.getElementById("closeView").addEventListener("click",()=>toggle("viewBackdrop",false));
+document.getElementById("closeAdd").addEventListener("click",()=>toggle("addBackdrop",false));
+document.getElementById("addDocument").addEventListener("click",()=>toggle("addBackdrop",true));
+document.getElementById("documentForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=document.getElementById("docName").value.trim();
+  if(!name)return;
+  const local=loadLocal();
+  local.push({
+    id:"local-"+Date.now(),
+    name,
+    type:document.getElementById("docType").value,
+    expiry:document.getElementById("docExpiry").value||"",
+    source:"local",
+    addedAt:new Date().toISOString()
+  });
+  localStorage.setItem(LOCAL_KEY,JSON.stringify(local));
+  e.target.reset();
+  toggle("addBackdrop",false);
+  render();
+});
+["viewBackdrop","addBackdrop"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)toggle(id,false)}));
+
+document.getElementById("editWorkCard").addEventListener("click",()=>{
+  const card=loadWorkCard();
+  document.getElementById("workCurrentRole").value=card.profile.currentRole||"";
+  document.getElementById("workAvailability").value=card.profile.availability||"Available now";
+  document.getElementById("workAvailableFrom").value=card.profile.availableFrom||"";
+  document.getElementById("workAvailableFromRow").hidden=document.getElementById("workAvailability").value!=="Available from date";
+  document.getElementById("workPreferredLocation").value=card.profile.preferredLocation||"";
+  document.getElementById("workEmploymentType").value=card.profile.employmentType||"CIS / Contract";
+  toggle("workProfileBackdrop",true);
+});
+document.getElementById("closeWorkProfile").addEventListener("click",()=>toggle("workProfileBackdrop",false));
+document.getElementById("workProfileForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const card=loadWorkCard();
+  card.profile={
+    currentRole:document.getElementById("workCurrentRole").value.trim(),
+    availability:document.getElementById("workAvailability").value,
+    availableFrom:document.getElementById("workAvailability").value==="Available from date"?document.getElementById("workAvailableFrom").value:"",
+    preferredLocation:document.getElementById("workPreferredLocation").value.trim(),
+    employmentType:document.getElementById("workEmploymentType").value
+  };
+  saveWorkCard(card);
+  toggle("workProfileBackdrop",false);
+  renderWork();
+  showWorkToast("Work Card saved locally.");
+});
+document.getElementById("workAvailability").addEventListener("change",event=>{document.getElementById("workAvailableFromRow").hidden=event.target.value!=="Available from date"});
+document.getElementById("addProject").addEventListener("click",()=>toggle("projectBackdrop",true));
+document.getElementById("closeProject").addEventListener("click",()=>toggle("projectBackdrop",false));
+document.getElementById("projectForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const card=loadWorkCard();
+  card.recentProjects.unshift({
+    id:"local-project-"+Date.now(),
+    name:document.getElementById("projectName").value.trim(),
+    company:document.getElementById("projectCompany").value.trim(),
+    role:document.getElementById("projectRole").value.trim(),
+    start:document.getElementById("projectStart").value||"",
+    end:document.getElementById("projectEnd").value||"",
+    description:document.getElementById("projectDescription").value.trim(),
+    source:"local"
+  });
+  saveWorkCard(card);
+  e.target.reset();
+  toggle("projectBackdrop",false);
+  renderWork();
+  showWorkToast("Recent project added locally.");
+});
+document.getElementById("shareWorkCard").addEventListener("click",async()=>{
+  const card=loadWorkCard();
+  const text=workCardShareText(card);
+  try{
+    if(navigator.share){
+      await navigator.share({title:"NOSMO Work Card",text});
+      showWorkToast("Work Card shared by your action.");
+    }else if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(text);
+      showWorkToast("Work Card summary copied.");
+    }else{
+      showWorkToast("Sharing is not available on this device.");
+    }
+  }catch(err){
+    if(err?.name!=="AbortError")showWorkToast("Share cancelled or unavailable.");
+  }
+});
+["workProfileBackdrop","projectBackdrop"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)toggle(id,false)}));
+
+const screens={
+  documents:{title:"DOCUMENTS"},
+  work:{title:"WORK CARD"},
+  "work-mode":{title:"WORK MODE"}
+};
+function activateScreen(next,{push=false}={}){
+  if(!screens[next]){location.href="./index.html";return}
+  document.getElementById("documentsScreen").hidden=true;
+  document.getElementById("workScreen").hidden=true;
+  document.getElementById("workModeScreen").hidden=true;
+  document.getElementById("reservedScreen").hidden=true;
+  document.querySelectorAll(".appWindowNav a[data-screen]").forEach(link=>link.classList.remove("active"));
+  document.querySelector('[data-screen="'+next+'"]')?.classList.add("active");
+  document.title="NOSMO Person Card Freeware — "+screens[next].title;
+  if(next==="documents"){document.getElementById("documentsScreen").hidden=false;render()}
+  else if(next==="work"){document.getElementById("workScreen").hidden=false;renderWork()}
+  else if(next==="work-mode"){document.getElementById("workModeScreen").hidden=false}
+  if(push)history.pushState({screen:next},"","./screen.html?screen="+encodeURIComponent(next));
+  window.scrollTo({top:0,behavior:"auto"});
+}
+const initialScreen=new URLSearchParams(location.search).get("screen");
+activateScreen(initialScreen);
+document.querySelectorAll('.appWindowNav a[data-screen="documents"],.appWindowNav a[data-screen="work"],.appWindowNav a[data-screen="work-mode"]').forEach(link=>{
+  link.addEventListener("click",event=>{
+    event.preventDefault();
+    activateScreen(link.dataset.screen,{push:true});
+  });
+});
+window.addEventListener("popstate",()=>activateScreen(new URLSearchParams(location.search).get("screen")));
+</script>
+<script src="./js/canonical-work-profile-bridge.js?v=2"></script>
+<script src="./js/contact-action-engine.js?v=3"></script>
+<script src="./js/work-hub.js?v=4"></script>
+<script type="module" src="./work-mode-v2/work-mode-screen.mjs"></script>
+<script src="./js/work-v1-runtime.js?v=1"></script>
+</body>
+</html>
