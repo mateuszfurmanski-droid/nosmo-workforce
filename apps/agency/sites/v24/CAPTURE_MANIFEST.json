@@ -130,5 +130,65 @@
       "sha256": "08d9437333150deb9462f487d87cb597c6ea68284dd279f97e38549020727202",
       "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/api/agency/health-c103e870b6.json"
     }
-  ]
+  ],
+  "dependencyClosure": {
+    "completedAt": "2026-09-05T14:32:28.006Z",
+    "source": "https://nosmo-agency.mateusz-furmanski.chatgpt.site",
+    "downloaded": [
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/webpack-bqEODIzK.js",
+        "status": 200,
+        "contentType": "text/javascript",
+        "bytes": 431325,
+        "sha256": "14ed2e49eef3df3365a3b186ec971af3b841ae7fed997a887443de7be9078d35",
+        "path": "public/assets/webpack-bqEODIzK.js",
+        "dependencyClosure": true
+      },
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/src-Cux5XbTP.js",
+        "status": 200,
+        "contentType": "text/javascript",
+        "bytes": 17248,
+        "sha256": "6cd27918db9dc12eaa06e5a8b155c0b9c8ad364f779d1d39f02a1bfc16f12763",
+        "path": "public/assets/src-Cux5XbTP.js",
+        "dependencyClosure": true
+      },
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/lib-CX2z2z0g.js",
+        "status": 200,
+        "contentType": "text/javascript",
+        "bytes": 499187,
+        "sha256": "920561d3169887f730fc317697b241baa3e2198d782c855e6b9012ae22f331b1",
+        "path": "public/assets/lib-CX2z2z0g.js",
+        "dependencyClosure": true
+      },
+      {
+        "url": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/assets/pdf.worker-BDW0vFpl.js",
+        "status": 200,
+        "contentType": "text/javascript",
+        "bytes": 1190184,
+        "sha256": "7564e1a1d89f1b4e6e2ec3e31e9af820d1215a745da1e23a3bb018f78a65deae",
+        "path": "public/assets/pdf.worker-BDW0vFpl.js",
+        "dependencyClosure": true
+      }
+    ],
+    "unresolved": [],
+    "publicFiles": [
+      "assets/emergency-core-Bm4UH8t1.js",
+      "assets/framework-BOexRV2D.js",
+      "assets/index-0r1qI2wJ.css",
+      "assets/index-B1QG66Mi.js",
+      "assets/layout-segment-context-C_bkBiuL.js",
+      "assets/lib-CX2z2z0g.js",
+      "assets/page-D2n6_To6.js",
+      "assets/pdf.worker-BDW0vFpl.js",
+      "assets/rolldown-runtime-BM3Ffeng.js",
+      "assets/src-Cux5XbTP.js",
+      "assets/webpack-bqEODIzK.js",
+      "assets/x-BwWSQcK2.js",
+      "index.html",
+      "nexus-logo-ui-mark-n.png",
+      "nosmo-logo.png"
+    ]
+  }
 }

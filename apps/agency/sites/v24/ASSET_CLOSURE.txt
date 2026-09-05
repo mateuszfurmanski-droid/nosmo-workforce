@@ -1,0 +1,8 @@
+Exact Sites dependency closure PASS
+Downloaded: 4
+Unresolved: 0
+
+14ed2e49eef3df3365a3b186ec971af3b841ae7fed997a887443de7be9078d35  public/assets/webpack-bqEODIzK.js
+6cd27918db9dc12eaa06e5a8b155c0b9c8ad364f779d1d39f02a1bfc16f12763  public/assets/src-Cux5XbTP.js
+920561d3169887f730fc317697b241baa3e2198d782c855e6b9012ae22f331b1  public/assets/lib-CX2z2z0g.js
+7564e1a1d89f1b4e6e2ec3e31e9af820d1215a745da1e23a3bb018f78a65deae  public/assets/pdf.worker-BDW0vFpl.js
