@@ -43,7 +43,7 @@ for(const route of [
   '/api/person-card/agency/account','/api/person-card/agency/profile',
   '/api/person-card/agency/candidates','/api/person-card/agency/activity',
   '/api/person-card/agency/v1/_health','/api/person-card/agency/v1/dashboard',
-  '/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import',
+  '/api/person-card/agency/v1/roster','/api/person-card/agency/v1/roster/import''/api/person-card/agency/v1/invites',
   '/api/person-card/agency/v1/requests','/api/person-card/agency/v1/requests/:requestId/match',
   '/api/person-card/agency/v1/requests/:requestId/applications',
   '/api/person-card/agency/v1/applications/:applicationId',
@@ -64,3 +64,8 @@ assert(pkg.dependencies?.['openid-client'],'standalone OIDC runtime missing');
 assert(vercel.functions?.['server.js'],'Vercel must deploy the canonical Express server');
 
 console.log(`NOSMO Agency static smoke PASS: ${ids.size} UI ids checked; standalone API, import/matching, consent boundary and tenant scoping contracts present.`);
+
+assert.match(server,/consentGranted:false/,'Invite must never auto-grant consent');
+assert.match(server,/recruiterSafeAccessGranted:false/,'Invite must never auto-grant recruiter-safe access');
+assert.match(server,/WORK_APP_BASE_URL_REQUIRED/,'Invite must fail closed when Worker App URL is not configured');
+assert.match(html,/invite-ui\.js/,'Invite UI module must be loaded');
