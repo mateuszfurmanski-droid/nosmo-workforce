@@ -150,7 +150,9 @@ jobs:
               driver.execute_script("localStorage.removeItem('nosmo-person-card-freeware:applications/v1')")
               driver.find_element(By.CSS_SELECTOR,'[data-hub-tab="jobs"]').click()
               wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#jobHubList [data-prepare]')))
-              driver.find_element(By.CSS_SELECTOR,'#jobHubList [data-prepare]').click()
+              prepare=driver.find_element(By.CSS_SELECTOR,'#jobHubList [data-prepare]')
+              driver.execute_script("arguments[0].scrollIntoView({block:'center',inline:'nearest'});",prepare)
+              prepare.click()
               wait.until(EC.presence_of_element_located((By.ID,'confirmApplicationSent')))
               apps=storage_json('nosmo-person-card-freeware:applications/v1')
               assert apps and apps[0]['status']=='TO APPLY', apps
@@ -158,7 +160,9 @@ jobs:
                   driver.execute_script("let a=document.getElementById('hubWhatsApp');a.addEventListener('click',e=>e.preventDefault(),{once:true,capture:true});a.click();")
                   apps=storage_json('nosmo-person-card-freeware:applications/v1')
                   assert apps[0]['status']=='TO APPLY', apps
-              driver.find_element(By.ID,'confirmApplicationSent').click()
+              confirm=driver.find_element(By.ID,'confirmApplicationSent')
+              driver.execute_script("arguments[0].scrollIntoView({block:'center',inline:'nearest'});",confirm)
+              confirm.click()
               wait.until(EC.alert_is_present())
               driver.switch_to.alert.accept()
               wait.until(lambda d: storage_json('nosmo-person-card-freeware:applications/v1')[0]['status']=='APPLIED')
