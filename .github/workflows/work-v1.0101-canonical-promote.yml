@@ -1,0 +1,65 @@
+name: NOSMO Work V1.0101 Canonical Promote
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - scripts/promote_work_v10101.py
+      - .github/workflows/work-v1.0101-canonical-promote.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact migration head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Promote preserved Work source to canonical V1.0101
+        run: python scripts/promote_work_v10101.py
+
+      - name: Verify canonical Work boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f apps/work/index.html
+          test -f apps/work/screen.html
+          test -f apps/work/manifest.webmanifest
+          test -f apps/work/sw.js
+          test -f apps/work/css/work-v10101-canonical.css
+          test -f apps/work/js/work-v10101-shell.js
+          grep -Fq 'Worker Card' apps/work/index.html
+          grep -Fq 'Documents' apps/work/index.html
+          grep -Fq 'Jobs' apps/work/index.html
+          grep -Fq 'Apps' apps/work/index.html
+          grep -Fq 'Settings' apps/work/index.html
+          grep -Fq 'id="appsScreen"' apps/work/screen.html
+          grep -Fq 'id="settingsScreen"' apps/work/screen.html
+          ! test -f apps/work/agency-desk.html
+          ! test -f apps/work/agency-invite.html
+          ! test -f apps/work/js/agency-desk.js
+          ! test -f apps/work/js/person-agency-invite.js
+          ! grep -Eqi 'Kamil|Karaszewski' apps/work/index.html
+          echo NOSMO_WORK_CANONICAL_BOUNDARY_PASS
+
+      - name: Commit canonical V1.0101 reconstruction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/work
+          if git diff --cached --quiet; then
+            echo 'No canonical changes to commit.'
+          else
+            git commit -m 'work: reconstruct canonical V1.0101 shell'
+            git push origin HEAD:codex/work-v1.0101-migration
+          fi
