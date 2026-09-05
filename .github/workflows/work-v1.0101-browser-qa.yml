@@ -57,14 +57,16 @@ jobs:
           wait=WebDriverWait(driver,10)
 
           def labels():
-              return [x.text.strip() for x in driver.find_elements(By.CSS_SELECTOR,'.appWindowNav a span')]
+              return driver.execute_script("return Array.from(document.querySelectorAll('.appWindowNav a span')).map(x=>x.textContent.trim())")
+          def wait_nav():
+              wait.until(lambda d: d.execute_script("return document.querySelectorAll('.appWindowNav a span').length") == 5)
           def assert_no_overflow(name):
               data=driver.execute_script('return {w:innerWidth,sw:document.documentElement.scrollWidth,b:document.body.scrollWidth}')
               assert data['sw'] <= data['w'] + 1 and data['b'] <= data['w'] + 1, (name,data)
 
           try:
               driver.get(base+'index.html')
-              wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'.appWindowNav')))
+              wait_nav()
               assert driver.title == 'NOSMO Work'
               assert labels()==['Worker Card','Documents','Jobs','Apps','Settings'], labels()
               assert len(driver.find_elements(By.CSS_SELECTOR,'[data-nosmo-ask-nexus]')) >= 1
@@ -74,12 +76,13 @@ jobs:
               for width,height in [(320,720),(673,841),(768,1024)]:
                   driver.set_window_size(width,height)
                   driver.get(base+'index.html')
-                  wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'.appWindowNav')))
+                  wait_nav()
                   assert_no_overflow(f'index-{width}')
 
               driver.set_window_size(390,844)
               driver.get(base+'screen.html?screen=apps')
               wait.until(lambda d: not d.find_element(By.ID,'appsScreen').get_attribute('hidden'))
+              wait_nav()
               assert labels()==['Worker Card','Documents','Jobs','Apps','Settings']
               assert len(driver.find_elements(By.CSS_SELECTOR,'#appsScreen .workToolCard'))==4
               assert 'Work tools first' in driver.find_element(By.ID,'appsScreen').text
@@ -100,6 +103,7 @@ jobs:
 
               driver.get(base+'screen.html?screen=work')
               wait.until(lambda d: not d.find_element(By.ID,'workScreen').get_attribute('hidden'))
+              wait_nav()
               assert labels()==['Worker Card','Documents','Jobs','Apps','Settings']
               assert_no_overflow('jobs')
 
@@ -108,6 +112,7 @@ jobs:
               assert_no_overflow('documents')
 
               driver.get(base+'index.html')
+              wait_nav()
               sw_scope=driver.execute_async_script('''var done=arguments[0]; if(!("serviceWorker" in navigator)){done("unsupported");return;} navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done("ERR:"+e.message));''')
               assert sw_scope.startswith(base), sw_scope
 
