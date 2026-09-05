@@ -28,6 +28,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check apps/agency/app.js
+          node --check apps/agency/enhancements.js
           node --check apps/agency/server.js
       - name: Runtime module load
         env:
