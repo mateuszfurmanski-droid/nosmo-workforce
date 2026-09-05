@@ -1,0 +1,99 @@
+name: NOSMO Work V1.0101 Availability Fix
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - .github/workflows/work-v1.0101-availability-fix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact migration head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Fix availability re-entrancy in canonical Work
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          runtime=Path('apps/work/js/work-v1-runtime.js')
+          text=runtime.read_text(encoding='utf-8')
+          if 'let availabilitySyncing=false;' not in text:
+              text=text.replace('  function currentAvailability(){', '  let availabilitySyncing=false;\n  function currentAvailability(){', 1)
+          old='''  function saveAvailability(next){\n    const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};'''
+          new='''  function saveAvailability(next){\n    if(availabilitySyncing)return;\n    availabilitySyncing=true;\n    try{\n      const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};'''
+          if old in text:
+              text=text.replace(old,new,1)
+          old_end='''    renderAvailabilityCompact();syncAvailabilityFields();\n  }\n  function availabilityLabel'''
+          new_end='''      renderAvailabilityCompact();syncAvailabilityFields();\n    } finally { availabilitySyncing=false; }\n  }\n  function availabilityLabel'''
+          if old_end in text:
+              text=text.replace(old_end,new_end,1)
+          assert 'let availabilitySyncing=false;' in text
+          assert 'if(availabilitySyncing)return;' in text
+          assert 'finally { availabilitySyncing=false; }' in text
+          runtime.write_text(text,encoding='utf-8')
+
+          # Keep the deterministic promotion script capable of recreating the fix from recovery-source.
+          promote=Path('scripts/promote_work_v10101.py')
+          src=promote.read_text(encoding='utf-8')
+          marker='# Canonical availability re-entrancy guard.'
+          if marker not in src:
+              insertion=r'''
+# Canonical availability re-entrancy guard.
+runtime_path=WORK/"js"/"work-v1-runtime.js"
+runtime_text=runtime_path.read_text(encoding="utf-8")
+if "let availabilitySyncing=false;" not in runtime_text:
+    runtime_text=runtime_text.replace("  function currentAvailability(){", "  let availabilitySyncing=false;\n  function currentAvailability(){", 1)
+runtime_text=runtime_text.replace(
+    "  function saveAvailability(next){\n    const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};",
+    "  function saveAvailability(next){\n    if(availabilitySyncing)return;\n    availabilitySyncing=true;\n    try{\n      const value={state:next.state,date:next.state==='from-date'?(next.date||''):''};",
+    1,
+)
+runtime_text=runtime_text.replace(
+    "    renderAvailabilityCompact();syncAvailabilityFields();\n  }\n  function availabilityLabel",
+    "      renderAvailabilityCompact();syncAvailabilityFields();\n    } finally { availabilitySyncing=false; }\n  }\n  function availabilityLabel",
+    1,
+)
+runtime_path.write_text(runtime_text,encoding="utf-8")
+
+'''
+              anchor='# Genericise residual person-specific donor copy in canonical text files only.'
+              assert anchor in src
+              src=src.replace(anchor,insertion+anchor,1)
+              promote.write_text(src,encoding='utf-8')
+          PY
+
+      - name: Verify availability guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'let availabilitySyncing=false;' apps/work/js/work-v1-runtime.js
+          grep -Fq 'if(availabilitySyncing)return;' apps/work/js/work-v1-runtime.js
+          grep -Fq 'finally { availabilitySyncing=false; }' apps/work/js/work-v1-runtime.js
+          echo NOSMO_WORK_AVAILABILITY_REENTRANCY_FIX_PASS
+
+      - name: Commit availability fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/work/js/work-v1-runtime.js scripts/promote_work_v10101.py
+          if git diff --cached --quiet; then
+            echo 'No changes required.'
+          else
+            git commit -m 'fix(work): prevent availability save recursion'
+            git push origin HEAD:codex/work-v1.0101-migration
+          fi
