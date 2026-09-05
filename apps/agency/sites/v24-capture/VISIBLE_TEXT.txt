@@ -1,0 +1,76 @@
+ChatGPT identity required
+Open this Site from your signed-in ChatGPT account. No separate Gmail or Vercel login is used.
+Try again
+Worker-owned data. Shared only with permission.
+SAFE MODE
+NOSMO AGENCY V1.0025
+Agency Desk
+
+One operational view for workers, requests, matches and contact.
+
+ASK NEXUS
+What do you need?
+Find workers
+Create job request
+Match workers to a job
+Check availability
+Contact workers
+Review applications
+Who is available and ready for Leeds on Monday?
+Who is ready for this request?
+Which licences expire in 30 days?
+Which OPEN requests have no READY candidates?
+Who is waiting for a response?
+Which contacts were opened but not confirmed as sent?
+SMART FILE INBOX
+Upload files
+Drop any agency files here
+Content, type, destination and next action are checked before you confirm.
+LOCAL DEMO
+
+Stored on this device only. Never sent or shared automatically.
+
+Permission-gated data: Agency loads only active recruiter-safe profiles shared by workers. Private fields are not returned by the API.
+NEEDS ATTENTION
+0 open
+Nothing needs attention in the current data.
+0
+worker records
+0
+open requests
+0
+ready for selected request
+RECRUITMENT PIPELINE
+0 candidates
+0
+NEW
+0
+SHORTLISTED
+0
+CONTACTED
+0
+INTERESTED
+0
+SUBMITTED
+0
+INTERVIEW
+0
+OFFERED
+0
+PLACED
+AVAILABLE
+View workers
+ACTIVE DESK
+View requests
+TODAY'S ACTIONS
+Open pipeline
+
+No saved agency activity yet.
+
+Ask Nexus
+Workers
+Requests
+Matches
+Messages
+Settings
+EMERGENCY

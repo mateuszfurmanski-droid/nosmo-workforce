@@ -1,0 +1,45 @@
+name: NOSMO Agency Sites v24 parity
+
+on:
+  push:
+    paths:
+      - 'apps/agency/sites/v24/**'
+      - '.github/workflows/agency-sites-v24-parity.yml'
+  pull_request:
+    paths:
+      - 'apps/agency/sites/v24/**'
+      - '.github/workflows/agency-sites-v24-parity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  byte-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact captured bytes and dependency closure
+        run: node apps/agency/sites/v24/verify-byte-parity.mjs
+      - name: Verify static paths resolve
+        shell: bash
+        run: |
+          python3 -m http.server 4182 --bind 127.0.0.1 --directory apps/agency/sites/v24/public >/tmp/agency-sites-v24.log 2>&1 &
+          for i in {1..15}; do curl -fsS http://127.0.0.1:4182/ >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4182/ | grep -F 'NOSMO Agency V1.0025'
+          curl -fsS http://127.0.0.1:4182/assets/index-0r1qI2wJ.css >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/page-D2n6_To6.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/webpack-bqEODIzK.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/src-Cux5XbTP.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/lib-CX2z2z0g.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/pdf.worker-BDW0vFpl.js >/dev/null
+      - name: Protect NOSMO Work boundary
+        shell: bash
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -n "$BASE_SHA" ] && git diff --name-only "$BASE_SHA" "${{ github.sha }}" 2>/dev/null | grep -q '^apps/work/'; then
+            echo 'Agency migration touched apps/work' >&2
+            exit 1
+          fi
