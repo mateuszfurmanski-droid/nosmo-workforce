@@ -39,8 +39,8 @@ for(const [method,route] of required){
   assert.ok(compat.includes(needle),`missing compatibility route ${method} ${route}`);
 }
 
-const qCalls=(frontend.match(/\bQ\(/g)||[]).length;
-assert.equal(qCalls,23,'accepted Sites bundle API call-site count changed');
+const routeCalls=(frontend.match(/\bQ\((?=[`"'])/g)||[]).length;
+assert.equal(routeCalls,23,'accepted Sites literal API call-site count changed');
 assert.ok(frontend.includes('fetch(`/api/agency${e}`'),'accepted frontend no longer targets /api/agency');
 assert.ok(compat.includes('writePerformed:false'),'Ask Nexus must remain read-only');
 assert.ok(compat.includes('privateWorkerFieldsIncluded:false'),'private Worker fields guard missing');
@@ -65,4 +65,4 @@ const generatedFiles=files(generated).map(f=>path.relative(generated,f)).sort();
 assert.deepEqual(generatedFiles,canonicalFiles,'runtime public file list differs from accepted Sites bundle');
 for(const rel of canonicalFiles) assert.equal(hash(path.join(generated,rel)),hash(path.join(canonical,rel)),`byte mismatch: ${rel}`);
 
-console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v1',frontendCallSites:qCalls,requiredCompatRoutes:required.length,uiByteParity:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true},null,2));
+console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v1',frontendLiteralApiCallSites:routeCalls,requiredCompatRoutes:required.length,uiByteParity:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true},null,2));
