@@ -1,0 +1,98 @@
+name: NOSMO Work V1.0101 Recovery Import
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - .github/workflows/work-v1.0101-recovery-import.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-work-recovery-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout workforce migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/work-v1.0101-migration
+          fetch-depth: 0
+
+      - name: Checkout preserved Work donor
+        uses: actions/checkout@v4
+        with:
+          repository: mateuszfurmanski-droid/nosmo-nexus-mvp
+          ref: codex/work-v1-finalisation
+          path: _source
+          persist-credentials: false
+
+      - name: Import Work-only recovery source
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="_source/modules/person-card-freeware"
+          dst="apps/work/recovery-source"
+          test -f "$src/index.html"
+          test -f "$src/screen.html"
+          test -f "$src/js/work-hub.js"
+          test -f "$src/js/work-v1-runtime.js"
+          test -f "$src/manifest.webmanifest"
+
+          rm -rf "$dst"
+          mkdir -p "$dst"
+          cp -a "$src/." "$dst/"
+
+          # This chat/recovery branch is Work-only. Remove Agency application surfaces.
+          rm -f \
+            "$dst/agency-desk.html" \
+            "$dst/agency-invite.html" \
+            "$dst/js/agency-desk.js" \
+            "$dst/js/person-agency-invite.js" \
+            "$dst/.e2e-trigger"
+
+          cat > "$dst/RECOVERY_SOURCE.md" <<'EOF'
+          # NOSMO Work V1.0101 recovery source
+
+          Imported from `mateuszfurmanski-droid/nosmo-nexus-mvp` branch `codex/work-v1-finalisation` on 2026-09-05.
+
+          This is a preserved donor snapshot used to recover the existing NOSMO Work V1.0101 product. It is NOT automatically accepted as the canonical V1.0101 UI until reconciled against `docs/NOSMO_WORK_V1.0101_BASELINE.md` and the verified 2026-09-04 captures.
+
+          Excluded intentionally from this Work-only import:
+          - Agency Desk application page
+          - Agency Invite application page
+          - Agency Desk runtime
+          - Agency Invite runtime
+
+          Worker-side employer/agency communication and recruiter-safe sharing remain in scope for NOSMO Work.
+          EOF
+
+          # Guardrails: Work source must exist; separate Agency application files must not.
+          test -f "$dst/index.html"
+          test -f "$dst/screen.html"
+          test -f "$dst/js/work-hub.js"
+          test -f "$dst/js/work-v1-runtime.js"
+          test -f "$dst/manifest.webmanifest"
+          test -f "$dst/sw.js"
+          test ! -e "$dst/agency-desk.html"
+          test ! -e "$dst/agency-invite.html"
+          test ! -e "$dst/js/agency-desk.js"
+          test ! -e "$dst/js/person-agency-invite.js"
+
+      - name: Commit imported Work snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _source
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/work/recovery-source
+          if git diff --cached --quiet; then
+            echo "Recovery source already up to date"
+            exit 0
+          fi
+          git commit -m "chore(work): import V1.0101 recovery source"
+          git push origin HEAD:codex/work-v1.0101-migration
