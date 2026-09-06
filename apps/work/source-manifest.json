@@ -4,7 +4,7 @@
   "targetBranch": "codex/person-card-freeware",
   "frozenDonor": {
     "repo": "mateuszfurmanski-droid/NOSMO-website",
-    "path": "person-card-kamil-v47.html",
+    "path": "index.html",
     "version": "v47top1",
     "blobSha": "6b33057751dacb58555fc3462f2b6b811f53d48d"
   },

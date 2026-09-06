@@ -199,7 +199,7 @@
 
     // Keep every existing button/module in place, but prevent Worker-specific identity routes
     // from being mistaken for the new worker until a real canonical person exists.
-    qa('a[href*="person=kamil-karaszewski"],a[href*="focus=p-kamil"],a[href*="person-card-kamil-section"],a[href*="card=/person-card-kamil"]').forEach(link=>{
+    qa('a[href*="person=worker-profile"],a[href*="focus=worker-profile"],a[href*="worker-card-section"],a[href*="card=/worker-card"]').forEach(link=>{
       link.dataset.originalHref=link.getAttribute("href")||"";
       link.setAttribute("href","#");
       link.setAttribute("aria-disabled","true");
