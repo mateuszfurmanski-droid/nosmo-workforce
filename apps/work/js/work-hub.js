@@ -1,9 +1,9 @@
 (function(){
   "use strict";
-  const JOBS_KEY="nosmo-person-card-freeware:jobs/v1";
-  const APPS_KEY="nosmo-person-card-freeware:applications/v1";
-  const EMPLOYERS_KEY="nosmo-person-card-freeware:employers/v1";
-  const CONTACT_LOG_KEY="nosmo-person-card-freeware:application-log/v1";
+  const JOBS_KEY="nosmo-work:jobs/v1";
+  const APPS_KEY="nosmo-work:applications/v1";
+  const EMPLOYERS_KEY="nosmo-work:employers/v1";
+  const CONTACT_LOG_KEY="nosmo-work:application-log/v1";
   const STATUSES=["NEW","TO APPLY","APPLIED","REPLY","INTERVIEW","OFFER","REJECTED","CLOSED"];
   const CONSTRUCTION_TRADES=["General labourer","Site operative","Carpenter / Joiner","Dryliner","Painter / Decorator","Bricklayer","Plasterer","Electrician","Plumber","Heating engineer","Roofer","Groundworker","Concrete finisher","Steel fixer","Scaffolder","Tiler","Floor layer","Plant operator","Telehandler operator","Crane operator","Banksman / Traffic marshal","Fire stopper","Snagging / Finishing","Site supervisor","Site manager","Quantity surveyor","Setting-out engineer","Document controller","Health and safety"];
   const CONSTRUCTION_TERMS=["construction","site ","site-","building","builder","labour","operative","carpenter","joiner","drylin","ceiling fixer","painter","decorator","brick","mason","plaster","render","electric","ecs","plumb","pipefitter","heating","roofer","roofing","groundwork","drainage","concrete","steel fixer","scaffold","tiler","floor layer","plant operator","telehandler","excavator","dumper","crane","banksman","traffic marshal","fire stop","firestop","snagging","finishing","supervisor","manager","quantity surveyor","setting out","document controller","health and safety","h&s","m&e"];
@@ -29,7 +29,7 @@
   function applications(){return read(APPS_KEY)}
   function canonicalCard(){return typeof loadWorkCard==="function"?loadWorkCard():{profile:{},skills:[],licences:[]}}
   function documents(){return typeof allDocuments==="function"?allDocuments():[]}
-  function currentCv(){const registered=read("nosmo-person-card-freeware:file-registry/v1").find(f=>f.fileRole==="cv");if(registered)return {name:registered.name||registered.fileName||"CV",source:"Documents local file registry",fileId:registered.id};return documents().find(d=>d.type==="cv"&&!d.placeholder)||null}
+  function currentCv(){const registered=read("nosmo-work:file-registry/v1").find(f=>f.fileRole==="cv");if(registered)return {name:registered.name||registered.fileName||"CV",source:"Documents local file registry",fileId:registered.id};return documents().find(d=>d.type==="cv"&&!d.placeholder)||null}
   function availability(card){
     const value=card.profile?.availability||"Not available";
     return value==="Available from date"&&card.profile.availableFrom?"Available from "+card.profile.availableFrom:value;

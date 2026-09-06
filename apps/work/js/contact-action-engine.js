@@ -1,10 +1,10 @@
 (function(){
   "use strict";
 
-  const REGISTRY_KEY="nosmo-person-card-freeware:file-registry/v1";
-  const APP_LOG_KEY="nosmo-person-card-freeware:application-log/v1";
-  const CONTACT_DRAFT_PREFIX="nosmo-person-card-freeware:contact-draft/v1:";
-  const DB_NAME="nosmo-person-card-freeware-files-v1";
+  const REGISTRY_KEY="nosmo-work:file-registry/v1";
+  const APP_LOG_KEY="nosmo-work:application-log/v1";
+  const CONTACT_DRAFT_PREFIX="nosmo-work:contact-draft/v1:";
+  const DB_NAME="nosmo-work-files-v1";
   const DB_VERSION=1;
   const STORE_NAME="files";
   const MAX_LOG_ROWS=250;
@@ -70,6 +70,7 @@
   }
   async function getStoredFile(id){
     if(!id)return null;
+    if(window.NOSMO_WORK_STORAGE_READY)await window.NOSMO_WORK_STORAGE_READY;
     const db=await openDb();
     try{
       return await new Promise(function(resolve,reject){

@@ -1,13 +1,13 @@
 (function(){
   "use strict";
   const FALLBACK="./data/default-worker-profile.json";
-  const LEGACY="nosmo-person-card-freeware:work-card/v2";
-  const MIGRATION="nosmo-person-card-freeware:canonical-work-profile-migrated/v1";
+  const LEGACY="nosmo-work:work-card/v2";
+  const MIGRATION="nosmo-work:migration:canonical-work-profile/v1";
   let profile=null;
   const copy=value=>JSON.parse(JSON.stringify(value));
   function localKey(id){return "nexus-person-work-profile-local:"+(id||"local-worker")}
   function read(key){try{return JSON.parse(localStorage.getItem(key)||"null")}catch(_){return null}}
-  function availability(p){const a=p.availability||{};if(a.status==="available-from")return "Available from date";if(a.status==="available")return "Available now";return "Not available"}
+  function availability(p){const a=p.availability||{};if(a.status==="available-from"||a.status==="from-date")return "Ready on date";if(a.status==="available")return "Available";return "Busy"}
   function toCard(p){const portfolio=p.portfolio||{};return {
     profile:{currentRole:p.preferences?.primaryTrade||p.preferences?.targetRoles?.[0]||"",availability:availability(p),availableFrom:p.availability?.availableFrom||"",preferredLocation:(p.preferences?.locations||[]).join(", "),employmentType:(p.preferences?.employmentTypes||[]).join(" / ")},
     recentProjects:portfolio.recentProjects||[],workHistory:portfolio.workHistory||[],references:portfolio.references||[],skills:portfolio.skills||[],licences:portfolio.licences||[],notes:portfolio.notes||[]
@@ -17,7 +17,7 @@
     profile.preferences.primaryTrade=card.profile?.currentRole||"";
     profile.preferences.locations=String(card.profile?.preferredLocation||"").split(/[,;]/).map(x=>x.trim()).filter(Boolean);
     profile.preferences.employmentTypes=String(card.profile?.employmentType||"").split(/[/,;]/).map(x=>x.trim()).filter(Boolean);
-    const label=card.profile?.availability;profile.availability.status=label==="Available now"?"available":label==="Available from date"?"available-from":"not-available";profile.availability.availableFrom=card.profile?.availableFrom||"";
+    const label=card.profile?.availability;profile.availability.status=(label==="Available"||label==="Available now")?"available":(label==="Ready on date"||label==="Available from date")?"available-from":"busy";profile.availability.availableFrom=card.profile?.availableFrom||"";
     ["recentProjects","workHistory","references","skills","licences","notes"].forEach(k=>profile.portfolio[k]=copy(card[k]||[]));
     saveProfile();return profile;
   }

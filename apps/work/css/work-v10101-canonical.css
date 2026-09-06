@@ -16,3 +16,5 @@
 html[data-work-appearance="nexus-blue"]{--work-accent:#2f86ff}html[data-work-appearance="eco-green"]{--work-accent:#22dc7d}html[data-work-appearance="silent-gold"]{--work-accent:#d6b35f}html[data-work-appearance="windows-grey"]{--work-accent:#8e99a8}html[data-work-appearance="architect-white"]{--work-accent:#6b7787}
 html[data-work-appearance="eco-green"] .appWindowNav a.active,html[data-work-appearance="eco-green"] .nexusAskMark{border-color:rgba(34,220,125,.55)!important;color:#64eaa2!important}html[data-work-appearance="silent-gold"] .appWindowNav a.active,html[data-work-appearance="silent-gold"] .nexusAskMark{border-color:rgba(214,179,95,.58)!important;color:#e1c77d!important}
 @media(max-width:380px){.appWindowNav a{font-size:7.8px!important}.appWindowNav{gap:3px!important;padding-left:4px!important;padding-right:4px!important}.workAppsGrid,.appearanceGrid{grid-template-columns:1fr 1fr}.nexusAskCopy small{font-size:8px}}
+
+.settingsAction[hidden]{display:none!important}

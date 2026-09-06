@@ -74,14 +74,13 @@
   let deferredInstallPrompt=null;
   const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
   function updateInstallUi(){
-    const btn=document.getElementById('workInstallButton'),state=document.getElementById('workInstallState');
-    if(!btn||!state)return;
-    if(standalone()){
-      btn.hidden=true;state.textContent=get('installed');return;
-    }
-    btn.hidden=!deferredInstallPrompt;
-    state.textContent=deferredInstallPrompt?(T[localStorage.getItem(KEYS.lang)||'en']?.installReady||fallback.installReady):(T[localStorage.getItem(KEYS.lang)||'en']?.installUnavailable||fallback.installUnavailable);
-    btn.textContent=get('install');
+    const buttons=[document.getElementById('workInstallButton'),document.getElementById('settingsInstallButton')].filter(Boolean);
+    const states=[document.getElementById('workInstallState'),document.getElementById('settingsInstallState')].filter(Boolean);
+    const lang=localStorage.getItem(KEYS.lang)||'en';
+    const installed=standalone();
+    const status=installed?get('installed'):(deferredInstallPrompt?(T[lang]?.installReady||fallback.installReady):(T[lang]?.installUnavailable||fallback.installUnavailable));
+    buttons.forEach(btn=>{btn.hidden=installed||!deferredInstallPrompt;btn.textContent=get('install')});
+    states.forEach(state=>state.textContent=status);
   }
   async function installApp(){
     if(!deferredInstallPrompt)return;
@@ -108,6 +107,7 @@
     pop.querySelectorAll('.workLanguageOption').forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
     pop.querySelector('#workThemeButton')?.addEventListener('click',toggleTheme);
     pop.querySelector('#workInstallButton')?.addEventListener('click',installApp);
+    document.getElementById('settingsInstallButton')?.addEventListener('click',installApp);
     setLanguage(localStorage.getItem(KEYS.lang)||'en');updateInstallUi();
   }
 

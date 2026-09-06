@@ -1,7 +1,7 @@
 (function(){
   "use strict";
-  const KEY="nosmo-person-card-freeware:file-registry/v1";
-  const DB_NAME="nosmo-person-card-freeware-files-v1";
+  const KEY="nosmo-work:file-registry/v1";
+  const DB_NAME="nosmo-work-files-v1";
   const DB_VERSION=1;
   const STORE_NAME="files";
   const $=id=>document.getElementById(id);
@@ -64,6 +64,7 @@
   }
   async function addSelected(){
     if(!selected.length){message("Choose one or more files first.","warn");return;}
+    if(window.NOSMO_WORK_STORAGE_READY)await window.NOSMO_WORK_STORAGE_READY;
     $("uploadBtn").disabled=true;
     const rows=registry();
     const now=new Date().toISOString();
@@ -93,9 +94,9 @@
     }
   }
   function downloadManifest(){
-    const payload={schema:"nexus-person-card-data-fetcher-manifest/v2",createdAt:new Date().toISOString(),storageMode:"local-indexeddb-with-metadata-registry",files:registry()};
+    const payload={schema:"nosmo-work-data-fetcher-manifest/v1",createdAt:new Date().toISOString(),storageMode:"local-indexeddb-with-metadata-registry",files:registry()};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="person-card-file-manifest.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="nosmo-work-file-manifest.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
   function init(){
     $("serviceStatus").textContent="standalone · local";
