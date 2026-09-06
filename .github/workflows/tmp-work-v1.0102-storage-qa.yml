@@ -48,7 +48,6 @@ jobs:
           legacy_draft={'jobId':'legacy-job','channel':'email','draft':'legacy draft'}
 
           try:
-            # Establish same-origin browser context, then seed old V1 data.
             d.get(base+'index.html')
             w.until(lambda x: x.execute_script("return document.readyState")=='complete')
             seed={
@@ -68,7 +67,6 @@ jobs:
               Object.entries(seed).forEach(([k,v])=>localStorage.setItem(k,v));
             ''',seed)
 
-            # Rebuild a real old IndexedDB with one file row and clear the new DB.
             idb_seed=d.execute_async_script('''
               const done=arguments[0];
               const delNew=indexedDB.deleteDatabase('nosmo-work-files-v1');
@@ -98,7 +96,6 @@ jobs:
             ''')
             assert idb_seed=='OK', idb_seed
 
-            # Reload: central migration must copy old data to NOSMO Work namespace.
             d.refresh()
             w.until(lambda x: x.execute_script("return document.readyState")=='complete')
             ready=d.execute_async_script('''
@@ -125,7 +122,6 @@ jobs:
             assert values['marker'] and values['dbMarker'], values
             old_apps_before=values['oldApps']
 
-            # New DB has the copied file; old DB still retains the original record.
             db_check=d.execute_async_script('''
               const done=arguments[0];
               function get(dbName){return new Promise((resolve,reject)=>{
@@ -147,13 +143,15 @@ jobs:
             assert db_check.get('fresh')==expected, db_check
             assert db_check.get('legacy')==expected, db_check
 
-            # Jobs must now write the NOSMO Work key only; old application data remains untouched.
+            # Storage write-path check. UI interaction itself is covered by permanent Work QA;
+            # use DOM click dispatch here so fixed navigation/headless viewport cannot mask storage behavior.
             d.get(base+'screen.html?screen=work')
             w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
+            tab=d.find_element(By.CSS_SELECTOR,'[data-hub-tab="jobs"]')
+            d.execute_script("arguments[0].click();",tab)
             w.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#jobHubList [data-prepare]')))
             btn=d.find_element(By.CSS_SELECTOR,'#jobHubList [data-prepare]')
-            d.execute_script("arguments[0].scrollIntoView({block:'center'});",btn)
-            btn.click()
+            d.execute_script("arguments[0].click();",btn)
             w.until(EC.presence_of_element_located((By.ID,'confirmApplicationSent')))
             new_apps=d.execute_script("return localStorage.getItem('nosmo-work:applications/v1')")
             old_apps_after=d.execute_script("return localStorage.getItem('nosmo-person-card-freeware:applications/v1')")
@@ -161,7 +159,6 @@ jobs:
             assert len(parsed)>=2 and any(x.get('id')=='legacy-app-1' for x in parsed), parsed
             assert old_apps_after==old_apps_before, (old_apps_before,old_apps_after)
 
-            # Existing V1.0102 shell still intact after migration.
             d.get(base+'index.html')
             w.until(lambda x: x.execute_script("return document.querySelectorAll('.appWindowNav a[data-screen]').length") == 5)
             labels=d.execute_script("return Array.from(document.querySelectorAll('.appWindowNav a span')).map(x=>x.textContent.trim())")
