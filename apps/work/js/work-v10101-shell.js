@@ -96,7 +96,7 @@
     });
   }
   function init(){
-    document.title="NOSMO Work";
+    if(location.pathname.endsWith("/index.html")||location.pathname.endsWith("/"))document.title="NOSMO Work";
     setAppearance(localStorage.getItem(APPEARANCE_KEY)||"midnight-black");
     bindAvailabilityFallback();
     qa("[data-nosmo-ask-nexus]").forEach(el=>el.addEventListener("click",askNexus));
