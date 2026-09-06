@@ -1,0 +1,74 @@
+name: NOSMO Work V1.0101 Final Sanitize
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - .github/workflows/work-v1.0101-final-sanitize.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Remove residual donor identity and missing photo asset reference
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          onboarding=Path('apps/work/js/person-onboarding-v47.js')
+          text=onboarding.read_text(encoding='utf-8')
+          replacements={
+              'person=kamil-karaszewski':'person=worker-profile',
+              'focus=p-kamil':'focus=worker-profile',
+              'person-card-kamil-section':'worker-card-section',
+              'card=/person-card-kamil':'card=/worker-card',
+              'kamil-karaszewski':'worker-profile',
+              'p-kamil':'worker-profile',
+              'person-card-kamil':'worker-card',
+          }
+          for old,new in replacements.items():
+              text=text.replace(old,new)
+          onboarding.write_text(text,encoding='utf-8')
+
+          index=Path('apps/work/index.html')
+          html=index.read_text(encoding='utf-8')
+          html=html.replace("background:#fff url('assets/WorkerCard.jpeg') center 18%/cover no-repeat", "background:#0b1624")
+          index.write_text(html,encoding='utf-8')
+          PY
+
+      - name: Audit canonical Work for donor identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RniI -E 'Kamil|Karaszewski|kamil-karaszewski|WorkerCard\.jpeg' apps/work --exclude='RECOVERY_SOURCES.md'; then
+            echo 'Residual donor identity or missing donor image reference found.' >&2
+            exit 1
+          fi
+          echo NOSMO_WORK_V1_0101_SANITIZE_PASS
+
+      - name: Commit sanitized canonical Work
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/work/index.html apps/work/js/person-onboarding-v47.js
+          if git diff --cached --quiet; then
+            echo 'No sanitize changes required.'
+          else
+            git commit -m 'chore(work): sanitize canonical V1.0101 source'
+            git push origin HEAD:codex/work-v1.0101-migration
+          fi
