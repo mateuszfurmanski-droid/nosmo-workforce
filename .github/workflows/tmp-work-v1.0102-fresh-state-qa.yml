@@ -40,6 +40,12 @@ jobs:
           base='http://localhost:4173/'
           o=Options();o.add_argument('--headless=new');o.add_argument('--no-sandbox');o.add_argument('--disable-dev-shm-usage');o.add_argument('--window-size=390,844')
           d=webdriver.Chrome(options=o);w=WebDriverWait(d,15)
+
+          def screen_visible(screen_id):
+            return d.execute_script("const el=document.getElementById(arguments[0]);return !!el&&!el.hasAttribute('hidden')",screen_id)
+          def text_of(selector):
+            return d.execute_script("return document.querySelector(arguments[0])?.textContent||''",selector)
+
           try:
             d.get(base+'index.html')
             w.until(lambda x: x.execute_script("return document.readyState")=='complete')
@@ -52,40 +58,40 @@ jobs:
             ''')
 
             d.get(base+'screen.html?screen=documents')
-            w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
+            w.until(lambda x: x.execute_script("const el=document.getElementById('documentsScreen');return !!el&&!el.hasAttribute('hidden')"))
             w.until(lambda x: x.execute_script("return typeof allDocuments==='function'"))
             assert d.execute_script('return allDocuments().length')==0
-            assert len(d.find_elements(By.CSS_SELECTOR,'#documentGroups .doc'))==0
+            assert d.execute_script("return document.querySelectorAll('#documentGroups .doc').length")==0
             counts=d.execute_script("return ['countValid','countExpiring','countExpired','countNoExpiry'].map(id=>document.getElementById(id).textContent)")
             assert counts==['0','0','0','0'],counts
-            page=d.find_element(By.ID,'documentsScreen').text
+            page=text_of('#documentsScreen')
             assert 'CSCS / trade card placeholder' not in page
             assert 'Current Work Profile CV' not in page
 
             d.execute_script("localStorage.setItem('nosmo-work:documents/v1',JSON.stringify([{id:'expired-test',name:'Expired test',type:'cards',expiry:'2026-09-01',source:'local'}]))")
-            d.refresh();w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
-            status=w.until(lambda x: x.find_element(By.CSS_SELECTOR,'#documentGroups .doc .status')).text
+            d.refresh()
+            w.until(lambda x: x.execute_script("const el=document.getElementById('documentsScreen');return !!el&&!el.hasAttribute('hidden')"))
+            status=w.until(lambda x: x.execute_script("return document.querySelector('#documentGroups .doc .status')?.textContent?.trim()||''"))
             assert status=='EXPIRED',status
             d.execute_script("localStorage.removeItem('nosmo-work:documents/v1')")
 
             d.get(base+'screen.html?screen=work')
-            w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
+            w.until(lambda x: x.execute_script("const el=document.getElementById('workScreen');return !!el&&!el.hasAttribute('hidden')"))
             w.until(lambda x: x.execute_script("return !!window.NOSMO_WORK_PROFILE_BRIDGE?.getCard?.()"))
             card=d.execute_script('return window.NOSMO_WORK_PROFILE_BRIDGE.getCard()')
             assert card['profile']['currentRole']=='',card
             for key in ['recentProjects','workHistory','references','skills','licences','notes']:
               assert card[key]==[],(key,card[key])
-            work_text=d.find_element(By.ID,'workScreen').text
+            work_text=text_of('#workScreen')
             for fake in ['City Centre Refurbishment','Residential Fit-Out','Second Fix Joinery','CSCS / trade card']:
               assert fake not in work_text,fake
 
-            w.until(lambda x: x.execute_script("return document.querySelector('#jobHubList')!==null"))
-            w.until(lambda x: 'No jobs saved or found yet' in x.find_element(By.ID,'jobHubList').text)
-            assert len(d.find_elements(By.CSS_SELECTOR,'#jobHubList [data-prepare]'))==0
-            d.execute_script("document.querySelector('[data-hub-tab=\"employers\"]').click()")
-            w.until(lambda x: not x.find_element(By.CSS_SELECTOR,'[data-hub-panel="employers"]').get_attribute('hidden'))
-            w.until(lambda x: 'No employer records match' in x.find_element(By.ID,'employerHubList').text)
-            assert len(d.find_elements(By.CSS_SELECTOR,'#employerHubList .hubCard'))==0
+            w.until(lambda x: 'No jobs saved or found yet' in x.execute_script("return document.getElementById('jobHubList')?.textContent||''"))
+            assert d.execute_script("return document.querySelectorAll('#jobHubList [data-prepare]').length")==0
+            d.execute_script("document.querySelector('[data-hub-tab=\"employers\"]')?.click()")
+            w.until(lambda x: x.execute_script("const el=document.querySelector('[data-hub-panel=\"employers\"]');return !!el&&!el.hasAttribute('hidden')"))
+            w.until(lambda x: 'No employer records match' in x.execute_script("return document.getElementById('employerHubList')?.textContent||''"))
+            assert d.execute_script("return document.querySelectorAll('#employerHubList .hubCard').length")==0
 
             profile=d.execute_async_script("var done=arguments[0];fetch('./data/default-worker-profile.json').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));")
             assert profile['version']=='V1.0102',profile
@@ -93,15 +99,15 @@ jobs:
             assert profile['jobGateway']['status']=='standalone-unconfigured',profile['jobGateway']
 
             d.get(base+'screen.html?screen=documents&demo=1')
-            w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
+            w.until(lambda x: x.execute_script("const el=document.getElementById('documentsScreen');return !!el&&!el.hasAttribute('hidden')"))
             w.until(lambda x: x.execute_script("return typeof allDocuments==='function'"))
             assert d.execute_script('return allDocuments().length')>=7
-            assert 'CSCS / trade card placeholder' in d.find_element(By.ID,'documentsScreen').text
+            assert 'CSCS / trade card placeholder' in text_of('#documentsScreen')
 
             d.get(base+'screen.html?screen=work&demo=1')
-            w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
-            w.until(lambda x: len(x.find_elements(By.CSS_SELECTOR,'#jobHubList [data-prepare]'))>=1)
-            assert 'NorthBuild Recruitment' in d.find_element(By.ID,'jobHubList').text
+            w.until(lambda x: x.execute_script("const el=document.getElementById('workScreen');return !!el&&!el.hasAttribute('hidden')"))
+            w.until(lambda x: x.execute_script("return document.querySelectorAll('#jobHubList [data-prepare]').length")>=1)
+            assert 'NorthBuild Recruitment' in text_of('#jobHubList')
 
             d.get(base+'index.html')
             d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(()=>done(true)).catch(()=>done(false));")
