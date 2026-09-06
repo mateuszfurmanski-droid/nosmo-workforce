@@ -1,7 +1,7 @@
-const CACHE='nosmo-work-v10102-canonical-20260906-1';
+const CACHE='nosmo-work-v10102-canonical-20260906-2';
 const CORE=[
   './','./index.html','./screen.html','./onboarding.html','./section.html',
-  './manifest.webmanifest','./assets/pwa/icon-192.png','./assets/pwa/icon-512.png','./assets/pwa/icon-512-maskable.png','./data/default-worker-profile.json','./css/asia-hub-theme.css','./css/work-v1-final.css',
+  './manifest.webmanifest','./version.json','./assets/pwa/icon-192.png','./assets/pwa/icon-512.png','./assets/pwa/icon-512-maskable.png','./data/default-worker-profile.json','./css/asia-hub-theme.css','./css/work-v1-final.css',
   './css/work-v10101-canonical.css','./js/work-v10101-shell.js','./js/work-storage-migration.js','./js/work-v1-runtime.js','./js/person-onboarding-v47.js','./js/person-work-overlay-controller.js',
   './js/person-work-profile.js','./js/canonical-work-profile-bridge.js','./js/contact-action-engine.js','./js/work-hub.js'
 ];

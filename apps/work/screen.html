@@ -354,7 +354,8 @@
 const LOCAL_KEY="nosmo-work:documents/v1";
 const WORK_LOCAL_KEY="nosmo-work:work-card/v2";
 const WORK_LEGACY_KEY="nosmo-work:work-card/v1";
-const now=new Date("2026-08-27T00:00:00Z");
+const DEMO_MODE=new URLSearchParams(location.search).get("demo")==="1"||localStorage.getItem("nosmo-work:demo/v1")==="true";
+const now=new Date();
 const demoDocuments=[
   {id:"demo-cscs",name:"CSCS / trade card placeholder",type:"cards",expiry:"2027-06-15",source:"demo"},
   {id:"demo-iso3834",name:"ISO 3834 Welding Coordinator",type:"certificates",expiry:"",source:"demo",note:"Training progress: 75% complete"},
@@ -388,7 +389,7 @@ function statusFor(doc){
   if(days<=60)return {key:"expiring",label:"EXPIRING"};
   return {key:"valid",label:"VALID"};
 }
-function allDocuments(){return [...demoDocuments,...loadLocal()]}
+function allDocuments(){return [...(DEMO_MODE?demoDocuments:[]),...loadLocal()]}
 function formatExpiry(expiry){
   if(!expiry)return "No expiry date";
   return new Date(expiry+"T00:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -463,21 +464,28 @@ const demoWorkCard={
   ]
 };
 
-function cloneWorkCard(){return JSON.parse(JSON.stringify(demoWorkCard))}
+function cloneWorkCard(){
+  if(DEMO_MODE)return JSON.parse(JSON.stringify(demoWorkCard));
+  return {
+    profile:{currentRole:"Not set",availability:"Available",preferredLocation:"Not set",employmentType:"Not set"},
+    recentProjects:[],workHistory:[],references:[],skills:[],licences:[],notes:[]
+  };
+}
 function loadWorkCard(){
   const canonical=window.NOSMO_WORK_PROFILE_BRIDGE?.getCard?.();
   if(canonical)return canonical;
   try{
     const saved=JSON.parse(localStorage.getItem(WORK_LOCAL_KEY)||"null");
     if(saved&&typeof saved==="object"&&!Array.isArray(saved)){
+      const base=cloneWorkCard();
       return {
-        profile:{...demoWorkCard.profile,...(saved.profile||{})},
-        recentProjects:Array.isArray(saved.recentProjects)?saved.recentProjects:demoWorkCard.recentProjects,
-        workHistory:Array.isArray(saved.workHistory)?saved.workHistory:demoWorkCard.workHistory,
-        references:Array.isArray(saved.references)?saved.references:demoWorkCard.references,
-        skills:Array.isArray(saved.skills)?saved.skills:demoWorkCard.skills,
-        licences:Array.isArray(saved.licences)?saved.licences:demoWorkCard.licences,
-        notes:Array.isArray(saved.notes)?saved.notes:demoWorkCard.notes
+        profile:{...base.profile,...(saved.profile||{})},
+        recentProjects:Array.isArray(saved.recentProjects)?saved.recentProjects:base.recentProjects,
+        workHistory:Array.isArray(saved.workHistory)?saved.workHistory:base.workHistory,
+        references:Array.isArray(saved.references)?saved.references:base.references,
+        skills:Array.isArray(saved.skills)?saved.skills:base.skills,
+        licences:Array.isArray(saved.licences)?saved.licences:base.licences,
+        notes:Array.isArray(saved.notes)?saved.notes:base.notes
       };
     }
     const legacy=JSON.parse(localStorage.getItem(WORK_LEGACY_KEY)||"[]");

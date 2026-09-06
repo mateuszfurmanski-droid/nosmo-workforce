@@ -2,7 +2,7 @@
   "schema": "nexus-person-work-profile/v1",
   "id": "work-profile-local-worker",
   "personId": "local-worker",
-  "version": "V1.0101",
+  "version": "V1.0102",
   "demoMode": false,
   "availability": {
     "status": "available",
@@ -45,8 +45,8 @@
   "agencies": [],
   "jobGateway": {
     "schema": "nexus-job-gateway-client/v1",
-    "status": "standalone-api",
-    "endpoint": "/api/person-card/jobs/search",
+    "status": "standalone-unconfigured",
+    "endpoint": "",
     "provider": "Adzuna",
     "connectorId": "adzuna-jobs",
     "queryDefaults": {
@@ -54,6 +54,6 @@
       "results": 20
     },
     "productionTarget": "/api/person-card/jobs/search",
-    "note": "Provider credentials remain server-side."
+    "note": "Connect an authorised server-side provider before live search is enabled."
   }
 }
