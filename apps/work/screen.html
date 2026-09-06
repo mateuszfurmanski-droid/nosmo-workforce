@@ -351,9 +351,9 @@
 </nav>
 
 <script>
-const LOCAL_KEY="nosmo-person-card-freeware:documents/v1";
-const WORK_LOCAL_KEY="nosmo-person-card-freeware:work-card/v2";
-const WORK_LEGACY_KEY="nosmo-person-card-freeware:work-card/v1";
+const LOCAL_KEY="nosmo-work:documents/v1";
+const WORK_LOCAL_KEY="nosmo-work:work-card/v2";
+const WORK_LEGACY_KEY="nosmo-work:work-card/v1";
 const now=new Date("2026-08-27T00:00:00Z");
 const demoDocuments=[
   {id:"demo-cscs",name:"CSCS / trade card placeholder",type:"cards",expiry:"2027-06-15",source:"demo"},
@@ -691,6 +691,7 @@ document.querySelectorAll('.appWindowNav a[data-screen]').forEach(link=>{
 });
 window.addEventListener("popstate",()=>activateScreen(new URLSearchParams(location.search).get("screen")));
 </script>
+<script src="./js/work-storage-migration.js?v=10102"></script>
 <script src="./js/canonical-work-profile-bridge.js?v=2"></script>
 <script src="./js/contact-action-engine.js?v=3"></script>
 <script src="./js/work-hub.js?v=4"></script>

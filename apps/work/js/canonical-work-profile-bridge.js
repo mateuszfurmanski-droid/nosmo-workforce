@@ -1,8 +1,8 @@
 (function(){
   "use strict";
   const FALLBACK="./data/default-worker-profile.json";
-  const LEGACY="nosmo-person-card-freeware:work-card/v2";
-  const MIGRATION="nosmo-person-card-freeware:canonical-work-profile-migrated/v1";
+  const LEGACY="nosmo-work:work-card/v2";
+  const MIGRATION="nosmo-work:migration:canonical-work-profile/v1";
   let profile=null;
   const copy=value=>JSON.parse(JSON.stringify(value));
   function localKey(id){return "nexus-person-work-profile-local:"+(id||"local-worker")}
