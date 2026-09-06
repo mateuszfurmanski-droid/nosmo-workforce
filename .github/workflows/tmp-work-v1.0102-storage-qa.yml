@@ -18,11 +18,20 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Create isolated migration fixtures
+        shell: bash
+        run: |
+          cat > apps/work/storage-seed-fixture.html <<'EOF'
+          <!doctype html><html><head><meta charset="utf-8"><title>seed</title></head><body>seed</body></html>
+          EOF
+          cat > apps/work/storage-migration-fixture.html <<'EOF'
+          <!doctype html><html><head><meta charset="utf-8"><title>migration</title></head><body>migration<script src="./js/work-storage-migration.js?v=10102"></script></body></html>
+          EOF
       - name: Start Work server
         shell: bash
         run: |
           python -m http.server 4173 --directory apps/work >/tmp/work-http.log 2>&1 &
-          for i in $(seq 1 30); do curl -fsS http://localhost:4173/index.html >/dev/null && exit 0; sleep 1; done
+          for i in $(seq 1 30); do curl -fsS http://localhost:4173/storage-seed-fixture.html >/dev/null && exit 0; sleep 1; done
           cat /tmp/work-http.log
           exit 1
       - name: Install selenium
@@ -40,19 +49,9 @@ jobs:
           o=Options();o.add_argument('--headless=new');o.add_argument('--no-sandbox');o.add_argument('--disable-dev-shm-usage');o.add_argument('--window-size=390,844')
           d=webdriver.Chrome(options=o);w=WebDriverWait(d,15)
           try:
-            # Let the first empty-start migration finish completely before creating the legacy-user fixture.
-            d.get(base+'index.html')
-            w.until(lambda x: x.execute_script("return document.readyState")=='complete')
-            w.until(lambda x: x.execute_script("return !!window.NOSMO_WORK_STORAGE_READY"))
-            initial=d.execute_async_script("var done=arguments[0];window.NOSMO_WORK_STORAGE_READY.then(v=>done(v)).catch(e=>done('ERR:'+e.message));")
-            assert initial is True, initial
-
-            # Reset only the test fixture state after the initial async migration has settled.
-            d.execute_script("""
-              const remove=[];
-              for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('nosmo-work:'))remove.push(k)}
-              remove.forEach(k=>localStorage.removeItem(k));
-            """)
+            # Seed old V1.0101 state on a same-origin page with no Work runtime/service worker.
+            d.get(base+'storage-seed-fixture.html')
+            d.execute_script("localStorage.clear()")
             reset=d.execute_async_script("""
               const done=arguments[0];
               const names=['nosmo-work-files-v1','nosmo-person-card-freeware-files-v1'];
@@ -65,7 +64,6 @@ jobs:
             """)
             assert reset=='OK', reset
 
-            # Seed legacy Person Card localStorage as an existing V1.0101 user would have it.
             d.execute_script("""
               localStorage.setItem('nosmo-person-card-freeware:documents/v1', JSON.stringify([{id:'legacy-doc-1',name:'Legacy CSCS',type:'cards',expiry:'2027-01-01',source:'local'}]));
               localStorage.setItem('nosmo-person-card-freeware:work-card/v2', JSON.stringify({profile:{currentRole:'Legacy Joiner',availability:'Available now',preferredLocation:'Leeds',employmentType:'CIS / Contract'},recentProjects:[],workHistory:[],references:[],skills:[],licences:[],notes:[]}));
@@ -77,7 +75,6 @@ jobs:
               localStorage.setItem('nosmo-person-card-freeware:contact-draft/v1:worker:legacy-job-1', JSON.stringify({phone:'07123456789',email:'legacy@example.invalid'}));
             """)
 
-            # Seed the legacy IndexedDB with one file-like record.
             ok=d.execute_async_script("""
               const done=arguments[0];
               const req=indexedDB.open('nosmo-person-card-freeware-files-v1',1);
@@ -92,9 +89,16 @@ jobs:
             """)
             assert ok=='OK', ok
 
-            # Reload so migration bridge runs against the fully seeded legacy state.
-            d.get(base+'index.html?storage-migration-test=1')
-            w.until(lambda x: x.execute_script("return document.readyState")=='complete')
+            # Prove source bytes exist before migration.
+            source=d.execute_async_script("""
+              const done=arguments[0];const req=indexedDB.open('nosmo-person-card-freeware-files-v1');
+              req.onerror=()=>done(null);
+              req.onsuccess=()=>{const db=req.result;const r=db.transaction('files','readonly').objectStore('files').get('legacy-file-1');r.onsuccess=()=>{const v=r.result;db.close();done(v?{id:v.id,name:v.name,size:v.size}:null)};r.onerror=()=>{db.close();done(null)}};
+            """)
+            assert source and source['id']=='legacy-file-1', source
+
+            # Run only the migration bridge, without PWA/runtime interference.
+            d.get(base+'storage-migration-fixture.html')
             w.until(lambda x: x.execute_script("return !!window.NOSMO_WORK_STORAGE_READY"))
             migrated=d.execute_async_script("var done=arguments[0];window.NOSMO_WORK_STORAGE_READY.then(v=>done(v)).catch(e=>done('ERR:'+e.message));")
             assert migrated is True, migrated
@@ -113,12 +117,10 @@ jobs:
               value=d.execute_script("return localStorage.getItem(arguments[0])",key)
               assert value and needle in value,(key,value)
 
-            # Old storage remains intact; migration is copy-forward, not destructive.
             assert 'Legacy Joiner' in d.execute_script("return localStorage.getItem('nosmo-person-card-freeware:work-card/v2')")
             assert d.execute_script("return !!localStorage.getItem('nosmo-work:migration:person-card-freeware/v1')")
             assert d.execute_script("return !!localStorage.getItem('nosmo-work:migration:indexeddb-files/v1')")
 
-            # Verify file bytes were copied to the new Work IndexedDB.
             row=d.execute_async_script("""
               const done=arguments[0];const req=indexedDB.open('nosmo-work-files-v1');
               req.onerror=()=>done(null);
@@ -130,7 +132,7 @@ jobs:
             """)
             assert row and row['id']=='legacy-file-1' and row['name']=='legacy-cv.pdf',row
 
-            # Active app reads the new namespace and remains operational.
+            # Real Work surfaces must consume the migrated namespace.
             d.get(base+'screen.html?screen=documents')
             w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
             assert 'Legacy CSCS' in d.page_source
