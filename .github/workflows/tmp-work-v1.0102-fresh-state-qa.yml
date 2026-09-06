@@ -51,7 +51,6 @@ jobs:
               ].forEach(k=>localStorage.removeItem(k));
             ''')
 
-            # Production fresh Documents = zero synthetic records.
             d.get(base+'screen.html?screen=documents')
             w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
             w.until(lambda x: x.execute_script("return typeof allDocuments==='function'"))
@@ -63,14 +62,12 @@ jobs:
             assert 'CSCS / trade card placeholder' not in page
             assert 'Current Work Profile CV' not in page
 
-            # Expiry calculation uses today's date, not the historical fixed August clock.
             d.execute_script("localStorage.setItem('nosmo-work:documents/v1',JSON.stringify([{id:'expired-test',name:'Expired test',type:'cards',expiry:'2026-09-01',source:'local'}]))")
             d.refresh();w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
             status=w.until(lambda x: x.find_element(By.CSS_SELECTOR,'#documentGroups .doc .status')).text
             assert status=='EXPIRED',status
             d.execute_script("localStorage.removeItem('nosmo-work:documents/v1')")
 
-            # Fresh Work Card = empty real profile, no synthetic projects/skills/tickets.
             d.get(base+'screen.html?screen=work')
             w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
             w.until(lambda x: x.execute_script("return !!window.NOSMO_WORK_PROFILE_BRIDGE?.getCard?.()"))
@@ -82,22 +79,19 @@ jobs:
             for fake in ['City Centre Refurbishment','Residential Fit-Out','Second Fix Joinery','CSCS / trade card']:
               assert fake not in work_text,fake
 
-            # Fresh Jobs/Employers = no synthetic recruitment records.
             w.until(lambda x: x.execute_script("return document.querySelector('#jobHubList')!==null"))
+            w.until(lambda x: 'No jobs saved or found yet' in x.find_element(By.ID,'jobHubList').text)
             assert len(d.find_elements(By.CSS_SELECTOR,'#jobHubList [data-prepare]'))==0
-            assert 'No jobs saved or found yet' in d.find_element(By.ID,'jobHubList').text
             d.execute_script("document.querySelector('[data-hub-tab=\"employers\"]').click()")
             w.until(lambda x: not x.find_element(By.CSS_SELECTOR,'[data-hub-panel="employers"]').get_attribute('hidden'))
+            w.until(lambda x: 'No employer records match' in x.find_element(By.ID,'employerHubList').text)
             assert len(d.find_elements(By.CSS_SELECTOR,'#employerHubList .hubCard'))==0
-            assert 'No employer records match' in d.find_element(By.ID,'employerHubList').text
 
-            # Default profile truthfully reports no live backend connection.
             profile=d.execute_async_script("var done=arguments[0];fetch('./data/default-worker-profile.json').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));")
             assert profile['version']=='V1.0102',profile
             assert profile['jobGateway']['endpoint']=='',profile['jobGateway']
             assert profile['jobGateway']['status']=='standalone-unconfigured',profile['jobGateway']
 
-            # Explicit demo mode still works, but only when asked for.
             d.get(base+'screen.html?screen=documents&demo=1')
             w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
             w.until(lambda x: x.execute_script("return typeof allDocuments==='function'"))
@@ -109,7 +103,6 @@ jobs:
             w.until(lambda x: len(x.find_elements(By.CSS_SELECTOR,'#jobHubList [data-prepare]'))>=1)
             assert 'NorthBuild Recruitment' in d.find_element(By.ID,'jobHubList').text
 
-            # New service worker generation is active for this batch.
             d.get(base+'index.html')
             d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(()=>done(true)).catch(()=>done(false));")
             keys=d.execute_async_script("var done=arguments[0];caches.keys().then(done).catch(()=>done([]));")
