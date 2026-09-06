@@ -1,0 +1,104 @@
+name: TMP NOSMO Work V1.0102 Fresh State Patch
+
+on:
+  push:
+    branches:
+      - tmp/work-v1.0102-fresh-state
+    paths:
+      - .github/workflows/tmp-work-v1.0102-fresh-state-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Apply fresh-install safety fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          # Fresh default profile must be empty/local and must not claim a configured live gateway.
+          p=Path('apps/work/data/default-worker-profile.json')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          data['version']='V1.0102'
+          gateway=data.setdefault('jobGateway',{})
+          gateway['status']='standalone-unconfigured'
+          gateway['endpoint']=''
+          gateway['note']='Connect an authorised server-side provider before live search is enabled.'
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          # Documents / Work Card: real current date and no synthetic user data unless explicit demo mode.
+          p=Path('apps/work/screen.html')
+          s=p.read_text(encoding='utf-8')
+          old='''const LOCAL_KEY="nosmo-work:documents/v1";\nconst WORK_LOCAL_KEY="nosmo-work:work-card/v2";\nconst WORK_LEGACY_KEY="nosmo-work:work-card/v1";\nconst now=new Date("2026-08-27T00:00:00Z");'''
+          new='''const LOCAL_KEY="nosmo-work:documents/v1";\nconst WORK_LOCAL_KEY="nosmo-work:work-card/v2";\nconst WORK_LEGACY_KEY="nosmo-work:work-card/v1";\nconst DEMO_MODE=new URLSearchParams(location.search).get("demo")==="1"||localStorage.getItem("nosmo-work:demo/v1")==="true";\nconst now=new Date();'''
+          assert old in s, 'screen storage/date anchor not found'
+          s=s.replace(old,new,1)
+          old='function allDocuments(){return [...demoDocuments,...loadLocal()]}'
+          new='function allDocuments(){return [...(DEMO_MODE?demoDocuments:[]),...loadLocal()]}'
+          assert old in s, 'allDocuments anchor not found'
+          s=s.replace(old,new,1)
+          old='function cloneWorkCard(){return JSON.parse(JSON.stringify(demoWorkCard))}'
+          new='''function cloneWorkCard(){\n  if(DEMO_MODE)return JSON.parse(JSON.stringify(demoWorkCard));\n  return {\n    profile:{currentRole:"Not set",availability:"Available",preferredLocation:"Not set",employmentType:"Not set"},\n    recentProjects:[],workHistory:[],references:[],skills:[],licences:[],notes:[]\n  };\n}'''
+          assert old in s, 'cloneWorkCard anchor not found'
+          s=s.replace(old,new,1)
+          old='''    if(saved&&typeof saved==="object"&&!Array.isArray(saved)){\n      return {\n        profile:{...demoWorkCard.profile,...(saved.profile||{})},\n        recentProjects:Array.isArray(saved.recentProjects)?saved.recentProjects:demoWorkCard.recentProjects,\n        workHistory:Array.isArray(saved.workHistory)?saved.workHistory:demoWorkCard.workHistory,\n        references:Array.isArray(saved.references)?saved.references:demoWorkCard.references,\n        skills:Array.isArray(saved.skills)?saved.skills:demoWorkCard.skills,\n        licences:Array.isArray(saved.licences)?saved.licences:demoWorkCard.licences,\n        notes:Array.isArray(saved.notes)?saved.notes:demoWorkCard.notes\n      };\n    }'''
+          new='''    if(saved&&typeof saved==="object"&&!Array.isArray(saved)){\n      const base=cloneWorkCard();\n      return {\n        profile:{...base.profile,...(saved.profile||{})},\n        recentProjects:Array.isArray(saved.recentProjects)?saved.recentProjects:base.recentProjects,\n        workHistory:Array.isArray(saved.workHistory)?saved.workHistory:base.workHistory,\n        references:Array.isArray(saved.references)?saved.references:base.references,\n        skills:Array.isArray(saved.skills)?saved.skills:base.skills,\n        licences:Array.isArray(saved.licences)?saved.licences:base.licences,\n        notes:Array.isArray(saved.notes)?saved.notes:base.notes\n      };\n    }'''
+          assert old in s, 'saved Work Card fallback anchor not found'
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+
+          # Jobs/Employers: demo records only in explicit demo mode, never on a fresh production install.
+          p=Path('apps/work/js/work-hub.js')
+          s=p.read_text(encoding='utf-8')
+          anchor='''  const CONTACT_LOG_KEY="nosmo-work:application-log/v1";\n  const STATUSES='''
+          repl='''  const CONTACT_LOG_KEY="nosmo-work:application-log/v1";\n  const DEMO_MODE=new URLSearchParams(location.search).get("demo")==="1"||localStorage.getItem("nosmo-work:demo/v1")==="true";\n  const STATUSES='''
+          assert anchor in s, 'work hub demo-mode anchor not found'
+          s=s.replace(anchor,repl,1)
+          old='''  function jobs(){const canonical=(window.NEXUS_WORK_PROFILE?.jobMatches||[]).map(normalizeJob).filter(isConstructionJob),local=read(JOBS_KEY).map(normalizeJob).filter(isConstructionJob),appStatus=new Map(applications().map(a=>[a.jobId,a.status]));return [...(canonical.length?canonical:demoJobs.map(normalizeJob)),...local].map(job=>({...job,status:appStatus.get(job.id)||job.status}))}\n  function employers(){const canonical=(window.NEXUS_WORK_PROFILE?.agencies||[]).map(normalizeEmployer);return [...(canonical.length?canonical:demoEmployers),...read(EMPLOYERS_KEY)]}'''
+          new='''  function jobs(){const canonical=(window.NEXUS_WORK_PROFILE?.jobMatches||[]).map(normalizeJob).filter(isConstructionJob),local=read(JOBS_KEY).map(normalizeJob).filter(isConstructionJob),appStatus=new Map(applications().map(a=>[a.jobId,a.status]));const base=canonical.length?canonical:(DEMO_MODE?demoJobs.map(normalizeJob):[]);return [...base,...local].map(job=>({...job,status:appStatus.get(job.id)||job.status}))}\n  function employers(){const canonical=(window.NEXUS_WORK_PROFILE?.agencies||[]).map(normalizeEmployer);const base=canonical.length?canonical:(DEMO_MODE?demoEmployers:[]);return [...base,...read(EMPLOYERS_KEY)]}'''
+          assert old in s, 'jobs/employers demo fallback anchor not found'
+          s=s.replace(old,new,1)
+          s=s.replace("'<div class=\"empty\">No jobs match this filter.</div>'", "'<div class=\"empty\">No jobs saved or found yet. Add a job or connect a live job source.</div>'", 1)
+          p.write_text(s,encoding='utf-8')
+
+          # Force installed PWAs to refresh this batch instead of serving stale app-shell scripts.
+          p=Path('apps/work/sw.js')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("const CACHE='nosmo-work-v10102-canonical-20260906-1';", "const CACHE='nosmo-work-v10102-canonical-20260906-2';")
+          if "'./version.json'" not in s:
+              s=s.replace("'./manifest.webmanifest'", "'./manifest.webmanifest','./version.json'", 1)
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Static fresh-state audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'const now=new Date();' apps/work/screen.html
+          grep -Fq 'DEMO_MODE?demoDocuments:[]' apps/work/screen.html
+          grep -Fq 'DEMO_MODE?demoJobs.map(normalizeJob):[]' apps/work/js/work-hub.js
+          grep -Fq 'DEMO_MODE?demoEmployers:[]' apps/work/js/work-hub.js
+          grep -Fq '"version": "V1.0102"' apps/work/data/default-worker-profile.json
+          grep -Fq '"endpoint": ""' apps/work/data/default-worker-profile.json
+          grep -Fq "nosmo-work-v10102-canonical-20260906-2" apps/work/sw.js
+          echo NOSMO_WORK_V1_0102_FRESH_STATE_STATIC_PASS
+
+      - name: Commit fresh-state fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/work
+          git commit -m 'fix(work): remove synthetic fresh-install data in V1.0102'
+          git push origin HEAD:tmp/work-v1.0102-fresh-state
