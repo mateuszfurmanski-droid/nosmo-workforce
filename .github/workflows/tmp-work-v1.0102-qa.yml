@@ -43,18 +43,20 @@ jobs:
           d=webdriver.Chrome(options=o);w=WebDriverWait(d,12)
           try:
             d.get(base+'index.html')
-            w.until(lambda x: len(x.find_elements(By.CSS_SELECTOR,'.appWindowNav a[data-screen]'))==5)
+            d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(()=>done(true)).catch(()=>done(false));")
+            w.until(lambda x: x.execute_script("return document.readyState")=='complete')
+            w.until(lambda x: x.execute_script("return document.querySelectorAll('.appWindowNav a[data-screen]').length") == 5)
             assert d.title=='NOSMO Work', d.title
-            labels=[x.text.strip() for x in d.find_elements(By.CSS_SELECTOR,'.appWindowNav a span')]
+            labels=d.execute_script("return Array.from(document.querySelectorAll('.appWindowNav a span')).map(x=>x.textContent.trim())")
             assert labels==['Worker Card','Documents','Jobs','Apps','Settings'], labels
 
             compact=w.until(EC.element_to_be_clickable((By.ID,'workAvailabilityCompact')))
             compact.click()
-            sheet=w.until(EC.visibility_of_element_located((By.ID,'workAvailabilitySheet')))
-            labels2=[x.text.strip() for x in sheet.find_elements(By.CSS_SELECTOR,'.workAvailabilityChoice span:last-child')]
+            w.until(EC.visibility_of_element_located((By.ID,'workAvailabilitySheet')))
+            labels2=d.execute_script("return Array.from(document.querySelectorAll('#workAvailabilitySheet .workAvailabilityChoice span:last-child')).map(x=>x.textContent.trim())")
             assert labels2==['Available','Busy','Ready on date'], labels2
-            sheet.find_element(By.CSS_SELECTOR,'[data-state="busy"]').click()
-            sheet.find_element(By.CSS_SELECTOR,'.workAvailabilityDone').click()
+            d.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet [data-state="busy"]').click()
+            d.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet .workAvailabilityDone').click()
             w.until(lambda x: json.loads(x.execute_script("return localStorage.getItem('nosmo-work:v1:availability')"))['state']=='busy')
             d.refresh();w.until(EC.presence_of_element_located((By.ID,'workAvailabilityCompact')))
             assert 'Busy' in d.find_element(By.ID,'workAvailabilityCompact').text
@@ -68,13 +70,11 @@ jobs:
             assert state.text.strip(), 'install eligibility state must be explained'
             assert len(d.find_elements(By.CSS_SELECTOR,'#appearanceGrid [data-appearance]'))==6
 
-            # modal edit uses the exact canonical availability vocabulary
             d.get(base+'screen.html?screen=work')
             w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
-            opts=[x.text.strip() for x in d.find_elements(By.CSS_SELECTOR,'#workAvailability option')]
+            opts=d.execute_script("return Array.from(document.querySelectorAll('#workAvailability option')).map(x=>x.textContent.trim())")
             assert opts==['Available','Busy','Ready on date'], opts
 
-            # PWA registration + V1.0102 cache
             d.get(base+'index.html')
             scope=d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done('ERR:'+e.message));")
             assert scope.startswith(base), scope
@@ -87,7 +87,7 @@ jobs:
               overflow=d.execute_script('return Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth')
               assert overflow<=1,(width,overflow)
 
-            version=json.loads(d.execute_async_script("var done=arguments[0];fetch('./version.json').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));"))
+            version=d.execute_async_script("var done=arguments[0];fetch('./version.json').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));")
             assert version['version']=='V1.0102', version
             print('NOSMO_WORK_V1_0102_BROWSER_QA_PASS')
           finally:
