@@ -5,6 +5,7 @@
   const APPEARANCE_KEY="nosmo-work:v1:appearance";
   const REPLY_KEY="nosmo-work:v1:reply-alerts";
   const WA_KEY="nosmo-work:v1:show-whatsapp";
+  const AVAILABILITY_KEY="nosmo-work:v1:availability";
   function getBool(key, fallback){const v=localStorage.getItem(key);return v===null?fallback:v==="true"}
   function setAppearance(value){
     const appearance=value||"midnight-black";
@@ -37,9 +38,67 @@
     if(photo)photo.setAttribute("aria-label",display||"NOSMO Work profile");
     qa("a.iconLink").forEach(a=>{a.removeAttribute("href");a.setAttribute("aria-disabled","true")});
   }
+  function availabilityOptionLabel(state){
+    const option=q('#availabilityState option[value="'+state+'"],#availability option[value="'+state+'"]');
+    if(option)return option.textContent.trim();
+    return state==="busy"?"Busy":state==="from-date"?"Ready on date":"Available";
+  }
+  function currentAvailability(){
+    try{
+      const value=JSON.parse(localStorage.getItem(AVAILABILITY_KEY)||"null");
+      if(value&&["available","busy","from-date"].includes(value.state))return value;
+    }catch(_){}
+    return {state:"available",date:""};
+  }
+  function fallbackAvailabilitySheet(button){
+    let sheet=q("#workAvailabilitySheet");
+    if(sheet){sheet.classList.add("open");return}
+    const current=currentAvailability();
+    sheet=document.createElement("div");
+    sheet.id="workAvailabilitySheet";
+    sheet.className="workAvailabilitySheet open";
+    sheet.innerHTML='<div class="workAvailabilityPanel" role="dialog" aria-modal="true"><h3>Availability</h3><div class="workAvailabilityChoices"><button type="button" class="workAvailabilityChoice" data-state="available"><span class="workStatusLed"></span><span>'+availabilityOptionLabel("available")+'</span></button><button type="button" class="workAvailabilityChoice" data-state="busy"><span class="workStatusLed"></span><span>'+availabilityOptionLabel("busy")+'</span></button><button type="button" class="workAvailabilityChoice" data-state="from-date"><span class="workStatusLed"></span><span>'+availabilityOptionLabel("from-date")+'</span></button></div><div class="workReadyDate"><label>Ready date</label><input type="date" id="workReadyDateInput"></div><button class="workAvailabilityDone" type="button">Done</button></div>';
+    document.body.appendChild(sheet);
+    sheet.dataset.pendingState=current.state;
+    const dateInput=q("#workReadyDateInput",sheet);
+    dateInput.value=current.date||"";
+    q(".workReadyDate",sheet)?.classList.toggle("visible",current.state==="from-date");
+    sheet.addEventListener("click",event=>{if(event.target===sheet)sheet.classList.remove("open")});
+    qa(".workAvailabilityChoice",sheet).forEach(choice=>choice.addEventListener("click",()=>{
+      sheet.dataset.pendingState=choice.dataset.state;
+      q(".workReadyDate",sheet)?.classList.toggle("visible",choice.dataset.state==="from-date");
+    }));
+    q(".workAvailabilityDone",sheet)?.addEventListener("click",()=>{
+      const state=sheet.dataset.pendingState||"available";
+      const date=dateInput.value||"";
+      if(state==="from-date"&&!date){dateInput.focus();return}
+      const value={state,date:state==="from-date"?date:""};
+      localStorage.setItem(AVAILABILITY_KEY,JSON.stringify(value));
+      qa("#availabilityState,#availability").forEach(select=>{select.value=state});
+      qa("#availabilityDate,#availableFrom").forEach(input=>{input.value=value.date});
+      button.dataset.state=state;
+      const label=state==="from-date"?availabilityOptionLabel(state)+(value.date?" · "+value.date:""):availabilityOptionLabel(state);
+      const textSpan=button.querySelector("span:last-child");
+      if(textSpan)textSpan.textContent=label;
+      window.dispatchEvent(new CustomEvent("nosmo:availability-change",{detail:value}));
+      sheet.classList.remove("open");
+    });
+  }
+  function bindAvailabilityFallback(){
+    document.addEventListener("click",event=>{
+      const button=event.target.closest?.("#workAvailabilityCompact");
+      if(!button)return;
+      window.setTimeout(()=>{
+        const sheet=q("#workAvailabilitySheet");
+        if(sheet?.classList.contains("open"))return;
+        fallbackAvailabilitySheet(button);
+      },0);
+    });
+  }
   function init(){
     document.title="NOSMO Work";
     setAppearance(localStorage.getItem(APPEARANCE_KEY)||"midnight-black");
+    bindAvailabilityFallback();
     qa("[data-nosmo-ask-nexus]").forEach(el=>el.addEventListener("click",askNexus));
     qa("[data-appearance]").forEach(el=>el.addEventListener("click",()=>setAppearance(el.dataset.appearance)));
     const reply=q("#replyAlertsSetting"), wa=q("#whatsappContactsSetting");
