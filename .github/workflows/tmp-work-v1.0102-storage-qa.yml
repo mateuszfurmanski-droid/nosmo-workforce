@@ -42,14 +42,12 @@ jobs:
           python - <<'PY'
           from selenium import webdriver
           from selenium.webdriver.chrome.options import Options
-          from selenium.webdriver.common.by import By
           from selenium.webdriver.support.ui import WebDriverWait
 
           base='http://localhost:4173/'
           o=Options();o.add_argument('--headless=new');o.add_argument('--no-sandbox');o.add_argument('--disable-dev-shm-usage');o.add_argument('--window-size=390,844')
           d=webdriver.Chrome(options=o);w=WebDriverWait(d,15)
           try:
-            # Seed old V1.0101 state on a same-origin page with no Work runtime/service worker.
             d.get(base+'storage-seed-fixture.html')
             d.execute_script("localStorage.clear()")
             reset=d.execute_async_script("""
@@ -89,7 +87,6 @@ jobs:
             """)
             assert ok=='OK', ok
 
-            # Prove source bytes exist before migration.
             source=d.execute_async_script("""
               const done=arguments[0];const req=indexedDB.open('nosmo-person-card-freeware-files-v1');
               req.onerror=()=>done(null);
@@ -97,7 +94,6 @@ jobs:
             """)
             assert source and source['id']=='legacy-file-1', source
 
-            # Run only the migration bridge, without PWA/runtime interference.
             d.get(base+'storage-migration-fixture.html')
             w.until(lambda x: x.execute_script("return !!window.NOSMO_WORK_STORAGE_READY"))
             migrated=d.execute_async_script("var done=arguments[0];window.NOSMO_WORK_STORAGE_READY.then(v=>done(v)).catch(e=>done('ERR:'+e.message));")
@@ -132,12 +128,12 @@ jobs:
             """)
             assert row and row['id']=='legacy-file-1' and row['name']=='legacy-cv.pdf',row
 
-            # Real Work surfaces must consume the migrated namespace.
+            # Use DOM queries by script so service-worker refresh cannot stale Selenium element handles.
             d.get(base+'screen.html?screen=documents')
-            w.until(lambda x: not x.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
+            w.until(lambda x: x.execute_script("return !!document.getElementById('documentsScreen') && !document.getElementById('documentsScreen').hasAttribute('hidden')"))
             assert 'Legacy CSCS' in d.page_source
             d.get(base+'screen.html?screen=work')
-            w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
+            w.until(lambda x: x.execute_script("return !!document.getElementById('workScreen') && !document.getElementById('workScreen').hasAttribute('hidden')"))
             assert 'Legacy Employer' in d.page_source
             print('NOSMO_WORK_V1_0102_STORAGE_MIGRATION_QA_PASS')
           finally:
