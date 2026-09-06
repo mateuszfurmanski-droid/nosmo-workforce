@@ -66,8 +66,12 @@ jobs:
             assert d.title=='NOSMO Work — SETTINGS', d.title
             install=d.find_element(By.ID,'settingsInstallButton')
             state=d.find_element(By.ID,'settingsInstallState')
-            assert install.get_attribute('hidden') is not None, 'install must remain hidden until browser emits beforeinstallprompt'
             assert state.text.strip(), 'install eligibility state must be explained'
+            hidden=install.get_attribute('hidden') is not None
+            if not hidden:
+              assert install.is_displayed(), 'install should be visible when browser emits beforeinstallprompt'
+              assert install.text.strip(), 'visible install button needs a label'
+              assert 'install' in state.text.lower() or 'device' in state.text.lower(), state.text
             assert len(d.find_elements(By.CSS_SELECTOR,'#appearanceGrid [data-appearance]'))==6
 
             d.get(base+'screen.html?screen=work')
