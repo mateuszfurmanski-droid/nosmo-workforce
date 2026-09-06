@@ -1,0 +1,98 @@
+name: NOSMO Work V1.0102 Browser QA
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0102-finalisation
+    paths:
+      - apps/work/**
+      - .github/workflows/work-v1.0102-browser-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start Work server
+        shell: bash
+        run: |
+          python -m http.server 4173 --directory apps/work >/tmp/work-http.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://localhost:4173/index.html >/dev/null && exit 0; sleep 1; done
+          cat /tmp/work-http.log
+          exit 1
+      - name: Install selenium
+        run: python -m pip install --quiet selenium
+      - name: Run V1.0102 acceptance
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.support.ui import WebDriverWait
+          from selenium.webdriver.support import expected_conditions as EC
+
+          base='http://localhost:4173/'
+          o=Options();o.add_argument('--headless=new');o.add_argument('--no-sandbox');o.add_argument('--disable-dev-shm-usage');o.add_argument('--window-size=390,844')
+          d=webdriver.Chrome(options=o);w=WebDriverWait(d,12)
+          try:
+            d.get(base+'index.html')
+            d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(()=>done(true)).catch(()=>done(false));")
+            w.until(lambda x: x.execute_script("return document.readyState")=='complete')
+            w.until(lambda x: x.execute_script("return document.querySelectorAll('.appWindowNav a[data-screen]').length") == 5)
+            assert d.title=='NOSMO Work', d.title
+            labels=d.execute_script("return Array.from(document.querySelectorAll('.appWindowNav a span')).map(x=>x.textContent.trim())")
+            assert labels==['Worker Card','Documents','Jobs','Apps','Settings'], labels
+
+            compact=w.until(EC.element_to_be_clickable((By.ID,'workAvailabilityCompact')))
+            compact.click()
+            w.until(EC.visibility_of_element_located((By.ID,'workAvailabilitySheet')))
+            labels2=d.execute_script("return Array.from(document.querySelectorAll('#workAvailabilitySheet .workAvailabilityChoice span:last-child')).map(x=>x.textContent.trim())")
+            assert labels2==['Available','Busy','Ready on date'], labels2
+            d.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet [data-state="busy"]').click()
+            d.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet .workAvailabilityDone').click()
+            w.until(lambda x: json.loads(x.execute_script("return localStorage.getItem('nosmo-work:v1:availability')"))['state']=='busy')
+            d.refresh();w.until(EC.presence_of_element_located((By.ID,'workAvailabilityCompact')))
+            assert 'Busy' in d.find_element(By.ID,'workAvailabilityCompact').text
+
+            d.get(base+'screen.html?screen=settings')
+            w.until(lambda x: not x.find_element(By.ID,'settingsScreen').get_attribute('hidden'))
+            assert d.title=='NOSMO Work — SETTINGS', d.title
+            install=d.find_element(By.ID,'settingsInstallButton')
+            state=d.find_element(By.ID,'settingsInstallState')
+            assert state.text.strip(), 'install eligibility state must be explained'
+            hidden=install.get_attribute('hidden') is not None
+            if not hidden:
+              assert install.is_displayed(), 'install should be visible when browser emits beforeinstallprompt'
+              assert install.text.strip(), 'visible install button needs a label'
+            assert len(d.find_elements(By.CSS_SELECTOR,'#appearanceGrid [data-appearance]'))==6
+
+            d.get(base+'screen.html?screen=work')
+            w.until(lambda x: not x.find_element(By.ID,'workScreen').get_attribute('hidden'))
+            opts=d.execute_script("return Array.from(document.querySelectorAll('#workAvailability option')).map(x=>x.textContent.trim())")
+            assert opts==['Available','Busy','Ready on date'], opts
+
+            d.get(base+'index.html')
+            scope=d.execute_async_script("var done=arguments[0];navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done('ERR:'+e.message));")
+            assert scope.startswith(base), scope
+            keys=d.execute_async_script("var done=arguments[0];caches.keys().then(done).catch(()=>done([]));")
+            assert any(k.startswith('nosmo-work-v10102-canonical') for k in keys), keys
+
+            for width,height in [(320,720),(390,844),(673,841),(768,1024)]:
+              d.set_window_size(width,height);d.get(base+'screen.html?screen=settings')
+              w.until(lambda x: not x.find_element(By.ID,'settingsScreen').get_attribute('hidden'))
+              overflow=d.execute_script('return Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth')
+              assert overflow<=1,(width,overflow)
+
+            version=d.execute_async_script("var done=arguments[0];fetch('./version.json').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));")
+            assert version['version']=='V1.0102', version
+            print('NOSMO_WORK_V1_0102_BROWSER_QA_PASS')
+          finally:
+            d.quit()
+          PY
