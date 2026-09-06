@@ -1,0 +1,36 @@
+name: TMP NOSMO Work V1.0102 Fresh Copy Fix
+
+on:
+  push:
+    branches:
+      - tmp/work-v1.0102-fresh-state
+    paths:
+      - .github/workflows/tmp-work-v1.0102-fresh-copy-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/work/js/work-hub.js')
+          s=p.read_text(encoding='utf-8')
+          old='No jobs match this filter.'
+          new='No jobs saved or found yet. Add a job or connect a live job source.'
+          assert old in s
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/work/js/work-hub.js
+          git commit -m 'fix(work): clarify empty fresh jobs state'
+          git push origin HEAD:tmp/work-v1.0102-fresh-state
