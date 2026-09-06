@@ -1,0 +1,62 @@
+{
+  "id": "./",
+  "name": "NOSMO Work",
+  "short_name": "NOSMO Work",
+  "description": "Worker Card, documents, jobs, work tools and private worker-owned actions.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#020713",
+  "theme_color": "#000000",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./assets/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/pwa/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Worker Card",
+      "short_name": "Worker Card",
+      "url": "./index.html"
+    },
+    {
+      "name": "Documents",
+      "short_name": "Documents",
+      "url": "./screen.html?screen=documents"
+    },
+    {
+      "name": "Jobs",
+      "short_name": "Jobs",
+      "url": "./screen.html?screen=work"
+    },
+    {
+      "name": "Apps",
+      "short_name": "Apps",
+      "url": "./screen.html?screen=apps"
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "url": "./screen.html?screen=settings"
+    }
+  ]
+}

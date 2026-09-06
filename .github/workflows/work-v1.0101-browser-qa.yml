@@ -1,0 +1,187 @@
+name: NOSMO Work V1.0101 Browser QA
+
+on:
+  push:
+    branches:
+      - codex/work-v1.0101-migration
+    paths:
+      - apps/work/**
+      - .github/workflows/work-v1.0101-browser-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+
+      - name: Start local Work server
+        shell: bash
+        run: |
+          python -m http.server 4173 --directory apps/work >/tmp/nosmo-work-http.log 2>&1 &
+          echo $! >/tmp/nosmo-work-http.pid
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:4173/index.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/nosmo-work-http.log
+          exit 1
+
+      - name: Install browser test dependency
+        run: python -m pip install --quiet selenium
+
+      - name: Run Chrome V1.0101 acceptance
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.support.ui import WebDriverWait
+          from selenium.webdriver.support import expected_conditions as EC
+
+          base='http://localhost:4173/'
+          options=Options()
+          options.add_argument('--headless=new')
+          options.add_argument('--no-sandbox')
+          options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('--window-size=390,844')
+          options.set_capability('goog:loggingPrefs', {'browser':'ALL'})
+          driver=webdriver.Chrome(options=options)
+          driver.set_script_timeout(12)
+          wait=WebDriverWait(driver,10)
+
+          def labels():
+              return driver.execute_script("return Array.from(document.querySelectorAll('.appWindowNav a span')).map(x=>x.textContent.trim())")
+          def wait_nav():
+              wait.until(lambda d: d.execute_script("return document.querySelectorAll('.appWindowNav a span').length") == 5)
+          def assert_no_overflow(name):
+              data=driver.execute_script('return {w:innerWidth,sw:document.documentElement.scrollWidth,b:document.body.scrollWidth}')
+              assert data['sw'] <= data['w'] + 1 and data['b'] <= data['w'] + 1, (name,data)
+          def storage_json(key):
+              raw=driver.execute_script('return localStorage.getItem(arguments[0])',key)
+              return json.loads(raw) if raw else None
+
+          try:
+              driver.get(base+'index.html')
+              wait_nav()
+              assert driver.title == 'NOSMO Work'
+              assert labels()==['Worker Card','Documents','Jobs','Apps','Settings'], labels()
+              assert len(driver.find_elements(By.CSS_SELECTOR,'[data-nosmo-ask-nexus]')) >= 1
+              assert 'Kamil' not in driver.page_source and 'Karaszewski' not in driver.page_source
+              assert_no_overflow('index-390')
+
+              # Availability is exactly one compact control with the three agreed states.
+              wait.until(EC.presence_of_element_located((By.ID,'workAvailabilityCompact')))
+              compact=driver.find_element(By.ID,'workAvailabilityCompact')
+              assert compact.get_attribute('data-state') in ('available','busy','from-date')
+              compact.click()
+              wait.until(EC.presence_of_element_located((By.ID,'workAvailabilitySheet')))
+              choices=driver.find_elements(By.CSS_SELECTOR,'#workAvailabilitySheet .workAvailabilityChoice')
+              assert [x.get_attribute('data-state') for x in choices]==['available','busy','from-date']
+              driver.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet [data-state="busy"]').click()
+              driver.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet .workAvailabilityDone').click()
+              wait.until(lambda d: storage_json('nosmo-work:v1:availability')['state']=='busy')
+              assert 'Busy' in driver.find_element(By.ID,'workAvailabilityCompact').text
+              driver.find_element(By.ID,'workAvailabilityCompact').click()
+              driver.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet [data-state="from-date"]').click()
+              driver.execute_script("let x=document.getElementById('workReadyDateInput');x.value='2026-09-15';x.dispatchEvent(new Event('input',{bubbles:true}));x.dispatchEvent(new Event('change',{bubbles:true}));")
+              driver.find_element(By.CSS_SELECTOR,'#workAvailabilitySheet .workAvailabilityDone').click()
+              wait.until(lambda d: storage_json('nosmo-work:v1:availability')['state']=='from-date')
+              av=storage_json('nosmo-work:v1:availability')
+              assert av['date']=='2026-09-15', av
+              assert 'Ready on date' in driver.find_element(By.ID,'workAvailabilityCompact').text
+
+              # Language layer exposes all 17 agreed workforce languages and shows current flag.
+              lang_btn=driver.find_element(By.CSS_SELECTOR,'.workLangButton')
+              lang_btn.click()
+              wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR,'.workLanguageOption'))==17)
+              driver.find_element(By.CSS_SELECTOR,'.workLanguageOption[data-lang="pl"]').click()
+              assert driver.execute_script("return localStorage.getItem('nosmo-work:v1:language')")=='pl'
+              assert driver.find_element(By.CSS_SELECTOR,'.workLangButton').text.strip()=='🇵🇱'
+              driver.get(base+'screen.html?screen=documents')
+              wait.until(lambda d: not d.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
+              assert driver.execute_script("return localStorage.getItem('nosmo-work:v1:language')")=='pl'
+              assert driver.find_element(By.CSS_SELECTOR,'.workLangButton').text.strip()=='🇵🇱'
+              driver.find_element(By.CSS_SELECTOR,'.workLangButton').click()
+              wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR,'.workLanguageOption'))==17)
+              driver.find_element(By.CSS_SELECTOR,'.workLanguageOption[data-lang="en"]').click()
+
+              for width,height in [(320,720),(673,841),(768,1024)]:
+                  driver.set_window_size(width,height)
+                  driver.get(base+'index.html')
+                  wait_nav()
+                  assert_no_overflow(f'index-{width}')
+
+              driver.set_window_size(390,844)
+              driver.get(base+'screen.html?screen=apps')
+              wait.until(lambda d: not d.find_element(By.ID,'appsScreen').get_attribute('hidden'))
+              wait_nav()
+              assert labels()==['Worker Card','Documents','Jobs','Apps','Settings']
+              assert len(driver.find_elements(By.CSS_SELECTOR,'#appsScreen .workToolCard'))==4
+              assert 'Work tools first' in driver.find_element(By.ID,'appsScreen').text
+              assert 'Manage apps & imports' in driver.find_element(By.ID,'appsScreen').text
+              assert_no_overflow('apps')
+
+              driver.get(base+'screen.html?screen=settings')
+              wait.until(lambda d: not d.find_element(By.ID,'settingsScreen').get_attribute('hidden'))
+              buttons=driver.find_elements(By.CSS_SELECTOR,'#appearanceGrid [data-appearance]')
+              assert len(buttons)==6
+              driver.find_element(By.CSS_SELECTOR,'[data-appearance="silent-gold"]').click()
+              assert driver.execute_script('return localStorage.getItem("nosmo-work:v1:appearance")')=='silent-gold'
+              driver.refresh(); wait.until(EC.presence_of_element_located((By.ID,'appearanceGrid')))
+              assert driver.execute_script('return document.documentElement.dataset.workAppearance')=='silent-gold'
+              driver.find_element(By.CSS_SELECTOR,'[data-appearance="architect-white"]').click()
+              assert driver.execute_script('return document.documentElement.dataset.workTheme')=='light'
+              assert_no_overflow('settings')
+
+              # Safe application flow: prepare = TO APPLY; channel open does not mark sent; explicit confirm = APPLIED.
+              driver.get(base+'screen.html?screen=work')
+              wait.until(lambda d: not d.find_element(By.ID,'workScreen').get_attribute('hidden'))
+              wait_nav()
+              assert labels()==['Worker Card','Documents','Jobs','Apps','Settings']
+              assert 'NOSMO WORK AGENT' in driver.page_source
+              driver.execute_script("localStorage.removeItem('nosmo-person-card-freeware:applications/v1')")
+              driver.find_element(By.CSS_SELECTOR,'[data-hub-tab="jobs"]').click()
+              wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#jobHubList [data-prepare]')))
+              prepare=driver.find_element(By.CSS_SELECTOR,'#jobHubList [data-prepare]')
+              driver.execute_script("arguments[0].scrollIntoView({block:'center',inline:'nearest'});",prepare)
+              prepare.click()
+              wait.until(EC.presence_of_element_located((By.ID,'confirmApplicationSent')))
+              apps=storage_json('nosmo-person-card-freeware:applications/v1')
+              assert apps and apps[0]['status']=='TO APPLY', apps
+              if driver.find_elements(By.ID,'hubWhatsApp'):
+                  driver.execute_script("let a=document.getElementById('hubWhatsApp');a.addEventListener('click',e=>e.preventDefault(),{once:true,capture:true});a.click();")
+                  apps=storage_json('nosmo-person-card-freeware:applications/v1')
+                  assert apps[0]['status']=='TO APPLY', apps
+              confirm=driver.find_element(By.ID,'confirmApplicationSent')
+              driver.execute_script("arguments[0].scrollIntoView({block:'center',inline:'nearest'});",confirm)
+              confirm.click()
+              wait.until(EC.alert_is_present())
+              driver.switch_to.alert.accept()
+              wait.until(lambda d: storage_json('nosmo-person-card-freeware:applications/v1')[0]['status']=='APPLIED')
+              apps=storage_json('nosmo-person-card-freeware:applications/v1')
+              assert apps[0]['history'][-1]['source']=='explicit-user-confirmation', apps[0]['history']
+              assert_no_overflow('jobs')
+
+              driver.get(base+'screen.html?screen=documents')
+              wait.until(lambda d: not d.find_element(By.ID,'documentsScreen').get_attribute('hidden'))
+              assert_no_overflow('documents')
+
+              driver.get(base+'index.html')
+              wait_nav()
+              sw_scope=driver.execute_async_script('''var done=arguments[0]; if(!("serviceWorker" in navigator)){done("unsupported");return;} navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done("ERR:"+e.message));''')
+              assert sw_scope.startswith(base), sw_scope
+
+              severe=[x for x in driver.get_log('browser') if x.get('level')=='SEVERE' and 'favicon' not in x.get('message','').lower()]
+              assert not severe, severe
+              print('NOSMO_WORK_V1_0101_BROWSER_QA_PASS')
+          finally:
+              driver.quit()
+          PY
