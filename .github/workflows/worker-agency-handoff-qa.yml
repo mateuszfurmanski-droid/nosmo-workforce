@@ -1,0 +1,39 @@
+name: Worker Agency handoff QA
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/work/**
+      - apps/agency/runtime/**
+      - .github/workflows/worker-agency-handoff-qa.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - apps/work/**
+      - apps/agency/runtime/**
+      - .github/workflows/worker-agency-handoff-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  handoff-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and Worker Agency handoff contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/agency/runtime/server.js
+          node --check apps/agency/runtime/compat.js
+          node --check 'apps/agency/runtime/api/person-card/onboarding/[...path].js'
+          node apps/agency/runtime/tests/contract.mjs
+          node apps/agency/runtime/tests/worker-handoff-contract.mjs
+          node --check apps/work/js/person-onboarding-v47.js
+          node --check apps/work/js/person-onboarding-v47-core.js
