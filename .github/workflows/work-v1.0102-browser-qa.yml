@@ -3,7 +3,13 @@ name: NOSMO Work V1.0102 Browser QA
 on:
   push:
     branches:
-      - codex/work-v1.0102-finalisation
+      - main
+    paths:
+      - apps/work/**
+      - .github/workflows/work-v1.0102-browser-qa.yml
+  pull_request:
+    branches:
+      - main
     paths:
       - apps/work/**
       - .github/workflows/work-v1.0102-browser-qa.yml
