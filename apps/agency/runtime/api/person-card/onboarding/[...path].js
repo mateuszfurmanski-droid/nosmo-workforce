@@ -187,7 +187,7 @@ async function saveDraft(req,res){
     const inviteResult=await client.query(`select agency_id as "agencyId",created_by_user_id as "createdByUserId" from nexus_person_onboarding_invites where invite_id=$1 and claimed_person_id=$2 and status='CLAIMED' limit 2 for update`,[authority.inviteId,authority.personId]);
     if(inviteResult.rows.length!==1){const error=new Error("NEXUS_ONBOARDING_DRAFT_AUTHORITY_INVALID");error.status=403;throw error}
     const invite=inviteResult.rows[0];
-    const personUpdate=await client.query("update nexus_pm_people set display_name=$3,person_type='worker',status=$4,record_json=$5::jsonb,persisted_at=$6 where person_id=$1 returning person_id",[authority.personId,authority.inviteId,displayName,status,JSON.stringify(personRecord),now]);
+    const personUpdate=await client.query("update nexus_pm_people set display_name=$2,person_type='worker',status=$3,record_json=$4::jsonb,persisted_at=$5 where person_id=$1 returning person_id",[authority.personId,displayName,status,JSON.stringify(personRecord),now]);
     if(personUpdate.rows.length!==1){const error=new Error("NEXUS_ONBOARDING_PERSON_NOT_FOUND");error.status=404;throw error}
     const profileUpdate=await client.query("update nexus_person_work_profiles set schema_version='nexus-person-work-profile/v1',status=$3,record_json=$4::jsonb,persisted_at=$5 where person_id=$1 and source_invite_id=$2 returning person_id",[authority.personId,authority.inviteId,status,JSON.stringify(workProfileRecord),now]);
     if(profileUpdate.rows.length!==1){const error=new Error("NEXUS_ONBOARDING_WORK_PROFILE_NOT_FOUND");error.status=404;throw error}
