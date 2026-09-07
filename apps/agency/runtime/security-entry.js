@@ -13,6 +13,7 @@ import {
   roleAllowed,
   safeApiErrorBody,
   sameOriginRequest,
+  secureExternalUrl,
   securityHeaders,
 } from "./security-core.js";
 
@@ -70,6 +71,16 @@ function pinCanonicalRequestOrigin(req){
   req.headers.host=url.host;
 }
 
+function hasDangerousObjectKey(value,depth=0,budget={nodes:0}){
+  if(value===null||typeof value!=="object")return false;
+  if(depth>10||++budget.nodes>5000)return true;
+  for(const key of Object.keys(value)){
+    if(key==="__proto__"||key==="prototype"||key==="constructor")return true;
+    if(hasDangerousObjectKey(value[key],depth+1,budget))return true;
+  }
+  return false;
+}
+
 async function sessionContext(sid){
   if(!sid)return {authenticated:false,memberships:[]};
   const sessionResult=await pool.query("select sess from sessions where sid=$1 and expire>now() limit 1",[sid]);
@@ -86,18 +97,7 @@ async function sessionContext(sid){
 
 function audit(event,{req,context,result}){
   const membership=context?.memberships?.length===1?context.memberships[0]:null;
-  console.info(JSON.stringify({
-    schema:"nosmo-security-audit/v1",
-    event,
-    timestamp:new Date().toISOString(),
-    actorId:context?.userId||null,
-    agencyId:membership?.agencyId||null,
-    role:membership?.role||null,
-    result,
-    method:req.method,
-    path:req.path,
-    requestId:req.nosmoRequestId,
-  }));
+  console.info(JSON.stringify({schema:"nosmo-security-audit/v1",event,timestamp:new Date().toISOString(),actorId:context?.userId||null,agencyId:membership?.agencyId||null,role:membership?.role||null,result,method:req.method,path:req.path,requestId:req.nosmoRequestId}));
 }
 
 function auditEventFor(req){
@@ -125,19 +125,24 @@ app.use((req,res,next)=>{
   res.json=(body)=>originalJson(safeApiErrorBody(body,res.statusCode));
   next();
 });
+app.use(express.json({limit:"256kb",strict:true}));
+app.use(express.urlencoded({extended:false,limit:"64kb"}));
+app.use((error,_req,res,next)=>{
+  if(error?.type==="entity.too.large"){res.status(413).json({error:"NOSMO_PAYLOAD_TOO_LARGE"});return}
+  if(error instanceof SyntaxError&&error?.type==="entity.parse.failed"){res.status(400).json({error:"NOSMO_MALFORMED_JSON"});return}
+  next(error);
+});
+app.use((req,res,next)=>{
+  if(req.path.startsWith("/api/")&&hasDangerousObjectKey(req.body)){res.status(400).json({error:"NOSMO_UNSAFE_OBJECT_KEYS"});return}
+  next();
+});
 app.use((req,res,next)=>consumeRate(req,res)?next():undefined);
 
 app.get(["/api/agency/health","/api/person-card/agency/v1/_health"],async(_req,res)=>{
   try{
     const result=await pool.query("select unnest($1::text[]) as name, to_regclass('public.'||unnest($1::text[]))::text as reg",[REQUIRED_TABLES]);
     const missingCount=result.rows.filter(row=>!row.reg).length;
-    res.status(missingCount?503:200).json({
-      schema:"nosmo-security-health/v1",
-      status:missingCount?"database-migration-required":"ok",
-      databaseReady:missingCount===0,
-      missingTableCount:missingCount,
-      securityGate:"ENFORCED"
-    });
+    res.status(missingCount?503:200).json({schema:"nosmo-security-health/v1",status:missingCount?"database-migration-required":"ok",databaseReady:missingCount===0,missingTableCount:missingCount,securityGate:"ENFORCED"});
   }catch(error){
     console.error("NOSMO health check failed",error);
     res.status(503).json({schema:"nosmo-security-health/v1",status:"database-unavailable",databaseReady:false,securityGate:"ENFORCED"});
@@ -154,8 +159,12 @@ app.use(async(req,res,next)=>{
     audit("LEGACY_BEARER_SESSION_DENIED",{req,context:null,result:"DENIED"});
     res.status(401).json({error:"NOSMO_COOKIE_SESSION_REQUIRED"});return;
   }
-  if(isProduction()&&(req.path==="/api/login"||req.path==="/api/callback")&&!configuredAgencyOrigin()){
-    res.status(503).json({error:"NOSMO_AGENCY_PUBLIC_ORIGIN_REQUIRED"});return;
+  if(isProduction()&&(req.path==="/api/login"||req.path==="/api/callback")){
+    if(!configuredAgencyOrigin()){res.status(503).json({error:"NOSMO_AGENCY_PUBLIC_ORIGIN_REQUIRED"});return}
+    if(!secureExternalUrl(process.env.ISSUER_URL||"https://replit.com/oidc")){res.status(503).json({error:"NOSMO_OIDC_ISSUER_INVALID"});return}
+  }
+  if(isProduction()&&req.method!=="GET"&&req.path.includes("/invites")&&!secureExternalUrl(process.env.WORK_APP_BASE_URL||"")){
+    res.status(503).json({error:"NOSMO_WORK_APP_BASE_URL_INVALID"});return;
   }
   if(requiresBrowserMutationProtection(req.method,req.path)&&req.cookies?.[SESSION_COOKIE]&&!sameOriginRequest(req)){
     audit("CSRF_ORIGIN_DENIED",{req,context:null,result:"DENIED"});
