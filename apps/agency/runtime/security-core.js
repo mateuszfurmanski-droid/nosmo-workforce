@@ -104,6 +104,7 @@ export function safeApiErrorBody(body,statusCode=500){
   delete out.sql;
   delete out.query;
   delete out.internal;
+  if(statusCode>=500&&!/^[A-Z0-9_:-]{3,120}$/.test(String(out.error||"")))out.error="NOSMO_INTERNAL_ERROR";
   return out;
 }
 
