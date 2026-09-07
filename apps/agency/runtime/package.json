@@ -6,7 +6,7 @@
   "engines": {"node": "24.x"},
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check compat.js && node --check 'api/person-card/onboarding/[...path].js' && node tests/contract.mjs && node tests/worker-handoff-contract.mjs"
+    "check": "node --check server.js && node --check compat.js && node --check 'api/person-card/onboarding/[...path].js' && node --check api/person-card/onboarding/availability.js && node tests/contract.mjs && node tests/worker-handoff-contract.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
