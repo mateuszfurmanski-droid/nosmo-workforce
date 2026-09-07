@@ -1,0 +1,22 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Node / build / test artifacts
+node_modules/
+coverage/
+dist/
+.next/
+.vercel/
+*.log
+
+# Local OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
