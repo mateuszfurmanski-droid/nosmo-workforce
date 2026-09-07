@@ -1,3 +1,4 @@
+import "./security-bootstrap.js";
 import crypto from "node:crypto";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -5,11 +6,8 @@ import pg from "pg";
 import {
   configuredAgencyOrigin,
   isAgencyApiPath,
-  isAgencyHealthPath,
   isProduction,
-  productionSslOptions,
   ratePolicy,
-  redactedLogValue,
   requiredAgencyRoles,
   requiresBrowserMutationProtection,
   roleAllowed,
@@ -28,33 +26,8 @@ const REQUIRED_TABLES=[
   "nexus_person_work_profiles","nexus_pm_people"
 ];
 const rateBuckets=new Map();
-
-function installSecurePgPool(){
-  if(pg.__nosmoSecurePoolInstalled)return;
-  const OriginalPool=pg.Pool;
-  if(typeof OriginalPool!=="function")throw new Error("NOSMO_PG_POOL_UNAVAILABLE");
-  class NosmoSecurePool extends OriginalPool{
-    constructor(config={}){
-      const next={...config};
-      if(isProduction())next.ssl=productionSslOptions();
-      super(next);
-    }
-  }
-  Object.defineProperty(pg,"Pool",{value:NosmoSecurePool,writable:false,configurable:false,enumerable:true});
-  Object.defineProperty(pg,"__nosmoSecurePoolInstalled",{value:true,writable:false,configurable:false});
-}
-
-installSecurePgPool();
 const {Pool}=pg;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:5000});
-
-function installRedactedErrorLogger(){
-  if(!isProduction()||console.__nosmoRedactedErrorLogger)return;
-  const original=console.error.bind(console);
-  console.error=(...args)=>original(...args.map(redactedLogValue));
-  Object.defineProperty(console,"__nosmoRedactedErrorLogger",{value:true});
-}
-installRedactedErrorLogger();
 
 function clientKey(req,bucket){
   const forwarded=String(req.headers["x-forwarded-for"]||"").split(",")[0].trim();
@@ -85,6 +58,16 @@ function queryHasSessionIdentifier(req){
     const url=new URL(req.originalUrl||req.url||"/","https://nosmo.invalid");
     return ["sid","session","sessionId","session_id"].some(key=>url.searchParams.has(key));
   }catch{return false}
+}
+
+function pinCanonicalRequestOrigin(req){
+  if(!isProduction())return;
+  const canonical=configuredAgencyOrigin();
+  if(!canonical)return;
+  const url=new URL(canonical);
+  req.headers["x-forwarded-proto"]=url.protocol.slice(0,-1);
+  req.headers["x-forwarded-host"]=url.host;
+  req.headers.host=url.host;
 }
 
 async function sessionContext(sid){
@@ -134,6 +117,7 @@ app.set("trust proxy",1);
 app.use(cookieParser());
 app.use((req,res,next)=>{
   req.nosmoRequestId=crypto.randomUUID();
+  pinCanonicalRequestOrigin(req);
   res.setHeader("X-Request-Id",req.nosmoRequestId);
   for(const [name,value] of Object.entries(securityHeaders()))res.setHeader(name,value);
   res.setHeader("Cache-Control",req.path.startsWith("/api/")?"no-store":"public, max-age=0, must-revalidate");
