@@ -6,7 +6,8 @@
   "engines": {"node": "24.x"},
   "scripts": {
     "start": "node secure-host.js",
-    "check": "node --check server.js && node --check compat.js && node --check security-core.js && node --check security-bootstrap.js && node --check security-entry.js && node --check onboarding-security.js && node --check secure-host.js && node --check 'api/[...path].js' && node --check api/secure-onboarding.js && node --check api/secure-onboarding-availability.js && node --check 'api/person-card/onboarding/[...path].js' && node --check api/person-card/onboarding/availability.js && node tests/contract.mjs && node tests/worker-handoff-contract.mjs && node tests/security-gate.mjs"
+    "check": "node --check server.js && node --check compat.js && node --check security-core.js && node --check security-bootstrap.js && node --check security-entry.js && node --check onboarding-security.js && node --check secure-host.js && node --check 'api/[...path].js' && node --check api/secure-onboarding.js && node --check api/secure-onboarding-availability.js && node --check 'api/person-card/onboarding/[...path].js' && node --check api/person-card/onboarding/availability.js && node tests/contract.mjs && node tests/worker-handoff-contract.mjs && node tests/security-gate.mjs",
+    "security:e2e": "node tests/tenant-isolation.e2e.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
