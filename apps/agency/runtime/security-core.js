@@ -40,7 +40,7 @@ export function sameOriginRequest(req,env=process.env){
 }
 
 export function isAgencyApiPath(pathname=""){
-  return pathname==="/api/logout"||pathname.startsWith("/api/agency/")||pathname.startsWith("/api/person-card/agency/");
+  return pathname==="/api/login"||pathname==="/api/callback"||pathname==="/api/auth/user"||pathname==="/api/logout"||pathname.startsWith("/api/agency/")||pathname.startsWith("/api/person-card/agency/");
 }
 
 export function isAgencyHealthPath(pathname=""){
