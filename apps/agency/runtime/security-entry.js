@@ -181,6 +181,10 @@ app.use(async(req,res,next)=>{
   }
   const hasMembership=context.memberships.length===1;
   const allowed=requiredAgencyRoles(req.method,req.path,hasMembership);
+  if(allowed&&!context.authenticated){
+    audit("AUTH_REQUIRED_DENIED",{req,context,result:"DENIED"});
+    res.status(401).json({error:"NEXUS_AUTH_REQUIRED"});return;
+  }
   if(allowed&&hasMembership&&!roleAllowed(context.memberships[0].role,allowed)){
     audit("ROLE_ACCESS_DENIED",{req,context,result:"DENIED"});
     res.status(403).json({error:"NOSMO_ROLE_FORBIDDEN"});return;
