@@ -95,8 +95,17 @@
       },0);
     });
   }
+  function loadAgencyStatusSync(){
+    if(document.querySelector('script[data-work-agency-status-sync]'))return;
+    const script=document.createElement("script");
+    script.src="./js/work-agency-status-sync.js?v=10102";
+    script.async=true;
+    script.dataset.workAgencyStatusSync="true";
+    document.head.appendChild(script);
+  }
   function init(){
     if(location.pathname.endsWith("/index.html")||location.pathname.endsWith("/"))document.title="NOSMO Work";
+    loadAgencyStatusSync();
     setAppearance(localStorage.getItem(APPEARANCE_KEY)||"midnight-black");
     bindAvailabilityFallback();
     qa("[data-nosmo-ask-nexus]").forEach(el=>el.addEventListener("click",askNexus));
