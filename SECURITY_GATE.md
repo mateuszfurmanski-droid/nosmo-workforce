@@ -4,7 +4,7 @@ Date: 2026-09-07
 
 Scope: NOSMO Agency + NOSMO Work / Worker. NOSMO Emergency Button is intentionally out of scope.
 
-Canonical source inspected before changes: `main` at `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d` (`Worker V1.0102: synchronize status to Agency`). No open pull requests existed at the start of this security pass. Security hardening is being performed on `security/nosmo-security-gate`; accepted Agency UI files are not redesigned or replaced.
+Canonical source inspected before changes: `main` at `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d` (`Worker V1.0102: synchronize status to Agency`). No open pull requests existed at the start of this security pass. Security hardening is being performed on `security/nosmo-security-gate`; accepted Agency UI files are not redesigned or replaced. Pull request: #18.
 
 ## 1. Architecture summary
 
@@ -197,6 +197,7 @@ Existing Worker onboarding events continue recording Worker profile/consent life
 - `.gitignore` blocks `.env`, `.env.*` (except `.env.example`), PEM/key/P12/PFX files and local build/runtime artifacts.
 - Permanent security QA scans committed text for high-confidence private keys, GitHub tokens, AWS access keys, OpenAI-style keys and PostgreSQL URLs containing apparent passwords.
 - Targeted repository searches during the audit found no committed PostgreSQL credential URL and no `DATABASE_URL=` assignment containing a secret.
+- PR #18 security CI ran the committed-source scan successfully.
 
 Production credentials must remain in deployment/provider secret storage. Secret values must not be copied into QA logs or this document.
 
@@ -252,9 +253,17 @@ Added permanent isolated HTTP integration QA:
 - security headers present
 - denied cross-tenant write does not mutate Agency B
 
-Manual isolated Neon A/B SQL-layer tenant test: **PASSED**.
+Evidence actually passed during this pass:
 
-Post-change GitHub CI (`npm run check` + dependency audit) and HTTP integration execution are still required before these newly added tests can be recorded as passed end-to-end.
+- Manual isolated Neon A/B SQL-layer tenant test: **PASSED**.
+- PR #18 `Worker Agency handoff QA`: **PASSED**.
+- PR #18 `NOSMO Security Gate`: **PASSED**.
+- Existing Agency runtime contract inside the gate: **PASSED** (21 compatibility routes, accepted API prefix, accepted UI byte parity, recruiter-safe consent gate, placement readiness gate, Ask Nexus read-only).
+- Existing Worker↔Agency handoff contract: **PASSED** (HTTPS remote API requirement, explicit consent, recruiter-safe projection, private fields excluded, availability sync/offline retry).
+- New `nosmo-security-gate-static-qa/v1`: **PASSED** (authorization, CSRF origin, production TLS verification, headers, safe errors, rate policies, secured entrypoints, Worker consent projection, SQL interpolation guard, committed-secret scan).
+- Dependency audit on Node 24.20.0 / npm 11.19.0: **PASSED — `found 0 vulnerabilities`**.
+
+The permanent HTTP tenant-isolation integration runner has not yet been executed against the hardened deployed runtime/database branch; that specific release-blocking test remains outstanding.
 
 ## 15. Outstanding risks
 
@@ -266,9 +275,8 @@ Release blockers / material risks:
 4. Worker draft authority and personal draft data remain accessible to Worker JavaScript/localStorage; Worker has no equivalent HttpOnly authenticated session boundary.
 5. Custom Worker hosting security headers/CSP are not yet verified.
 6. Production database application role/least privilege is not proven from the current deployment configuration.
-7. Dependency audit has been added to CI but has not yet been executed for this security branch.
-8. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
-9. In-process rate limiting is not globally distributed across Vercel instances.
+7. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
+8. In-process rate limiting is not globally distributed across Vercel instances.
 
 Non-blocking hardening candidates after the above release blockers:
 
@@ -290,7 +298,6 @@ Before a genuine personal-data pilot can be approved:
 - resolve the Worker browser credential/private-local-storage boundary before using genuine Worker PII
 - confirm application database role privileges and provider network policy
 - define recovery retention and perform a non-production restore drill
-- complete dependency audit CI
 
 Legal documents, insurance, Cyber Essentials, ISO 27001, penetration-test certification and GDPR legal assessment are separate external activities. None is claimed by this gate.
 
@@ -305,7 +312,10 @@ Evidence supporting this classification:
 - Tenant authority is server-derived from membership.
 - Recruiter-safe Worker consent/private-field boundaries are present.
 - Isolated Neon SQL-layer A/B tenant tests passed.
-- Permanent static and HTTP security QA have been added.
+- Existing Agency/Worker functional contracts passed on PR #18 after the security changes.
+- New static security QA passed on PR #18.
+- Dependency audit passed with 0 vulnerabilities reported by npm for the installed runtime dependency set.
+- Permanent HTTP security/tenant QA has been added.
 
 However, the minimum PILOT READY release rule is not yet satisfied because the hardened canonical runtime is not the live deployment, live authentication/database/secure-cookie behavior is unverified, HTTP tenant isolation has not yet been executed end-to-end, and the Worker browser authority/private-storage model remains unresolved for genuine personal data.
 
