@@ -83,8 +83,11 @@ try:
 
     driver.find_elements(By.CSS_SELECTOR, ".worker-bottom-nav button")[4].click()
     wait.until(lambda browser: browser.find_elements(By.CSS_SELECTOR, ".settings-version"))
-    driver.find_element(By.CSS_SELECTOR, ".theme-setting summary").click()
+    theme_summary = driver.find_element(By.CSS_SELECTOR, ".theme-setting summary")
+    theme_summary.click()
     assert len(driver.find_elements(By.CSS_SELECTOR, ".theme-presets button")) == 6
+    theme_summary.click()
+    wait.until(lambda browser: browser.find_element(By.CSS_SELECTOR, ".theme-setting").get_attribute("open") is None)
     driver.find_element(By.CSS_SELECTOR, ".language-setting summary").click()
     assert len(driver.find_elements(By.CSS_SELECTOR, ".language-options button")) >= 3
 
