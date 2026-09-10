@@ -51,6 +51,10 @@ try:
         assert overflow <= 1, (width, height, overflow)
         driver.save_screenshot(str(ARTIFACTS / f"worker-{width}x{height}.png"))
 
+    driver.set_window_size(390, 844)
+    driver.get(BASE_URL)
+    settled()
+
     ask_nexus = driver.find_element(By.CSS_SELECTOR, '[aria-label="Open Ask Nexus"]')
     ask_nexus.click()
     wait.until(lambda browser: browser.find_elements(By.CSS_SELECTOR, '[aria-label="Close Ask Nexus"]'))
