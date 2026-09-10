@@ -74,5 +74,5 @@ test("the web layer saves only confirmed shares and resolves duplicates explicit
   assert.match(page, /Discard/);
   assert.match(page, /className="native-share-conflict"/);
   assert.match(css, /V1\.0100: confirmed Android Share intake/);
-  assert.match(page, /NOSMO WORK · V1\.0101/);
+  assert.match(page, /NOSMO WORK · V1\.0102/);
 });

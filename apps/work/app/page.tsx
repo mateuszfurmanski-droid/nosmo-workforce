@@ -110,6 +110,11 @@ type ThemeBase = "light" | "dark";
 type ThemePreset = "midnight-black" | "nexus-blue" | "eco-green" | "silent-gold" | "windows-grey" | "arctic-white";
 type AppLanguage = "en" | "pl";
 type LanguagePreference = "auto" | AppLanguage;
+type PwaInstallState = "checking" | "ready" | "manual" | "installing" | "installed";
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
 type SearchMeta = {
   batch: number;
   requested: number;
@@ -1342,6 +1347,10 @@ export default function Home() {
     [themePreset, setThemePreset] = useState<ThemePreset>("arctic-white"),
     [languagePreference, setLanguagePreference] = useState<LanguagePreference>("auto"),
     [language, setLanguage] = useState<AppLanguage>("en"),
+    [pwaInstallState, setPwaInstallState] = useState<PwaInstallState>("checking"),
+    [pwaInstallPrompt, setPwaInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null),
+    [pwaInstallHelp, setPwaInstallHelp] = useState(false),
+    [pwaOfflineReady, setPwaOfflineReady] = useState(false),
     [availability, setAvailability] = useState<"green" | "yellow" | "red">(
       "green",
     ),
@@ -1459,6 +1468,53 @@ export default function Home() {
     return () => window.removeEventListener("languagechange", handleSystemLanguageChange);
   }, []);
   useEffect(() => {
+    let mounted = true;
+    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+    const isStandalone = () =>
+      standaloneQuery.matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    const handleDisplayMode = () => {
+      if (mounted && isStandalone()) setPwaInstallState("installed");
+    };
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      if (!mounted || isStandalone()) return;
+      setPwaInstallPrompt(event as BeforeInstallPromptEvent);
+      setPwaInstallState("ready");
+    };
+    const handleInstalled = () => {
+      if (!mounted) return;
+      setPwaInstallPrompt(null);
+      setPwaInstallHelp(false);
+      setPwaInstallState("installed");
+    };
+
+    queueMicrotask(() => {
+      if (mounted) setPwaInstallState(isStandalone() ? "installed" : "manual");
+    });
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+    standaloneQuery.addEventListener("change", handleDisplayMode);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then(() => navigator.serviceWorker.ready)
+        .then(() => {
+          if (mounted) setPwaOfflineReady(true);
+        })
+        .catch(() => {
+          if (mounted) setPwaOfflineReady(false);
+        });
+    }
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+      standaloneQuery.removeEventListener("change", handleDisplayMode);
+    };
+  }, []);
+  useEffect(() => {
     let saved = DEFAULT_JOB_SEARCH_CRITERIA;
     try {
       saved = normalizeJobSearchCriteria(JSON.parse(localStorage.getItem(JOB_SEARCH_CRITERIA_KEY) || "null"));
@@ -1472,6 +1528,29 @@ export default function Home() {
     if (!searchCriteriaReady) return;
     localStorage.setItem(JOB_SEARCH_CRITERIA_KEY, JSON.stringify(jobSearchCriteria));
   }, [jobSearchCriteria, searchCriteriaReady]);
+  async function installWorkerApp() {
+    if (pwaInstallState === "installed" || pwaInstallState === "installing") return;
+    if (!pwaInstallPrompt) {
+      setPwaInstallHelp((visible) => !visible);
+      return;
+    }
+    setPwaInstallState("installing");
+    try {
+      await pwaInstallPrompt.prompt();
+      const choice = await pwaInstallPrompt.userChoice;
+      setPwaInstallPrompt(null);
+      if (choice.outcome === "accepted") {
+        setPwaInstallState("installing");
+      } else {
+        setPwaInstallState("manual");
+        setPwaInstallHelp(true);
+      }
+    } catch {
+      setPwaInstallPrompt(null);
+      setPwaInstallState("manual");
+      setPwaInstallHelp(true);
+    }
+  }
   function changeTheme(next: ThemePreset) {
     const base = themeBaseForPreset(next);
     setTheme(base);
@@ -3472,6 +3551,51 @@ export default function Home() {
                     ))}
                   </div>
                 </details>
+                <button
+                  id="worker-pwa-install"
+                  type="button"
+                  className="settings-action pwa-install-action"
+                  data-state={pwaInstallState}
+                  aria-describedby={pwaInstallHelp ? "worker-pwa-install-help" : undefined}
+                  disabled={pwaInstallState === "installed" || pwaInstallState === "installing"}
+                  onClick={() => void installWorkerApp()}
+                >
+                  <span>
+                    <Download />
+                    <span>
+                      {language === "pl" ? "Zainstaluj NOSMO Work" : "Install NOSMO Work"}
+                      <small>
+                        {pwaOfflineReady
+                          ? language === "pl" ? "Pliki trybu offline sa gotowe" : "Offline app files are ready"
+                          : language === "pl" ? "Przygotowywanie trybu offline" : "Preparing offline app files"}
+                      </small>
+                    </span>
+                  </span>
+                  <b>
+                    {pwaInstallState === "installed"
+                      ? language === "pl" ? "Zainstalowano" : "Installed"
+                      : pwaInstallState === "ready"
+                        ? language === "pl" ? "Instaluj" : "Install"
+                        : pwaInstallState === "installing"
+                          ? language === "pl" ? "Instalowanie" : "Installing"
+                          : language === "pl" ? "Jak zainstalowac" : "How to install"}
+                  </b>
+                  <ChevronRight />
+                </button>
+                {pwaInstallHelp && pwaInstallState !== "installed" && (
+                  <div id="worker-pwa-install-help" className="pwa-install-help" role="status">
+                    <Download />
+                    <span>
+                      <b>{language === "pl" ? "Instalacja z menu przegladarki" : "Install from the browser menu"}</b>
+                      <small>
+                        {language === "pl"
+                          ? "Android Chrome: menu z trzema kropkami, Dodaj do ekranu glownego, a potem Instaluj. iPhone/iPad Safari: Udostepnij, Dodaj do ekranu poczatkowego."
+                          : "Android Chrome: three-dot menu, Add to Home screen, then Install. iPhone/iPad Safari: Share, then Add to Home Screen."}
+                      </small>
+                      <small>{language === "pl" ? "Widok podstawowy dziala offline. Wyszukiwanie ofert nadal wymaga internetu." : "The core workspace works offline. Live job search still requires internet."}</small>
+                    </span>
+                  </div>
+                )}
                 <p className="settings-section-label">{ui.workControls}</p>
                 <div>
                   <span>
@@ -3540,7 +3664,7 @@ export default function Home() {
                     </div>
                   </div>
                 </details>
-                <small className="settings-version">NOSMO WORK · V1.0101</small>
+                <small className="settings-version">NOSMO WORK · V1.0102</small>
               </section>
             </>
           )}

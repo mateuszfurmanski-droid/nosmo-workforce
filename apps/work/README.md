@@ -14,11 +14,12 @@ This recovery baseline intentionally excludes the Person Card Freeware donor and
 Emergency Core integration introduced in Sites version 94. Emergency remains a
 separate product.
 
-## Finish mode
+## Current incremental release
 
-V1.0101 is the locked recovery point. V1.0102 changes must be incremental and must
-pass repository tests, browser QA, deployment QA, and real-device acceptance before
-being marked DONE.
+V1.0101 remains the locked recovery point. V1.0102 now adds the installable PWA
+shell, offline reopen support and truthful install guidance without changing the
+accepted Worker visual. V1.0102 must pass repository tests, browser QA, deployment
+QA and real-device acceptance before being marked DONE.
 
 ## Local checks
 

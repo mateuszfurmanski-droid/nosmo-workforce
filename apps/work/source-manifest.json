@@ -2,6 +2,15 @@
   "schema": "nosmo-work-source-manifest/v2",
   "canonicalPath": "apps/work",
   "product": "NOSMO Work",
+  "currentRelease": {
+    "displayedVersion": "V1.0102",
+    "inheritsRecoveryBaseline": true,
+    "incrementalChanges": [
+      "installable PWA shell",
+      "offline reopen support",
+      "truthful browser install guidance"
+    ]
+  },
   "recoveryBaseline": {
     "provider": "ChatGPT Sites",
     "projectId": "appgprj_6a93f57013108191a7a78c97da0b378c",
@@ -9,6 +18,7 @@
     "commitSha": "a8dc178daaaea7328d8177a18c8cfb2bc3f5ae74",
     "displayedVersion": "V1.0101",
     "publicUrl": "https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site",
+    "hashesDescribeImportedBaseline": true,
     "sha256": {
       "app/page.tsx": "271c032407f347897537dcbdb7d105f4f8805884e2d98598a1924e0a5f185e62",
       "app/compact-theme.css": "57a243c28f14e88e54799db2fab33694d64ade38351c3ee1f13ae13fd8227921",
