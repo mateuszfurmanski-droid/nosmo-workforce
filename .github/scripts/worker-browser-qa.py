@@ -54,7 +54,7 @@ try:
     ask_nexus = driver.find_element(By.CSS_SELECTOR, '[aria-label="Open Ask Nexus"]')
     ask_nexus.click()
     wait.until(lambda browser: browser.find_elements(By.CSS_SELECTOR, '[aria-label="Close Ask Nexus"]'))
-    query = driver.find_element(By.CSS_SELECTOR, ".unified-search-modal input")
+    query = driver.find_element(By.CSS_SELECTOR, ".nexus-search-window .unified-search-box input")
     assert query.is_enabled()
 
     driver.find_element(By.CSS_SELECTOR, '[aria-label="Close Ask Nexus"]').click()
