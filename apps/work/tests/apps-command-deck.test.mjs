@@ -5,8 +5,8 @@ import test from "node:test";
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/apps-command.css", import.meta.url), "utf8");
 
-test("V1.0101 keeps the Apps screen as a NOSMO Work command deck", () => {
-  assert.match(page, /NOSMO WORK · V1\.0101/);
+test("V1.0102 keeps the Apps screen as a NOSMO Work command deck", () => {
+  assert.match(page, /NOSMO WORK · V1\.0102/);
   assert.match(page, /nexus-command-identity/);
   assert.match(page, /NOSMO WORK/);
   assert.match(page, /Powered by NEXUS/);

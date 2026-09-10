@@ -54,6 +54,22 @@ try:
     driver.set_window_size(390, 844)
     driver.get(BASE_URL)
     settled()
+    driver.set_window_size(673, 841)
+    wait.until(lambda browser: browser.execute_script("return innerWidth") >= 650)
+    time.sleep(0.4)
+    fold_metrics = driver.execute_script(
+        "const r=document.querySelector('.work').getBoundingClientRect();"
+        "return {x:r.x,width:r.width,overflow:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth}"
+    )
+    assert fold_metrics["x"] <= 1, fold_metrics
+    assert fold_metrics["width"] >= 649, fold_metrics
+    assert fold_metrics["overflow"] <= 1, fold_metrics
+    assert len(driver.find_elements(By.CSS_SELECTOR, ".worker-bottom-nav button")) == 5
+    driver.save_screenshot(str(ARTIFACTS / "worker-live-fold-transition.png"))
+
+    driver.set_window_size(390, 844)
+    driver.get(BASE_URL)
+    settled()
 
     ask_nexus = driver.find_element(By.CSS_SELECTOR, '[aria-label="Open Ask Nexus"]')
     ask_nexus.click()
@@ -91,6 +107,34 @@ try:
     driver.find_element(By.CSS_SELECTOR, ".language-setting summary").click()
     assert len(driver.find_elements(By.CSS_SELECTOR, ".language-options button")) >= 3
 
+    install = driver.find_element(By.ID, "worker-pwa-install")
+    wait.until(lambda browser: install.get_attribute("data-state") != "checking")
+    assert install.get_attribute("data-state") in {"ready", "manual", "installed"}
+    scope = driver.execute_async_script(
+        "const done=arguments[0];navigator.serviceWorker.ready.then(r=>done(r.scope)).catch(e=>done('ERR:'+e.message));"
+    )
+    assert scope == BASE_URL, scope
+    cache_keys = driver.execute_async_script(
+        "const done=arguments[0];caches.keys().then(done).catch(()=>done([]));"
+    )
+    assert any(key.startswith("nosmo-work-v10102") for key in cache_keys), cache_keys
+    manifest = driver.execute_async_script(
+        "const done=arguments[0];fetch('/manifest.webmanifest').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));"
+    )
+    assert manifest["name"] == "NOSMO Work", manifest
+    assert manifest["display"] == "standalone", manifest
+    assert {icon["sizes"] for icon in manifest["icons"]} >= {"192x192", "512x512"}, manifest
+
+    driver.set_network_conditions(offline=True, latency=0, download_throughput=0, upload_throughput=0)
+    driver.refresh()
+    settled()
+    assert "NOSMO Work" in driver.find_element(By.TAG_NAME, "body").text
+    driver.set_network_conditions(offline=False, latency=0, download_throughput=-1, upload_throughput=-1)
+
     print("NOSMO_WORK_BROWSER_QA_PASS")
 finally:
+    try:
+        driver.set_network_conditions(offline=False, latency=0, download_throughput=-1, upload_throughput=-1)
+    except Exception:
+        pass
     driver.quit()

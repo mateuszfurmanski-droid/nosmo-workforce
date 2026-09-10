@@ -4610,6 +4610,56 @@
   text-align: center;
 }
 
+.pwa-install-action[data-state="ready"] > b {
+  color: #188657;
+}
+
+.pwa-install-action:disabled {
+  cursor: default;
+  opacity: .76;
+}
+
+.settings > .pwa-install-help {
+  margin: 0 0 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  justify-content: stretch;
+  gap: 9px;
+}
+
+.pwa-install-help > svg {
+  width: 19px;
+  height: 19px;
+  color: var(--accent);
+}
+
+.pwa-install-help > span {
+  display: grid;
+  gap: 5px;
+}
+
+.pwa-install-help b,
+.pwa-install-help small {
+  display: block;
+}
+
+.pwa-install-help b {
+  font-size: 10px;
+}
+
+.pwa-install-help small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
 @media (max-width: 760px) {
   .availability-command {
     padding: 10px 11px 8px;

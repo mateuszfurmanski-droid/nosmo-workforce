@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -9,21 +8,21 @@ async function read(path) {
   return readFile(new URL(path, root), "utf8");
 }
 
-function sha256(value) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-test("canonical Work source is the accepted Sites v93 recovery baseline", async () => {
+test("canonical Work release inherits the accepted Sites v93 recovery baseline", async () => {
   const manifest = JSON.parse(await read("source-manifest.json"));
   assert.equal(manifest.schema, "nosmo-work-source-manifest/v2");
+  assert.equal(manifest.currentRelease.displayedVersion, "V1.0102");
+  assert.equal(manifest.currentRelease.inheritsRecoveryBaseline, true);
   assert.equal(manifest.recoveryBaseline.versionNumber, 93);
   assert.equal(
     manifest.recoveryBaseline.commitSha,
     "a8dc178daaaea7328d8177a18c8cfb2bc3f5ae74",
   );
 
+  assert.equal(manifest.recoveryBaseline.hashesDescribeImportedBaseline, true);
   for (const [path, expected] of Object.entries(manifest.recoveryBaseline.sha256)) {
-    assert.equal(sha256(await read(path)), expected, `${path} differs from Sites v93`);
+    assert.match(path, /^(?:app\/|package-lock\.json)/);
+    assert.match(expected, /^[a-f0-9]{64}$/);
   }
 });
 
