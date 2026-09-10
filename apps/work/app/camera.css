@@ -1,0 +1,56 @@
+.external-apps button > i.camera {
+  color: #202a36;
+  background: transparent !important;
+}
+.external-apps button > i.camera svg { width: 42px; height: 42px; stroke-width: 1.7; }
+.work-camera-modal {
+  width: min(440px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .50);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, .72);
+  color: var(--ink);
+  padding: 18px;
+  box-shadow: 0 25px 70px #07112055;
+}
+[data-theme="dark"] .work-camera-modal {
+  background: rgba(13, 22, 35, .50);
+  border-color: rgba(255, 255, 255, .14);
+}
+.work-camera-modal header { display: flex; align-items: flex-start; justify-content: space-between; }
+.work-camera-modal header small { color: #3470dc; font-size: 8px; font-weight: 900; letter-spacing: .14em; }
+.work-camera-modal h2 { margin: 4px 0 0; font-size: 20px; }
+.work-camera-modal header button { border: 0; background: transparent; color: var(--ink); }
+.work-camera-modal header svg { width: 20px; }
+.work-camera-modal > p { font-size: 10px; line-height: 1.5; color: var(--muted); }
+.camera-capture, .camera-save {
+  width: 100%; min-height: 48px; border: 0; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-weight: 900; cursor: pointer;
+}
+.camera-capture { background: #202a36; color: #fff; }
+.camera-capture input { display: none; }
+.camera-save { margin-top: 12px; background: #f3c900; color: #161b22; }
+.camera-capture svg, .camera-save svg { width: 19px; }
+.camera-file { display: flex; align-items: center; gap: 11px; margin-top: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; }
+.camera-file img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; }
+.camera-file div { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.camera-file b { font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.camera-file small { font-size: 8px; color: var(--muted); }
+.camera-message { display: flex; align-items: center; gap: 7px; margin-top: 10px; padding: 9px; border-radius: 10px; background: #e9f8f0; color: #18734e; font-size: 9px; font-weight: 800; }
+.camera-message svg, .camera-privacy svg { width: 15px; flex: none; }
+.camera-privacy { display: flex; gap: 7px; margin-top: 12px; color: var(--muted); font-size: 8px; line-height: 1.4; }
+.drive-setup-question { display: grid; grid-template-columns: 40px 1fr; gap: 10px; margin: 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--card) 88%, #eaf1ff); }
+.drive-setup-question > img { width: 36px; height: 36px; object-fit: contain; }
+.drive-setup-question b { font-size: 10px; }
+.drive-setup-question p { margin: 4px 0 0; color: var(--muted); font-size: 8px; line-height: 1.4; }
+.drive-setup-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.drive-setup-actions button { min-height: 35px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font-size: 8px; font-weight: 900; }
+.drive-setup-actions button:first-child { border-color: #2868df; background: #2868df; color: #fff; }
+.drive-setup-status { display: flex; align-items: center; gap: 9px; margin: 10px 0; padding: 10px; border-radius: 12px; background: #edf5ff; color: #315273; font-size: 8px; line-height: 1.4; }
+.drive-setup-status img { width: 28px; height: 28px; object-fit: contain; }
+.external-apps button > i.configure-google { background: transparent !important; }
+.external-apps button > i.configure-google img { width: 48px; height: 48px; object-fit: contain; }

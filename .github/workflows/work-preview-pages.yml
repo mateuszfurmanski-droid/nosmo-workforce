@@ -1,11 +1,12 @@
-name: NOSMO Work Preview Pages
+name: NOSMO Work Pages canonical redirect
 
 on:
   push:
     branches:
       - main
     paths:
-      - apps/work/**
+      - .github/static/work-pages-redirect.html
+      - .github/static/work-pages-retire-sw.js
       - .github/workflows/work-preview-pages.yml
   workflow_dispatch:
 
@@ -15,7 +16,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: nosmo-work-preview-pages
+  group: nosmo-work-pages
   cancel-in-progress: true
 
 jobs:
@@ -29,32 +30,26 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      - name: Build Work-only preview artifact
+      - name: Build canonical redirect
         shell: bash
         run: |
           set -euo pipefail
           rm -rf _site
           mkdir -p _site/work
-          cp -a apps/work/. _site/work/
-          rm -rf _site/work/recovery-source
-          rm -f _site/work/.qa-trigger
-          cat > _site/index.html <<'HTML'
-          <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOSMO Work</title><script>location.replace('./work/');</script><a href="./work/">Open NOSMO Work</a>
-          HTML
-          test -f _site/work/index.html
-          test -f _site/work/manifest.webmanifest
-          test -f _site/work/sw.js
+          cp .github/static/work-pages-redirect.html _site/index.html
+          cp .github/static/work-pages-redirect.html _site/work/index.html
+          cp .github/static/work-pages-retire-sw.js _site/work/sw.js
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
-      - name: Upload Work preview
+      - name: Upload redirect
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
-      - name: Deploy Work preview
+      - name: Deploy redirect
         id: deployment
         uses: actions/deploy-pages@v4

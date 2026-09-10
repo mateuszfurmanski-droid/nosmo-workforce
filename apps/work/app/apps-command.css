@@ -1,0 +1,648 @@
+/* V1.0085: NOSMO Nexus Command Deck launcher. */
+.nexus-command-page {
+  --command-accent: var(--accent);
+  --command-panel: color-mix(in srgb, var(--surface) 90%, var(--bg));
+  --command-panel-hover: color-mix(in srgb, var(--surface) 82%, var(--accent-soft));
+  --command-line: color-mix(in srgb, var(--line) 90%, var(--ink));
+  --command-icon: var(--ink);
+  position: relative;
+  width: min(940px, 100%);
+  max-width: 100%;
+  margin: 0 auto;
+  overflow-x: clip;
+}
+
+.nexus-command-head {
+  min-height: 102px;
+  padding: 2px 2px 15px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nexus-command-section-title small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .22em;
+}
+
+.nexus-command-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 11px;
+}
+
+.nexus-command-identity small,
+.nexus-command-identity em {
+  margin: 0;
+  font-style: normal;
+  line-height: 1;
+}
+
+.nexus-command-identity small {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .2em;
+}
+
+.nexus-command-identity em {
+  padding-left: 11px;
+  border-left: 1px solid var(--command-accent);
+  color: var(--command-accent);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.nexus-command-head h1 {
+  margin: 5px 0 4px;
+  color: var(--ink);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 300;
+  letter-spacing: -.035em;
+  line-height: 1;
+}
+
+.nexus-command-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.nexus-command-security {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border: 1px solid var(--command-line);
+  display: grid;
+  place-items: center;
+  color: var(--command-accent);
+  background: color-mix(in srgb, var(--command-panel) 88%, transparent);
+}
+
+.nexus-command-security svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.55;
+}
+
+.nexus-command-section-title {
+  position: relative;
+  margin: 4px 0 13px;
+  display: grid;
+  grid-template-columns: max-content minmax(28px, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.nexus-command-section-title small {
+  color: var(--ink);
+}
+
+.nexus-command-section-title::before {
+  width: 2px;
+  height: 20px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  content: "";
+  background: var(--command-accent);
+  transform: translateY(-50%);
+}
+
+.nexus-command-section-title small {
+  padding-left: 16px;
+}
+
+.nexus-command-section-title > span {
+  height: 1px;
+  background: var(--command-line);
+}
+
+.nexus-command-grid {
+  margin: 0 0 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nexus-command-grid > .nexus-upload-app {
+  display: contents;
+}
+
+.nexus-command-grid > .nexus-upload-app > .nexus-command-upload {
+  max-width: none;
+  color: var(--ink);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: normal;
+  text-align: left;
+}
+
+.nexus-command-module {
+  width: 100%;
+  min-width: 0;
+  min-height: 70px;
+  padding: 10px 14px;
+  border: 1px solid var(--command-line);
+  border-radius: 2px;
+  background: var(--command-panel);
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 13px;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.nexus-command-module:hover {
+  border-color: color-mix(in srgb, var(--command-accent) 56%, var(--command-line));
+  background: var(--command-panel-hover);
+}
+
+.nexus-command-module:active {
+  transform: translateY(1px);
+}
+
+.nexus-command-module:focus-visible {
+  outline: 2px solid var(--command-accent);
+  outline-offset: 3px;
+}
+
+.nexus-command-module > span {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 520;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.nexus-command-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--command-icon);
+  font-style: normal;
+  position: relative;
+}
+
+.nexus-command-icon svg {
+  width: 31px;
+  height: 31px;
+  stroke-width: 1.45;
+}
+
+.nexus-command-icon img {
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
+  filter: grayscale(1) brightness(.32) contrast(1.8);
+  opacity: .9;
+}
+
+.nexus-command-add {
+  border: 1px dashed var(--command-line);
+}
+
+.nexus-command-upload input {
+  display: none;
+}
+
+.nexus-command-signal {
+  --signal: var(--muted);
+  width: 30px;
+  height: 14px;
+  position: relative;
+  display: block;
+  font-style: normal;
+}
+
+.nexus-command-signal::before {
+  width: 21px;
+  height: 1px;
+  position: absolute;
+  top: 7px;
+  left: 0;
+  content: "";
+  background: var(--command-line);
+}
+
+.nexus-command-signal::after {
+  width: 7px;
+  height: 7px;
+  position: absolute;
+  top: 3.5px;
+  right: 0;
+  content: "";
+  border: 1px solid var(--command-line);
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 2px var(--command-panel);
+}
+
+.nexus-command-signal.is-core,
+.nexus-command-signal.is-linked {
+  --signal: var(--command-accent);
+}
+
+.nexus-command-action {
+  width: 16px;
+  height: 16px;
+  justify-self: end;
+  color: var(--muted);
+  stroke-width: 1.5;
+}
+
+.nexus-command-module--external {
+  --brand-detail: var(--muted);
+}
+
+.nexus-command-module--external .nexus-command-icon::after {
+  width: 8px;
+  height: 2px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  content: "";
+  background: var(--brand-detail);
+}
+
+.tone-gmail { --brand-detail: #df4a3f; }
+.tone-whatsapp,
+.tone-call { --brand-detail: #28bf64; }
+.tone-messages,
+.tone-linkedin,
+.tone-indeed { --brand-detail: #3184e7; }
+.tone-reed { --brand-detail: #dc299e; }
+.tone-totaljobs { --brand-detail: #2eb767; }
+.tone-drive { --brand-detail: #3b82d0; }
+.tone-calendar { --brand-detail: #3578d4; }
+
+.nexus-command-glyph {
+  color: currentColor;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: -.06em;
+  line-height: 1;
+}
+
+.glyph-reed {
+  font-size: 18px;
+  letter-spacing: -.14em;
+}
+
+.glyph-cvlib {
+  width: 31px;
+  height: 31px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  letter-spacing: -.06em;
+}
+
+.glyph-cvlib::before {
+  position: absolute;
+  inset: 4px;
+  content: "";
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nexus-command-glyph.glyph-cscs {
+  width: 34px;
+  height: 24px;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  font-size: 8px;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+
+/* V1.0096: keep the everyday surface short and reveal external services on demand. */
+.nexus-command-disclosure {
+  margin: 2px 0 14px;
+  border-top: 1px solid var(--command-line);
+  border-bottom: 1px solid var(--command-line);
+}
+
+.nexus-command-disclosure > summary {
+  min-height: 68px;
+  padding: 10px 2px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  list-style: none;
+  cursor: pointer;
+}
+
+.nexus-command-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nexus-command-disclosure > summary span,
+.nexus-command-disclosure > summary small,
+.nexus-command-disclosure > summary b {
+  min-width: 0;
+  display: block;
+}
+
+.nexus-command-disclosure > summary small {
+  color: var(--command-accent);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.nexus-command-disclosure > summary b {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.3;
+}
+
+.nexus-command-disclosure > summary em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nexus-command-disclosure > summary > svg {
+  width: 18px;
+  color: var(--command-accent);
+  transition: transform 150ms ease;
+}
+
+.nexus-command-disclosure[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.nexus-command-disclosure > .nexus-command-grid {
+  margin: 4px 0 18px;
+}
+
+.nexus-command-manage {
+  margin-bottom: 10px;
+  border-top: 1px solid var(--command-line);
+}
+
+.nexus-command-manage > button {
+  width: 100%;
+  min-height: 62px;
+  padding: 9px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--command-line);
+  background: transparent;
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 11px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nexus-command-manage > button > i {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--command-line);
+  display: grid;
+  place-items: center;
+  color: var(--command-accent);
+  font-style: normal;
+}
+
+.nexus-command-manage > button > i svg,
+.nexus-command-manage > button > svg {
+  width: 17px;
+}
+
+.nexus-command-manage > button > svg {
+  color: var(--muted);
+}
+
+.nexus-command-manage > button span,
+.nexus-command-manage > button b,
+.nexus-command-manage > button small {
+  min-width: 0;
+  display: block;
+}
+
+.nexus-command-manage > button b {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.nexus-command-manage > button small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.nexus-command-privacy {
+  min-height: 42px;
+  padding: 8px 0 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.nexus-command-privacy svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--command-accent);
+  stroke-width: 1.6;
+}
+
+[data-skin="midnight-black"] .nexus-command-icon img,
+[data-skin="nexus-blue"] .nexus-command-icon img,
+[data-skin="silent-gold"] .nexus-command-icon img {
+  filter: grayscale(1) brightness(0) invert(1);
+  opacity: .94;
+}
+
+@media (max-width: 760px) {
+  .content:has(.nexus-command-page) {
+    padding: 14px 14px 92px;
+  }
+
+  .nexus-command-head {
+    min-height: 92px;
+    padding-bottom: 12px;
+  }
+
+  .nexus-command-section-title small {
+    font-size: 11px;
+  }
+
+  .nexus-command-identity small {
+    font-size: 11px;
+  }
+
+  .nexus-command-identity em {
+    font-size: 9px;
+  }
+
+  .nexus-command-head h1 {
+    font-size: 38px;
+  }
+
+  .nexus-command-head p {
+    max-width: 290px;
+    font-size: 13px;
+  }
+
+  .nexus-command-security {
+    width: 42px;
+    height: 42px;
+  }
+
+  .nexus-command-section-title {
+    margin-bottom: 10px;
+    gap: 11px;
+  }
+
+  .nexus-command-grid {
+    margin-bottom: 24px;
+    gap: 8px;
+  }
+
+  .nexus-command-module {
+    min-height: 61px;
+    padding: 8px 9px;
+    grid-template-columns: 30px minmax(0, 1fr) 21px;
+    gap: 8px;
+  }
+
+  .nexus-command-module > span {
+    font-size: 14px;
+  }
+
+  .nexus-command-icon {
+    width: 30px;
+    height: 32px;
+  }
+
+  .nexus-command-icon svg,
+  .nexus-command-icon img {
+    width: 27px;
+    height: 27px;
+  }
+
+  .nexus-command-signal {
+    width: 21px;
+  }
+
+  .nexus-command-signal::before {
+    width: 13px;
+  }
+
+  .nexus-command-action {
+    width: 15px;
+    height: 15px;
+  }
+
+  .nexus-command-glyph {
+    font-size: 21px;
+  }
+
+  .glyph-reed {
+    font-size: 15px;
+  }
+
+  .nexus-command-privacy {
+    padding-top: 2px;
+    font-size: 11px;
+  }
+
+  .nexus-command-disclosure > summary {
+    min-height: 62px;
+    padding-right: 1px;
+  }
+
+  .nexus-command-disclosure > summary small {
+    font-size: 10px;
+  }
+
+  .nexus-command-disclosure > summary b {
+    font-size: 13px;
+  }
+
+  .nexus-command-manage > button b {
+    font-size: 14px;
+  }
+
+  .nexus-command-manage > button small {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 390px) {
+  .nexus-command-module {
+    min-height: 58px;
+    padding: 7px;
+    grid-template-columns: 27px minmax(0, 1fr) 14px;
+    gap: 6px;
+  }
+
+  .nexus-command-module > span {
+    font-size: 13.5px;
+  }
+
+  .nexus-command-icon,
+  .nexus-command-icon svg,
+  .nexus-command-icon img {
+    width: 25px;
+    height: 25px;
+  }
+
+  .nexus-command-signal {
+    width: 14px;
+  }
+
+  .nexus-command-signal::before {
+    width: 8px;
+  }
+
+  .nexus-command-action {
+    width: 14px;
+    height: 14px;
+  }
+
+  .nexus-command-privacy {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .content:has(.nexus-command-page) {
+    padding-bottom: 106px;
+  }
+}

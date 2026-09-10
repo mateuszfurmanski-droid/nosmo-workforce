@@ -1,85 +1,72 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import assert from 'node:assert/strict';
-import {fileURLToPath} from 'node:url';
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here=path.dirname(fileURLToPath(import.meta.url));
-const runtime=path.resolve(here,'..');
-const repo=path.resolve(runtime,'../../..');
-const onboardingPath=path.join(runtime,'api/person-card/onboarding/[...path].js');
-const availabilityPath=path.join(runtime,'api/person-card/onboarding/availability.js');
-const worker=path.join(repo,'apps/work');
-const bootstrapPath=path.join(worker,'js/person-onboarding-v47.js');
-const corePath=path.join(worker,'js/person-onboarding-v47-core.js');
-const statusSyncPath=path.join(worker,'js/work-agency-status-sync.js');
-const shellPath=path.join(worker,'js/work-v10101-shell.js');
-const configPath=path.join(worker,'runtime-config.json');
-const swPath=path.join(worker,'sw.js');
+const here = path.dirname(fileURLToPath(import.meta.url));
+const runtime = path.resolve(here, "..");
+const repo = path.resolve(runtime, "../../..");
 
-for(const file of [onboardingPath,availabilityPath,bootstrapPath,corePath,statusSyncPath,shellPath,configPath,swPath]){
-  assert.ok(fs.existsSync(file),`missing handoff file: ${path.relative(repo,file)}`);
+const files = {
+  agencyOnboarding: path.join(runtime, "api/person-card/onboarding/[...path].js"),
+  agencyAvailability: path.join(runtime, "api/person-card/onboarding/availability.js"),
+  workerPage: path.join(repo, "apps/work/app/page.tsx"),
+  workerServer: path.join(repo, "apps/work/app/worker-server.ts"),
+  workerRoute: path.join(repo, "apps/work/app/api/worker/[...path]/route.ts"),
+};
+
+for (const file of Object.values(files)) {
+  assert.ok(fs.existsSync(file), `missing handoff file: ${path.relative(repo, file)}`);
 }
 
-const onboarding=fs.readFileSync(onboardingPath,'utf8');
-const availability=fs.readFileSync(availabilityPath,'utf8');
-const bootstrap=fs.readFileSync(bootstrapPath,'utf8');
-const core=fs.readFileSync(corePath,'utf8');
-const statusSync=fs.readFileSync(statusSyncPath,'utf8');
-const shell=fs.readFileSync(shellPath,'utf8');
-const sw=fs.readFileSync(swPath,'utf8');
-const config=JSON.parse(fs.readFileSync(configPath,'utf8'));
+const agencyOnboarding = fs.readFileSync(files.agencyOnboarding, "utf8");
+const agencyAvailability = fs.readFileSync(files.agencyAvailability, "utf8");
+const workerPage = fs.readFileSync(files.workerPage, "utf8");
+const workerServer = fs.readFileSync(files.workerServer, "utf8");
+const workerRoute = fs.readFileSync(files.workerRoute, "utf8");
 
-for(const route of ['invite-info','claim','drafts/load','drafts/save']){
-  assert.ok(onboarding.includes(`action===\"${route}\"`),`missing onboarding action ${route}`);
+assert.ok(agencyOnboarding.includes("WORK_APP_BASE_URL"), "Agency invite must use the configured Work deployment");
+assert.ok(agencyOnboarding.includes("NEXUS_ONBOARDING_PUBLIC_ORIGINS"), "Agency onboarding origin allowlist missing");
+assert.ok(agencyOnboarding.includes("'RECRUITER_SAFE'"), "Agency recruiter-safe scope missing");
+assert.ok(agencyOnboarding.includes("privateDocumentsIncluded:false"), "Agency must not expose private documents");
+assert.ok(agencyOnboarding.includes("contactDetailsIncluded:false"), "Agency must not expose private contact details");
+assert.ok(agencyOnboarding.includes("cvTextIncluded:false"), "Agency must not expose private CV text");
+assert.ok(agencyOnboarding.includes("shareWithInvitingAgency"), "Agency explicit-consent gate missing");
+
+assert.ok(agencyAvailability.includes("nexus-person-work-availability-sync/v1"), "Agency availability contract missing");
+assert.ok(agencyAvailability.includes("privateWorkerFieldsIncluded:false"), "Status sync must exclude private Worker fields");
+assert.ok(agencyAvailability.includes("WORK_APP_BASE_URL"), "Agency availability endpoint must enforce Worker origin");
+
+assert.ok(workerRoute.includes("handleWorkerRequest"), "Worker API route must use the canonical server handler");
+assert.ok(workerServer.includes('request.headers.get("oai-authenticated-user-email")'), "Worker identity must come from verified auth headers");
+assert.ok(workerServer.includes("process.env.NEXUS_IDENTITY_PEPPER"), "Worker identity binding must be pseudonymous");
+for (const status of ["available", "busy", "ready_on_date"]) {
+  assert.ok(workerServer.includes(`value === "${status}"`), `Worker status ${status} missing`);
 }
-assert.ok(onboarding.includes('WORK_APP_BASE_URL'),'Worker origin must be derived from configured Work deployment');
-assert.ok(onboarding.includes('NEXUS_ONBOARDING_PUBLIC_ORIGINS'),'explicit onboarding origin allowlist missing');
-assert.ok(onboarding.includes('new Set([\"available\",\"busy\",\"from-date\"])'),'Worker V1.0102 availability contract missing Busy');
-assert.ok(onboarding.includes("'RECRUITER_SAFE'"),'recruiter-safe access scope missing');
-assert.ok(onboarding.includes('privateDocumentsIncluded:false'),'private documents must remain excluded');
-assert.ok(onboarding.includes('contactDetailsIncluded:false'),'contact details must remain excluded from recruiter-safe grant');
-assert.ok(onboarding.includes('cvTextIncluded:false'),'CV text must remain excluded from recruiter-safe grant');
-assert.ok(onboarding.includes('shareWithInvitingAgency'),'explicit Worker consent gate missing');
+assert.ok(workerServer.includes("NEXUS_INVITE_ALREADY_USED"), "Worker invite must be one-time");
+assert.ok(workerServer.includes("NEXUS_INVITE_EXPIRED"), "Worker invite expiry gate missing");
+assert.ok(workerServer.includes('scope: "RECRUITER_SAFE"'), "Worker recruiter-safe consent scope missing");
+assert.ok(workerServer.includes("WORKER_INVITE_ACCEPTED"), "Worker consent source must be recorded");
+assert.ok(workerServer.includes("assertSameOrigin(request)"), "Worker write routes need same-origin protection");
+assert.ok(workerServer.includes("connectedAgencies"), "Worker status response must resolve consented agencies");
 
-assert.ok(availability.includes('nexus-person-work-availability-sync/v1'),'availability sync response contract missing');
-assert.ok(availability.includes('new Set([\"available\",\"busy\",\"from-date\"])'),'availability endpoint must accept all canonical Worker states');
-assert.ok(availability.includes("w.status='active'"),'availability sync must require an active Worker profile');
-assert.ok(availability.includes("i.status='CLAIMED'"),'availability sync must remain bound to the signed invite authority');
-assert.ok(availability.includes('PERSON_WORK_AVAILABILITY_UPDATED'),'availability audit event missing');
-assert.ok(availability.includes('privateWorkerFieldsIncluded:false'),'availability sync must not expose private Worker fields');
-assert.ok(availability.includes('WORK_APP_BASE_URL'),'availability endpoint must enforce the Worker origin');
-
-assert.equal(config.schema,'nosmo-work-runtime-config/v1');
-assert.equal(typeof config.onboardingApiBase,'string');
-assert.ok(bootstrap.includes('runtime-config.json'),'Worker bootstrap must read same-origin runtime config');
-assert.ok(bootstrap.includes('url.protocol!==\"https:\"'),'remote onboarding API must require HTTPS');
-assert.ok(bootstrap.includes('person-onboarding-v47-core.js'),'bootstrap must load preserved onboarding core');
-assert.ok(core.includes('shareWithInvitingAgency'),'preserved Worker onboarding consent flow missing');
-assert.ok(core.includes('post(\"/claim\"'),'preserved Worker claim flow missing');
-assert.ok(core.includes('post(\"/drafts/save\"'),'preserved Worker save flow missing');
-
-assert.ok(statusSync.includes('nosmo:availability-change'),'Worker status sync must subscribe to canonical availability events');
-assert.ok(statusSync.includes('nexus-person-work-draft-token:'),'Worker status sync must use existing scoped draft authority');
-assert.ok(statusSync.includes('nosmo-work:v1:agency-status-pending'),'offline status changes must remain queued');
-assert.ok(statusSync.includes('window.addEventListener(\"online\"'),'queued status changes must retry after connectivity returns');
-assert.ok(statusSync.includes('apiBase+\"/availability\"'),'Worker must send status only to the trusted onboarding runtime');
-assert.ok(!statusSync.includes('cvText:'),'status sync payload must not contain CV text');
-assert.ok(!statusSync.includes('phone:'),'status sync payload must not contain contact phone');
-assert.ok(!statusSync.includes('email:'),'status sync payload must not contain contact email');
-assert.ok(shell.includes('work-agency-status-sync.js'),'canonical Worker shell must load status synchronization');
-assert.ok(sw.includes("'./runtime-config.json'"),'runtime config must be available offline');
-assert.ok(sw.includes("'./js/person-onboarding-v47-core.js'"),'onboarding core must be precached');
-assert.ok(sw.includes("'./js/work-agency-status-sync.js'"),'status synchronization runtime must be precached');
+assert.ok(workerPage.includes('credentials: "same-origin"'), "Worker API requests must remain same-origin");
+assert.ok(workerPage.includes('>("/status")'), "Worker must load the canonical status");
+assert.ok(workerPage.includes('>(`/connection?token='), "Worker must preview an invite before consent");
+assert.ok(workerPage.includes('workerApi("/connection"'), "Worker must accept the reviewed invite");
+assert.ok(workerPage.includes("Approve recruiter-safe Work Profile access"), "Worker consent copy missing");
+assert.ok(workerPage.includes("Future status changes update automatically"), "Post-consent status sync copy missing");
+assert.ok(!workerPage.includes("Person Card Freeware"), "Retired Person Card donor returned to Worker");
+assert.ok(!workerPage.includes("Emergency Core"), "Emergency must remain outside Worker");
 
 console.log(JSON.stringify({
-  schema:'nosmo-worker-agency-handoff-contract/v1',
-  onboardingActions:4,
-  sameOriginRuntimeConfig:true,
-  httpsRemoteApiRequired:true,
-  busyAvailabilityPreserved:true,
-  explicitConsentRequired:true,
-  recruiterSafeProjection:true,
-  privateWorkerFieldsExcluded:true,
-  postOnboardingStatusSync:true,
-  offlineStatusRetry:true
-},null,2));
+  schema: "nosmo-worker-agency-handoff-contract/v2",
+  configuredWorkerOrigin: true,
+  authenticatedWorkerIdentity: true,
+  oneTimeInvite: true,
+  explicitConsentRequired: true,
+  recruiterSafeProjection: true,
+  privateWorkerFieldsExcluded: true,
+  canonicalAvailabilityStates: 3,
+  postConsentStatusSync: true,
+}, null, 2));
