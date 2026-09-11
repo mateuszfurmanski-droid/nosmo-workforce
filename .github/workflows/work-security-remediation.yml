@@ -28,8 +28,8 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Upgrade patched Next release
         run: npm install next@16.3.4 --save-exact --ignore-scripts --no-audit --no-fund
-      - name: Apply non-breaking audit remediation
-        run: npm audit fix --ignore-scripts --no-fund
+      - name: Apply available non-breaking audit remediation
+        run: npm audit fix --ignore-scripts --no-fund || true
       - name: Verify production dependency gate
         run: npm audit --omit=dev --audit-level=high
       - name: Show dependency changes
