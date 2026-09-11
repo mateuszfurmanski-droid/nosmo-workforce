@@ -62,7 +62,7 @@ jobs:
           cache-dependency-path: apps/work/package-lock.json
       - name: Install Worker dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Worker security boundary QA
-        run: node --test tests/security-boundary.test.mjs
+      - name: Worker security boundary and authority-storage QA
+        run: node --test tests/security-boundary.test.mjs tests/worker-security-contract.test.mjs
       - name: Worker production dependency vulnerability audit
         run: npm audit --omit=dev --audit-level=high
