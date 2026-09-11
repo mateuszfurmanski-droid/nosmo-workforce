@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./jobflow.css";
+import LocalPrivacyControl from "./local-privacy-control";
 
 export const metadata: Metadata = {
   title: "NOSMO Work · Ask Nexus",
@@ -37,7 +38,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <LocalPrivacyControl />
+      </body>
     </html>
   );
 }
