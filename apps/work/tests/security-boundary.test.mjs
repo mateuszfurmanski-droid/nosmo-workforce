@@ -30,7 +30,7 @@ test("Worker API has payload and abuse guards", () => {
 });
 
 test("Worker API rejects session-style credentials in URLs", () => {
-  for (const key of ["sid", "sessionId", "draftToken", "authorization"]) {
+  for (const key of ["sid", "sessionId", "draftToken", "token", "authorization"]) {
     assert.ok(security.includes(`\"${key}\"`));
   }
   assert.match(security, /NEXUS_CREDENTIAL_IN_URL_DENIED/);

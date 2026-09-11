@@ -2439,7 +2439,10 @@ export default function Home() {
         suggestedTrade: string | null;
         suggestedLocation: string | null;
         expiresAt: string;
-      }>(`/connection?token=${encodeURIComponent(token)}`);
+      }>("/connection/preview", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      });
       setConnectionInvite({ token, ...result });
       setConnectionNotice("");
     } catch (error) {

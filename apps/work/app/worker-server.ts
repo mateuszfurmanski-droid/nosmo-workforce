@@ -407,8 +407,8 @@ async function inviteFromToken(sql: Sql, token: string) {
 
 async function previewConnection(request: Request): Promise<Response> {
   requireIdentity(request);
-  const url = new URL(request.url);
-  const token = clean(url.searchParams.get("token"), 300);
+  const body = asRecord(await request.json().catch(() => null));
+  const token = clean(body.token, 300);
   if (!token) throw new WorkerHttpError(400, "NEXUS_INVITE_TOKEN_REQUIRED");
   const invite = await inviteFromToken(getSql(), token);
   return json({
@@ -483,7 +483,7 @@ async function acceptConnection(request: Request): Promise<Response> {
 function assertSameOrigin(request: Request) {
   if (request.method === "GET" || request.method === "HEAD") return;
   const origin = request.headers.get("origin");
-  if (!origin) return;
+  if (!origin) throw new WorkerHttpError(403, "NEXUS_ORIGIN_DENIED");
   let originUrl: URL;
   try {
     originUrl = new URL(origin);
@@ -505,7 +505,7 @@ export async function handleWorkerRequest(
     const route = path.join("/");
     if (method === "GET" && route === "status") return await getStatus(request);
     if (method === "PATCH" && route === "status") return await updateStatus(request);
-    if (method === "GET" && route === "connection") {
+    if (method === "POST" && route === "connection/preview") {
       return await previewConnection(request);
     }
     if (method === "POST" && route === "connection") {

@@ -52,7 +52,9 @@ assert.ok(workerServer.includes("connectedAgencies"), "Worker status response mu
 
 assert.ok(workerPage.includes('credentials: "same-origin"'), "Worker API requests must remain same-origin");
 assert.ok(workerPage.includes('>("/status")'), "Worker must load the canonical status");
-assert.ok(workerPage.includes('>(`/connection?token='), "Worker must preview an invite before consent");
+assert.ok(workerPage.includes('>("/connection/preview"'), "Worker must preview an invite before consent without URL credentials");
+assert.ok(workerPage.includes('body: JSON.stringify({ token })'), "Worker invite preview token must travel in the request body");
+assert.ok(!workerPage.includes('/connection?token='), "Worker invite token must not be placed in a URL");
 assert.ok(workerPage.includes('workerApi("/connection"'), "Worker must accept the reviewed invite");
 assert.ok(workerPage.includes("Approve recruiter-safe Work Profile access"), "Worker consent copy missing");
 assert.ok(workerPage.includes("Future status changes update automatically"), "Post-consent status sync copy missing");

@@ -96,7 +96,7 @@ function payloadAllowed(request: Request): boolean {
 
 function credentialsInUrl(request: Request): boolean {
   const url = new URL(request.url);
-  return ["sid", "sessionId", "draftToken", "authorization"].some((key) =>
+  return ["sid", "sessionId", "draftToken", "token", "authorization"].some((key) =>
     url.searchParams.has(key),
   );
 }
