@@ -16,6 +16,11 @@ export function normalizeOrigin(value){
 export function configuredAgencyOrigin(env=process.env){
   const explicit=normalizeOrigin(env.NOSMO_AGENCY_PUBLIC_ORIGIN);
   if(explicit)return explicit;
+  const vercelEnv=String(env.VERCEL_ENV||"").trim().toLowerCase();
+  if(vercelEnv==="preview"){
+    const previewHost=String(env.VERCEL_URL||"").trim();
+    if(previewHost)return normalizeOrigin(`https://${previewHost}`);
+  }
   const vercelHost=String(env.VERCEL_PROJECT_PRODUCTION_URL||"").trim();
   return vercelHost?normalizeOrigin(`https://${vercelHost}`):null;
 }
