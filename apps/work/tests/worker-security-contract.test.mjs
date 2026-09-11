@@ -12,6 +12,8 @@ const workerServer = read("app/worker-server.ts");
 const workerSecurity = read("app/worker-security.ts");
 const workerRoute = read("app/api/worker/[...path]/route.ts");
 const workerPage = read("app/page.tsx");
+const workerLayout = read("app/layout.tsx");
+const localPrivacy = read("app/local-privacy-control.tsx");
 
 for (const key of ["DATABASE_URL", "NEXUS_IDENTITY_PEPPER", "OPENAI_API_KEY", "OPENAI_MODEL"]) {
   assert.match(envExample, new RegExp(`^${key}=`, "m"), `Worker runtime key ${key} missing from .env.example`);
@@ -40,6 +42,19 @@ assert.ok(workerPage.includes('body: JSON.stringify({ token })'), "Worker invite
 assert.ok(!workerPage.includes("/connection?token="), "Worker invite token must never be placed in a URL");
 assert.ok(!/localStorage\.setItem\([^\n;]*(?:draftToken|inviteToken|sessionId|\bsid\b)/i.test(workerPage), "Worker authority/session material must not be persisted in localStorage");
 
+assert.ok(workerLayout.includes("<LocalPrivacyControl />"), "Worker layout must mount the local-device privacy control");
+assert.ok(localPrivacy.includes('document.querySelector(".settings-data-actions")'), "Clear-device control must live in the existing Data & privacy actions");
+assert.ok(localPrivacy.includes('window.localStorage.clear()'), "Clear-device control must remove browser-local personal data");
+assert.ok(localPrivacy.includes('window.sessionStorage.clear()'), "Clear-device control must remove ephemeral browser-local state");
+assert.ok(localPrivacy.includes('deleteDatabase(LOCAL_DATABASE)'), "Clear-device control must remove the local file database");
+assert.ok(localPrivacy.includes('const LOCAL_DATABASE = "mateusz-praca"'), "Clear-device control must target the canonical Worker IndexedDB database");
+for (const retained of ["mateusz-theme", "nosmo-theme-preset", "nosmo-language"]) {
+  assert.ok(localPrivacy.includes(`\"${retained}\"`), `Clear-device control should retain non-sensitive preference ${retained}`);
+}
+assert.ok(localPrivacy.includes("Server-side data and Agency consent will not be deleted."), "Clear-device confirmation must state its server-side boundary");
+assert.ok(localPrivacy.includes("request.onblocked"), "IndexedDB deletion must fail visibly when another tab blocks it");
+assert.ok(localPrivacy.includes('data-nosmo-clear-local-data="true"'), "Clear-device action needs a stable browser-QA selector");
+
 console.log(JSON.stringify({
   schema: "nosmo-worker-security-contract/v1",
   status: "PASS",
@@ -49,4 +64,6 @@ console.log(JSON.stringify({
   sameOriginMutations: true,
   credentialUrlDenied: true,
   authorityNotPersistedInLocalStorage: true,
+  clearDeviceControl: true,
+  localFileDatabaseDeletion: true,
 }, null, 2));
