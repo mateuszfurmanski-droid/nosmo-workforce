@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  security-static-and-contract:
+  agency-security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -40,9 +40,29 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: apps/agency/runtime/package.json
-      - name: Install runtime dependencies
+      - name: Install Agency runtime dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Existing functional contracts plus security QA
+      - name: Agency functional contracts plus security QA
         run: npm run check
-      - name: Dependency vulnerability audit
+      - name: Agency dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=high
+
+  worker-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/work
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/work/package-lock.json
+      - name: Install Worker dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Worker security boundary QA
+        run: node --test tests/security-boundary.test.mjs
+      - name: Worker production dependency vulnerability audit
         run: npm audit --omit=dev --audit-level=high
