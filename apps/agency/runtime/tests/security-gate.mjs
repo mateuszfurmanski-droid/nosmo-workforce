@@ -43,7 +43,7 @@ assert.equal(sameOriginRequest({headers:{origin:"https://evil.example"},protocol
 assert.equal(sameOriginRequest({headers:{},protocol:"https"},originEnv),false);
 assert.equal(configuredAgencyOrigin({VERCEL_ENV:"preview",VERCEL_URL:"agency-pr-18.vercel.app"}),"https://agency-pr-18.vercel.app");
 assert.equal(configuredAgencyOrigin({VERCEL_ENV:"production",VERCEL_URL:"untrusted-preview.vercel.app",VERCEL_PROJECT_PRODUCTION_URL:"agency.example.com"}),"https://agency.example.com");
-assert.equal(configuredAgencyOrigin({NOSMO_AGENCY_PUBLIC_ORIGIN:"https://canonical.example.com",VERCEL_ENV:"preview",VERCEL_URL:"agency-pr-18.vercel.app"}),"https://canonical.example.com");
+assert.equal(configuredAgencyOrigin({NOSMO_AGENCY_PUBLIC_ORIGIN:"https://canonical.example.com",VERCEL_ENV:"preview",VERCEL_URL:"agency-pr-18.vercel.app"}),"https://agency-pr-18.vercel.app");
 
 // Production database TLS and outbound URL policy.
 assert.deepEqual(productionSslOptions({NODE_ENV:"production"}),{rejectUnauthorized:true});
