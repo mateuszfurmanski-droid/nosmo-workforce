@@ -1,0 +1,98 @@
+name: NOSMO Work Invite Token Hardening
+
+on:
+  push:
+    branches:
+      - security/nosmo-security-gate
+    paths:
+      - .github/workflows/work-security-invite-token-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/nosmo-security-gate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply exact invite-token hardening patch
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one match, found {count}")
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'apps/work/app/page.tsx',
+              '}>(`/connection?token=${encodeURIComponent(token)}`);',
+              '}>("/connection/preview", {\n        method: "POST",\n        body: JSON.stringify({ token }),\n      });',
+          )
+          replace_once(
+              'apps/work/app/worker-server.ts',
+              '  const url = new URL(request.url);\n  const token = clean(url.searchParams.get("token"), 300);',
+              '  const body = asRecord(await request.json().catch(() => null));\n  const token = clean(body.token, 300);',
+          )
+          replace_once(
+              'apps/work/app/worker-server.ts',
+              '    if (method === "GET" && route === "connection") {\n      return await previewConnection(request);\n    }',
+              '    if (method === "POST" && route === "connection/preview") {\n      return await previewConnection(request);\n    }',
+          )
+          replace_once(
+              'apps/work/app/worker-server.ts',
+              '  if (!origin) return;',
+              '  if (!origin) throw new WorkerHttpError(403, "NEXUS_ORIGIN_DENIED");',
+          )
+          replace_once(
+              'apps/work/app/worker-security.ts',
+              '["sid", "sessionId", "draftToken", "authorization"]',
+              '["sid", "sessionId", "draftToken", "token", "authorization"]',
+          )
+          replace_once(
+              'apps/work/tests/security-boundary.test.mjs',
+              '["sid", "sessionId", "draftToken", "authorization"]',
+              '["sid", "sessionId", "draftToken", "token", "authorization"]',
+          )
+          replace_once(
+              'apps/agency/runtime/tests/worker-handoff-contract.mjs',
+              "assert.ok(workerPage.includes('>(`/connection?token='), \"Worker must preview an invite before consent\");",
+              "assert.ok(workerPage.includes('>(\"/connection/preview\"'), \"Worker must preview an invite before consent without URL credentials\");\nassert.ok(workerPage.includes('body: JSON.stringify({ token })'), \"Worker invite preview token must travel in the request body\");\nassert.ok(!workerPage.includes('/connection?token='), \"Worker invite token must not be placed in a URL\");",
+          )
+          PY
+      - name: Verify focused security contracts
+        run: |
+          node --test apps/work/tests/security-boundary.test.mjs
+          node apps/agency/runtime/tests/worker-handoff-contract.mjs
+          ! grep -R --line-number --fixed-strings '/connection?token=' apps/work/app apps/work/tests apps/agency/runtime/tests/worker-handoff-contract.mjs
+          ! grep -R --line-number --fixed-strings 'searchParams.get("token")' apps/work/app
+      - name: Verify only intended files changed
+        run: |
+          mapfile -t changed < <(git diff --name-only | sort)
+          printf '%s\n' "${changed[@]}"
+          expected=(
+            apps/agency/runtime/tests/worker-handoff-contract.mjs
+            apps/work/app/page.tsx
+            apps/work/app/worker-security.ts
+            apps/work/app/worker-server.ts
+            apps/work/tests/security-boundary.test.mjs
+          )
+          test "${#changed[@]}" -eq "${#expected[@]}"
+          for i in "${!expected[@]}"; do test "${changed[$i]}" = "${expected[$i]}"; done
+      - name: Commit verified invite-token hardening
+        run: |
+          git config user.name "NOSMO Security Gate"
+          git config user.email "security-gate@users.noreply.github.com"
+          git add apps/agency/runtime/tests/worker-handoff-contract.mjs apps/work/app/page.tsx apps/work/app/worker-security.ts apps/work/app/worker-server.ts apps/work/tests/security-boundary.test.mjs
+          git commit -m "security(worker): remove invite token from URL"
+          git push origin HEAD:security/nosmo-security-gate
