@@ -1,0 +1,44 @@
+name: NOSMO Work Security Remediation V2
+
+on:
+  push:
+    branches:
+      - security/nosmo-security-gate
+    paths:
+      - .github/workflows/work-security-remediation-v2.yml
+
+permissions:
+  contents: read
+
+jobs:
+  remediate-lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/work
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/work/package-lock.json
+      - name: Install current dependency graph
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Upgrade patched Next release
+        run: npm install next@16.3.4 --save-exact --ignore-scripts --no-audit --no-fund
+      - name: Apply available non-breaking audit remediation
+        run: npm audit fix --ignore-scripts --no-fund || true
+      - name: Verify production dependency gate
+        run: npm audit --omit=dev --audit-level=high
+      - name: Show dependency changes
+        run: git diff -- package.json package-lock.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nosmo-work-remediated-dependencies-v2
+          path: |
+            apps/work/package.json
+            apps/work/package-lock.json
+          if-no-files-found: error
+          retention-days: 1
