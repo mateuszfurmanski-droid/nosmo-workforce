@@ -1,16 +1,16 @@
 # NOSMO SECURITY GATE
 
-Date: 2026-09-07
+Date: 2026-09-11
 
 Scope: NOSMO Agency + NOSMO Work / Worker. NOSMO Emergency Button is intentionally out of scope.
 
-Canonical source inspected before changes: `main` at `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d` (`Worker V1.0102: synchronize status to Agency`). No open pull requests existed at the start of this security pass. Security hardening is being performed on `security/nosmo-security-gate`; accepted Agency UI files are not redesigned or replaced. Pull request: #18.
+Canonical source was initially inspected at `main` commit `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d`. Before the 2026-09-11 continuation, the security branch was re-inspected and merged with current `main` at `911557f489721affba7ae414f49db36f20375b25` without force-push or UI replacement. Security hardening remains on `security/nosmo-security-gate`. Pull request: #18.
 
 ## 1. Architecture summary
 
 - NOSMO Agency accepted UI remains the canonical static bundle under `apps/agency/sites/v24/public`, mirrored byte-for-byte into `apps/agency/runtime/public` and protected by the existing contract test.
 - Agency runtime is Node.js 24 / Express 5 / PostgreSQL (`pg`) / `openid-client`, with Vercel serverless entrypoints and compatibility APIs.
-- NOSMO Work / Worker remains a static PWA. The worker onboarding and availability handoff call Agency-hosted serverless endpoints with signed worker authority tokens.
+- NOSMO Work / Worker is now a Next/Vinext application with a same-origin `/api/worker/*` server boundary. Worker identity is resolved server-side from the platform-authenticated `oai-authenticated-user-email` header, pseudonymised with `NEXUS_IDENTITY_PEPPER`, and bound to `person_id` through `nexus_identity_bindings`. The previous normal-path draft-token/localStorage authority description is no longer the canonical Worker architecture. GitHub Pages now serves only a canonical redirect, not the Worker application runtime.
 - Current Agency database tables are present in Neon project `nosmo-nexus-mvp-dev` (`morning-glitter-88911562`). The separate `nosmo-nexus-cloud-staging` project does not contain the Agency table set.
 - The currently discoverable Vercel Agency production deployment is `nosmo-agency-v10025-preview`. It is stale: `/api/person-card/agency/v1/_health` returns 404 and `/` serves an older V1.0025 preview bundle containing `preview-mock.js`. Therefore it is not evidence that the canonical runtime or this security gate is deployed.
 - Vercel HTTPS/HSTS is active on that stale deployment, but current canonical application authentication/database behavior has not been verified there.
@@ -96,7 +96,7 @@ Agency-imported roster email/phone/private notes are Agency-owned operational re
 
 Permanent privacy contract checks are included in existing Agency contract QA and in `tests/security-gate.mjs`.
 
-Remaining Worker security blocker: the static Worker app currently stores its signed draft authority token and local Worker draft data (including personal profile fields) in browser `localStorage`. The token can authorize loading/saving the Worker server profile for up to the current token lifetime. This is materially different from the HttpOnly Agency session model and remains a blocker for a real-person-data pilot until Worker has a stronger authenticated storage/session boundary or the authority is redesigned to a safely constrained model. A quick storage change was not forced because it would break the existing persistence/recovery flow without adding a real Worker authentication boundary.
+Current Worker security assessment: the canonical Worker API no longer uses the old signed draft authority token in `localStorage` for normal authenticated status/connection operations. Invite preview tokens have also been removed from query-string URLs and are sent only in a same-origin POST body. However, the browser intentionally retains substantial local-first personal data in browser storage, including Worker profile fields, imported Work Contacts containing names/phone/email, document metadata, and locally stored imported files. That local-device persistence is a privacy, device-compromise, shared-device and data-lifecycle risk. Before a genuine personal-data pilot, NOSMO must verify the deployed authentication-header trust boundary, define retention/clear-device behavior, and confirm that local-first storage matches the promised Worker privacy model.
 
 ## 6. Database security
 
@@ -131,7 +131,7 @@ Session rotation assessment: every successful login already creates a fresh rand
 
 Agency browser mutations (`POST`, `PUT`, `PATCH`, `DELETE`) using the session cookie require same-origin `Origin` or `Referer` evidence. The expected production origin is the configured canonical Agency origin. SameSite=Lax provides an additional browser boundary.
 
-Worker onboarding does not use the Agency session cookie. It uses signed bearer authority in the request body with an explicit CORS origin allow-list and the Worker client uses `credentials:"omit"`. Therefore synchronizer-token CSRF is not applied to that non-cookie authority model.
+Current Worker API requests are same-origin and use the platform-authenticated Worker identity supplied to the server. State-changing Worker API calls now fail closed unless an `Origin` header is present and exactly matches the request origin; the outer Worker security boundary and the inner handler both enforce this. Invite preview/acceptance is POST-based and the invite token is carried in the JSON body, not the URL. The production trust assumption that clients cannot forge or bypass the platform identity header still requires live deployment verification.
 
 This gate fails closed for missing/wrong origin on cookie-authenticated Agency mutations. Permanent CSRF origin tests are present in static and HTTP integration QA.
 
@@ -151,7 +151,7 @@ Agency hardened runtime / Vercel configuration now supplies:
 
 The CSP preserves the accepted first-party frontend architecture and allows first-party scripts/styles plus HTTPS API connectivity; it does not introduce external script origins. CSP must still be exercised on a real preview deployment before it is credited as regression-free.
 
-Worker is currently deployed as a static PWA through GitHub Pages workflow. Repository code alone cannot guarantee the same custom HTTP header set from that hosting surface. Worker hosting/CSP/header behavior remains a deployment verification item.
+GitHub Pages is now configured only as a canonical redirect surface for NOSMO Work. The Worker application itself has baseline browser headers in `next.config.ts` (`nosniff`, frame denial, `no-referrer`, restrictive Permissions-Policy, COOP and HSTS) and API responses add `Cache-Control: no-store`. A strict Worker CSP was not forced without runtime verification because the current Next/Vinext build may require framework script behavior. The actual canonical Worker host, header provenance and CSP behavior remain deployment-verification items.
 
 ## 10. Rate limiting
 
@@ -167,6 +167,8 @@ Agency security perimeter now applies reasonable best-effort rate classes:
 Worker onboarding and availability wrappers have separate request limits and payload limits.
 
 Current limiter is process-instance memory and therefore is not a globally consistent distributed rate limiter across multiple serverless instances. For a controlled small pilot it is defense-in-depth, not the sole abuse-control guarantee. Production scale should add provider/edge/global rate limiting (for example at Vercel Firewall/edge or another shared limiter).
+
+Worker `/api/worker/*` now has a separate best-effort per-instance boundary: 120 requests/minute general, 30 requests/minute for connection flows, plus a 64 KiB mutation Content-Length limit. Like the Agency limiter, this is not a substitute for a distributed provider/edge control.
 
 ## 11. Logging / audit trail
 
@@ -221,6 +223,15 @@ No backup capability has been fabricated or inferred beyond the provider metadat
 
 ## 14. Automated tests completed
 
+2026-09-11 Worker security additions:
+
+- permanent Worker API boundary regression tests for same-origin mutation enforcement, request-size limits, rate limiting, URL credential rejection and browser security headers
+- Worker invite preview regression updated to require POST body token transport and to reject `/connection?token=...`
+- security workflow now runs a distinct Worker job; watching `apps/work/**` no longer gives a false green result from Agency-only tests
+- Worker production dependency audit initially exposed one critical and four high production issues; Next and safe transitive dependencies were patched, including Next `16.2.6` -> `16.3.4`
+- final Worker production audit (`npm audit --omit=dev --audit-level=high`) passed with **0 production vulnerabilities**
+- full development-tooling audit still reports 14 issues (10 high, 4 moderate) in build/dev tooling such as Vinext/Vite/Wrangler/Cloudflare/Drizzle-related chains; resolving all currently requires breaking upgrades, so these are tracked rather than hidden with `--force`
+
 Existing functional QA is preserved. New security QA is added alongside it.
 
 Added permanent static/contract security QA:
@@ -272,11 +283,12 @@ Release blockers / material risks:
 1. The current live Vercel Agency deployment is stale and does not run the canonical runtime/security gate.
 2. Hardened canonical Agency OIDC + DB + cookie/session behavior is not yet tested on a real deployment.
 3. HTTP-level multi-tenant A/B test has been created but not yet executed against the hardened runtime.
-4. Worker draft authority and personal draft data remain accessible to Worker JavaScript/localStorage; Worker has no equivalent HttpOnly authenticated session boundary.
-5. Custom Worker hosting security headers/CSP are not yet verified.
-6. Production database application role/least privilege is not proven from the current deployment configuration.
-7. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
-8. In-process rate limiting is not globally distributed across Vercel instances.
+4. Worker authentication now depends on a platform-supplied `oai-authenticated-user-email` header; the deployed trust boundary has not yet been proven to strip client spoofing or prevent direct-origin bypass.
+5. Worker local-first PII persists in browser localStorage/IndexedDB/local files; retention, shared-device clearing and device-compromise behavior are not yet approved for a genuine PII pilot.
+6. Worker baseline headers exist in code, but the actual canonical host and strict CSP behavior are not yet verified.
+7. Production database application role/least privilege is not proven from the current deployment configuration.
+8. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
+9. In-process rate limiting is not globally distributed across serverless instances.
 
 Non-blocking hardening candidates after the above release blockers:
 
@@ -296,6 +308,9 @@ Before a genuine personal-data pilot can be approved:
 - execute the isolated HTTP A/B tenant test against the hardened runtime/database branch, then separately verify production tenant behavior without synthetic destructive writes
 - verify Worker deployment/header behavior
 - resolve the Worker browser credential/private-local-storage boundary before using genuine Worker PII
+- verify the canonical Worker deployment rejects/overwrites client-supplied authentication headers and cannot bypass the trusted identity perimeter
+- verify Worker baseline headers on the real host and introduce/test a compatible CSP
+- define Worker local-device PII retention, clear-device/shared-device behavior and user-facing privacy controls
 - confirm application database role privileges and provider network policy
 - define recovery retention and perform a non-production restore drill
 
@@ -311,6 +326,7 @@ Evidence supporting this classification:
 - Existing OIDC design includes PKCE/state/nonce and server-side Agency sessions.
 - Tenant authority is server-derived from membership.
 - Recruiter-safe Worker consent/private-field boundaries are present.
+- Worker API mutations now fail closed on missing/cross-origin Origin, invite credentials are removed from URLs, baseline response headers/rate limits/payload limits are present, and Worker production dependencies pass the high-severity production audit gate.
 - Isolated Neon SQL-layer A/B tenant tests passed.
 - Existing Agency/Worker functional contracts passed on PR #18 after the security changes.
 - New static security QA passed on PR #18.
