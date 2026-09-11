@@ -1,10 +1,29 @@
 # NOSMO Work
 
-Canonical location for the existing NOSMO Work worker application.
+Canonical Worker application for `mateuszfurmanski-droid/nosmo-workforce`.
 
-Baseline: V1.0101.
-Next version: V1.0102.
+## Recovery baseline
 
-Do not rebuild from scratch. The recovered V1.0101 application must be compared against the locked baseline in `docs/NOSMO_WORK_V1.0101_BASELINE.md` before it is accepted here.
+- Accepted visual and functional baseline: existing ChatGPT Sites version 93.
+- Sites project: `appgprj_6a93f57013108191a7a78c97da0b378c`.
+- Source commit: `a8dc178daaaea7328d8177a18c8cfb2bc3f5ae74`.
+- Public application: <https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site>.
+- Displayed recovery version: `NOSMO Work V1.0101`.
 
-Primary product surfaces include Worker Card, Documents, Jobs, Apps, Settings, Ask Nexus entry, Work tools and worker-owned sharing/application flows.
+This recovery baseline intentionally excludes the Person Card Freeware donor and the
+Emergency Core integration introduced in Sites version 94. Emergency remains a
+separate product.
+
+## Current incremental release
+
+V1.0101 remains the locked recovery point. V1.0102 now adds the installable PWA
+shell, offline reopen support and truthful install guidance without changing the
+accepted Worker visual. V1.0102 must pass repository tests, browser QA, deployment
+QA and real-device acceptance before being marked DONE.
+
+## Local checks
+
+```bash
+npm run install:ci
+npm test
+```

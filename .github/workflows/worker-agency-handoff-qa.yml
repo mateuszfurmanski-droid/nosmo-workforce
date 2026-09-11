@@ -36,7 +36,4 @@ jobs:
           node --check apps/agency/runtime/api/person-card/onboarding/availability.js
           node apps/agency/runtime/tests/contract.mjs
           node apps/agency/runtime/tests/worker-handoff-contract.mjs
-          node --check apps/work/js/person-onboarding-v47.js
-          node --check apps/work/js/person-onboarding-v47-core.js
-          node --check apps/work/js/work-agency-status-sync.js
-          node --check apps/work/js/work-v10101-shell.js
+          node --test apps/work/tests/availability-broadcast.test.mjs apps/work/tests/source-identity.test.mjs

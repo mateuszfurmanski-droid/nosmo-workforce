@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>NOSMO Work</title>
+    <link rel="canonical" href="https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site">
+    <meta http-equiv="refresh" content="0;url=https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site">
+  </head>
+  <body>
+    <p>Opening the canonical NOSMO Work application...</p>
+    <p><a href="https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site">Open NOSMO Work</a></p>
+    <script>
+      (async () => {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.filter((key) => key.startsWith("nosmo-work-v1")).map((key) => caches.delete(key)));
+        }
+        location.replace("https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site");
+      })();
+    </script>
+  </body>
+</html>
