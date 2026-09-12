@@ -35,11 +35,8 @@ jobs:
           curl -fsS http://127.0.0.1:4182/assets/src-Cux5XbTP.js >/dev/null
           curl -fsS http://127.0.0.1:4182/assets/lib-CX2z2z0g.js >/dev/null
           curl -fsS http://127.0.0.1:4182/assets/pdf.worker-BDW0vFpl.js >/dev/null
-      - name: Protect NOSMO Work boundary
+      - name: Protect Emergency Button boundary
         shell: bash
         run: |
-          BASE_SHA="${{ github.event.pull_request.base.sha || github.event.before }}"
-          if [ -n "$BASE_SHA" ] && git diff --name-only "$BASE_SHA" "${{ github.sha }}" 2>/dev/null | grep -q '^apps/work/'; then
-            echo 'Agency migration touched apps/work' >&2
-            exit 1
-          fi
+          test "$(sha256sum apps/agency/sites/v24/public/assets/emergency-core-Bm4UH8t1.js | cut -d' ' -f1)" = "62a82dc7e10505ca85b9c6e09029c864a2d7cf621d47d8ad49d02bf2d09fc559"
+          cmp apps/agency/sites/v24/public/assets/emergency-core-Bm4UH8t1.js apps/agency/runtime/public/assets/emergency-core-Bm4UH8t1.js

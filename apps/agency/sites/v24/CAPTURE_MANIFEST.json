@@ -131,6 +131,21 @@
       "path": "resources/nosmo-agency.mateusz-furmanski.chatgpt.site/api/agency/health-c103e870b6.json"
     }
   ],
+  "securityOverlays": [
+    {
+      "path": "public/assets/index-B1QG66Mi.js",
+      "capturedSha256": "bb18d94fe2beb5506fd87a8ac1cbfbfb595faf04d3ccb4e35994c93016b17756",
+      "sha256": "394ca05b242143d365a7216d8b1f46474a7f577586e640f7bd3ee20519e92fdc",
+      "bytes": 80968,
+      "reason": "Load the body-only invite delivery adapter without changing the accepted UI."
+    },
+    {
+      "path": "public/invite-delivery.js",
+      "sha256": "9b7d846220b714a1d1148bfeb1ec7a6bf55726a9bcecf6d1e8504bee7b2b779a",
+      "bytes": 4107,
+      "reason": "Keep invite credentials out of URLs and browser persistence."
+    }
+  ],
   "dependencyClosure": {
     "completedAt": "2026-09-05T14:37:58.797Z",
     "source": "https://nosmo-agency.mateusz-furmanski.chatgpt.site",
@@ -207,6 +222,7 @@
       "assets/webpack-bqEODIzK.js",
       "assets/x-BwWSQcK2.js",
       "index.html",
+      "invite-delivery.js",
       "nexus-logo-ui-mark-n.png",
       "nosmo-logo.png"
     ]
