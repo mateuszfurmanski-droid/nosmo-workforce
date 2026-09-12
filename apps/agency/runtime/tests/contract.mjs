@@ -33,7 +33,6 @@ const required=[
   ['POST','/api/agency/applications/:applicationId/placement'],
   ['PATCH','/api/agency/placements/:placementId'],
   ['POST','/api/agency/nexus/query'],
-  ['POST','/api/agency/invites'],
 ];
 
 for(const [method,route] of required){
@@ -51,6 +50,8 @@ assert.ok(compat.includes('workerAppConfirmed:false'),'import must not fake Work
 assert.ok(server.includes('credentialInUrl:false'),'Agency invite response must declare a body-only credential boundary');
 assert.ok(server.includes('deliverAgencyInvite'),'Agency invite delivery handler missing');
 assert.ok(!server.includes('searchParams.set("inviteToken"'),'active Agency handler still emits an invite token URL');
+assert.ok(!compat.includes('installLegacyInviteRoute'),'legacy URL invite route switch must be removed');
+assert.ok(!compat.includes('searchParams.set("inviteToken"'),'compatibility routes must not emit an invite token URL');
 assert.ok(inviteDelivery.includes('/api/agency/invites/${encodeURIComponent(inviteId)}/delivery'),'accepted UI secure delivery adapter missing');
 
 function files(root){
