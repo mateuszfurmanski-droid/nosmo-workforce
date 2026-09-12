@@ -1,25 +1,41 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
+import fs from "node:fs";
 
 const databaseUrl=process.env.SECURITY_QA_DATABASE_URL?.trim();
 const mutationOptIn=process.env.SECURITY_QA_ALLOW_MUTATION;
 const remoteBaseUrl=process.env.SECURITY_QA_BASE_URL?.trim();
-const deploymentCookie=process.env.SECURITY_QA_HTTP_COOKIE?.trim();
+const deploymentCookieFile=process.env.SECURITY_QA_HTTP_COOKIE_FILE?.trim();
+function readCookieJar(file){
+  if(!file)return "";
+  const pairs=[];
+  for(let line of fs.readFileSync(file,"utf8").split(/\r?\n/)){
+    if(!line||(line.startsWith("#")&&!line.startsWith("#HttpOnly_")))continue;
+    if(line.startsWith("#HttpOnly_"))line=line.slice("#HttpOnly_".length);
+    const fields=line.split("\t");
+    if(fields.length>=7)pairs.push(`${fields[5]}=${fields[6]}`);
+  }
+  return pairs.join("; ");
+}
+const deploymentCookie=process.env.SECURITY_QA_HTTP_COOKIE?.trim()||readCookieJar(deploymentCookieFile);
 const protectionBypass=process.env.SECURITY_QA_VERCEL_BYPASS_TOKEN?.trim();
-if(!databaseUrl||mutationOptIn!=="isolated-branch"){
-  console.log(JSON.stringify({schema:"nosmo-tenant-isolation-e2e/v1",status:"SKIPPED",reason:"Requires SECURITY_QA_DATABASE_URL and SECURITY_QA_ALLOW_MUTATION=isolated-branch"},null,2));
+const preseededFixtureFile=process.env.SECURITY_QA_PRESEEDED_FIXTURE_FILE?.trim();
+const directDatabaseMode=Boolean(databaseUrl&&mutationOptIn==="isolated-branch");
+const preseededRemoteMode=Boolean(remoteBaseUrl&&preseededFixtureFile&&mutationOptIn==="preseeded-isolated-branch");
+if(!directDatabaseMode&&!preseededRemoteMode){
+  console.log(JSON.stringify({schema:"nosmo-tenant-isolation-e2e/v1",status:"SKIPPED",reason:"Requires an isolated database URL, or an HTTPS preview plus an explicitly preseeded isolated-branch fixture"},null,2));
   process.exit(0);
 }
 
-process.env.DATABASE_URL=databaseUrl;
+if(directDatabaseMode)process.env.DATABASE_URL=databaseUrl;
 process.env.NODE_ENV="test";
 process.env.VERCEL="1";
 
 const {default:pg}=await import("pg");
 const {Pool}=pg;
-const adminPool=new Pool({connectionString:databaseUrl,ssl:{rejectUnauthorized:true}});
+const adminPool=directDatabaseMode?new Pool({connectionString:databaseUrl,ssl:{rejectUnauthorized:true}}):null;
 const suffix=crypto.randomUUID().replaceAll("-","").slice(0,16);
-const ids={
+const generatedIds={
   userA:`security-e2e-user-a-${suffix}`,
   userB:`security-e2e-user-b-${suffix}`,
   recruiter:`security-e2e-recruiter-${suffix}`,
@@ -42,6 +58,13 @@ const ids={
   placementA:`security-e2e-placement-a-${suffix}`,
   placementB:`security-e2e-placement-b-${suffix}`,
 };
+const ids=preseededRemoteMode?JSON.parse(fs.readFileSync(preseededFixtureFile,"utf8")):generatedIds;
+const requiredFixtureKeys=Object.keys(generatedIds);
+for(const key of requiredFixtureKeys){
+  assert.equal(typeof ids[key],"string",`fixture ${key} must be a string`);
+  if(key.startsWith("sid"))assert.match(ids[key],/^[a-f0-9]{64}$/,`fixture ${key} must be an opaque test session id`);
+  else assert.match(ids[key],/^security-e2e-/,`fixture ${key} must be synthetic`);
+}
 let server;
 let runtimePool;
 
@@ -119,7 +142,7 @@ async function request(base,pathname,{sid,method="GET",body,rawBody,origin=true,
 }
 
 try{
-  await seed();
+  if(directDatabaseMode)await seed();
   let base;
   if(remoteBaseUrl){
     base=new URL(remoteBaseUrl);
@@ -233,17 +256,19 @@ try{
   assert.equal(result.response.headers.get("cache-control"),"no-store");
 
   // Verify denied cross-tenant write did not mutate Agency B.
-  const verification=await adminPool.query(`select
-    (select status from nexus_person_agency_requests where agency_id=$1 and request_id=$2) as request_status,
-    (select record_json->>'trade' from nexus_person_agency_roster_workers where agency_id=$1 and roster_worker_id=$3) as worker_trade,
-    (select stage from nexus_person_agency_applications where agency_id=$1 and application_id=$4) as application_stage,
-    (select status from nexus_person_agency_placements where agency_id=$1 and placement_id=$5) as placement_status,
-    (select display_name from nexus_person_agency_recruiter_profiles where agency_id=$1 and auth_user_id=$6) as recruiter_name`,[ids.agencyB,ids.requestB,ids.workerB,ids.applicationB,ids.placementB,ids.userB]);
-  assert.equal(verification.rows[0].request_status,"OPEN");
-  assert.equal(verification.rows[0].worker_trade,"Joiner");
-  assert.equal(verification.rows[0].application_stage,"CONTACTED");
-  assert.equal(verification.rows[0].placement_status,"PLACED");
-  assert.equal(verification.rows[0].recruiter_name,"SECURITY RECRUITER B");
+  if(adminPool){
+    const verification=await adminPool.query(`select
+      (select status from nexus_person_agency_requests where agency_id=$1 and request_id=$2) as request_status,
+      (select record_json->>'trade' from nexus_person_agency_roster_workers where agency_id=$1 and roster_worker_id=$3) as worker_trade,
+      (select stage from nexus_person_agency_applications where agency_id=$1 and application_id=$4) as application_stage,
+      (select status from nexus_person_agency_placements where agency_id=$1 and placement_id=$5) as placement_status,
+      (select display_name from nexus_person_agency_recruiter_profiles where agency_id=$1 and auth_user_id=$6) as recruiter_name`,[ids.agencyB,ids.requestB,ids.workerB,ids.applicationB,ids.placementB,ids.userB]);
+    assert.equal(verification.rows[0].request_status,"OPEN");
+    assert.equal(verification.rows[0].worker_trade,"Joiner");
+    assert.equal(verification.rows[0].application_stage,"CONTACTED");
+    assert.equal(verification.rows[0].placement_status,"PLACED");
+    assert.equal(verification.rows[0].recruiter_name,"SECURITY RECRUITER B");
+  }
 
   console.log(JSON.stringify({
     schema:"nosmo-tenant-isolation-e2e/v1",
@@ -266,11 +291,15 @@ try{
     csrfOriginDenied:true,
     malformedJsonRejected:true,
     oversizedPayloadRejected:true,
-    securityHeadersPresent:true
+    securityHeadersPresent:true,
+    databaseMutationVerified:Boolean(adminPool),
+    externalFixtureCleanupRequired:preseededRemoteMode
   },null,2));
 }finally{
   if(server)await new Promise(resolve=>server.close(resolve));
   if(runtimePool)await runtimePool.end().catch(()=>{});
-  await cleanup().catch(error=>console.error("SECURITY_E2E_CLEANUP_FAILED",error?.message||error));
-  await adminPool.end().catch(()=>{});
+  if(adminPool){
+    await cleanup().catch(error=>console.error("SECURITY_E2E_CLEANUP_FAILED",error?.message||error));
+    await adminPool.end().catch(()=>{});
+  }
 }
