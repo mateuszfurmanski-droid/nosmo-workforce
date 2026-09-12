@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
+import {execFileSync} from "node:child_process";
 import {
   AGENCY_ADMIN_ROLES,
   AGENCY_ROLES,
@@ -85,6 +86,8 @@ const vercel=JSON.parse(read("apps/agency/runtime/vercel.json"));
 const securityEntry=read("apps/agency/runtime/security-entry.js");
 const bootstrap=read("apps/agency/runtime/security-bootstrap.js");
 const onboardingSecurity=read("apps/agency/runtime/onboarding-security.js");
+const agencyServer=read("apps/agency/runtime/server.js");
+const inviteDelivery=read("apps/agency/runtime/public/invite-delivery.js");
 assert.ok(apiEntry.includes("security-entry.js"),"Agency Vercel API must route through security-entry");
 assert.equal(packageJson.scripts.start,"node secure-host.js","standalone runtime must use secured host");
 assert.ok(packageJson.scripts.check.includes("tests/security-gate.mjs"),"security QA must remain in normal check");
@@ -100,7 +103,8 @@ assert.ok(onboardingSecurity.startsWith('import "./security-bootstrap.js"'));
 
 const rewrites=vercel.rewrites||[];
 assert.ok(rewrites.some(r=>r.source==="/api/person-card/onboarding/availability"&&r.destination==="/api/secure-onboarding-availability"));
-assert.ok(rewrites.some(r=>r.source==="/api/person-card/onboarding/:path*"&&r.destination.includes("/api/secure-onboarding")));
+assert.ok(rewrites.some(r=>r.source==="/api/person-card/onboarding/(.*)"&&r.destination==="/api/secure-onboarding?path=$1"));
+assert.ok(rewrites.some(r=>r.source==="/api/(.*)"&&r.destination==="/api/[...path]"),"multi-segment Agency API rewrite missing");
 const globalHeaderRule=(vercel.headers||[]).find(rule=>rule.source==="/(.*)");
 const headerMap=Object.fromEntries((globalHeaderRule?.headers||[]).map(h=>[h.key,h.value]));
 assert.ok(headerMap["Content-Security-Policy"]?.includes("frame-ancestors 'none'"));
@@ -118,6 +122,14 @@ assert.ok(onboarding.includes("contactDetailsIncluded:false"));
 assert.ok(onboarding.includes("cvTextIncluded:false"));
 assert.ok(onboarding.includes("contactDetailsShared:false"));
 assert.ok(onboarding.includes("cvTextShared:false"));
+assert.ok(agencyServer.includes('app.post("/api/agency/invites",createAgencyInvite)'),"safe compatibility invite route missing");
+assert.ok(agencyServer.includes('app.post("/api/agency/invites/:inviteId/delivery",deliverAgencyInvite)'),"body-only invite delivery route missing");
+assert.ok(!agencyServer.includes('searchParams.set("inviteToken"'),"active Agency runtime must not place invite authority in a URL");
+assert.ok(compat.includes("if(deps.installLegacyInviteRoute===true)"),"legacy URL invite route must be opt-in and disabled by default");
+assert.ok(inviteDelivery.includes('method: "POST"'),"Agency UI must retrieve invitation authority with POST");
+assert.ok(inviteDelivery.includes('credentials: "same-origin"'),"Agency invite delivery must use same-origin credentials");
+assert.ok(!inviteDelivery.includes("localStorage"),"Agency invite authority must not be persisted in localStorage");
+assert.ok(!inviteDelivery.includes("sessionStorage"),"Agency invite authority must not be persisted in sessionStorage");
 
 // Obvious SQL interpolation with req.* is forbidden in database handlers.
 for(const rel of [
@@ -142,19 +154,15 @@ const secretPatterns=[
 ];
 const findings=[];
 const committedEnvFiles=[];
-function walk(dir){
-  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
-    if([".git","node_modules",".next","dist","coverage"].includes(entry.name))continue;
-    const full=path.join(dir,entry.name);
-    const rel=path.relative(repoRoot,full).replaceAll(path.sep,"/");
-    if(entry.isDirectory()){walk(full);continue}
-    if(entry.name.startsWith(".env")&&entry.name!==".env.example")committedEnvFiles.push(rel);
-    if(!textExtensions.has(path.extname(entry.name))||fs.statSync(full).size>2_000_000)continue;
-    const source=fs.readFileSync(full,"utf8");
-    for(const [name,pattern] of secretPatterns){if(pattern.test(source))findings.push(`${name}:${rel}`)}
-  }
+const trackedFiles=execFileSync("git",["ls-files","-z","--cached","--others","--exclude-standard"],{cwd:repoRoot,encoding:"utf8"}).split("\0").filter(Boolean);
+for(const rel of trackedFiles){
+  const name=path.basename(rel);
+  if(name.startsWith(".env")&&name!==".env.example")committedEnvFiles.push(rel);
+  const full=path.join(repoRoot,rel);
+  if(!textExtensions.has(path.extname(name))||!fs.existsSync(full)||fs.statSync(full).size>2_000_000)continue;
+  const source=fs.readFileSync(full,"utf8");
+  for(const [patternName,pattern] of secretPatterns){if(pattern.test(source))findings.push(`${patternName}:${rel}`)}
 }
-walk(repoRoot);
 assert.deepEqual(committedEnvFiles,[],`committed environment files found: ${committedEnvFiles.join(", ")}`);
 assert.deepEqual(findings,[],`possible committed secrets found: ${findings.join(", ")}`);
 
@@ -168,6 +176,7 @@ console.log(JSON.stringify({
   safeErrors:true,
   ratePolicies:true,
   securedEntrypoints:true,
+  bodyOnlyInviteDelivery:true,
   workerConsentProjection:true,
   obviousSqlInterpolationRejected:true,
   committedSecretScan:true

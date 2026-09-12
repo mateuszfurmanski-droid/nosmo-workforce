@@ -9,6 +9,8 @@ const runtime=path.resolve(here,'..');
 const agency=path.resolve(runtime,'..');
 const frontend=fs.readFileSync(path.join(runtime,'public/assets/page-D2n6_To6.js'),'utf8');
 const compat=fs.readFileSync(path.join(runtime,'compat.js'),'utf8');
+const server=fs.readFileSync(path.join(runtime,'server.js'),'utf8');
+const inviteDelivery=fs.readFileSync(path.join(runtime,'public/invite-delivery.js'),'utf8');
 
 const required=[
   ['GET','/api/agency/health'],
@@ -46,6 +48,10 @@ assert.ok(compat.includes("scope='RECRUITER_SAFE'"),'recruiter-safe consent scop
 assert.ok(compat.includes('NEXUS_PLACEMENT_READINESS_BLOCKED'),'placement BLOCKED readiness gate missing');
 assert.ok(compat.includes('NEXUS_PLACEMENT_READINESS_REVIEW_REQUIRED'),'placement CHECK confirmation gate missing');
 assert.ok(compat.includes('workerAppConfirmed:false'),'import must not fake Worker App confirmation');
+assert.ok(server.includes('credentialInUrl:false'),'Agency invite response must declare a body-only credential boundary');
+assert.ok(server.includes('deliverAgencyInvite'),'Agency invite delivery handler missing');
+assert.ok(!server.includes('searchParams.set("inviteToken"'),'active Agency handler still emits an invite token URL');
+assert.ok(inviteDelivery.includes('/api/agency/invites/${encodeURIComponent(inviteId)}/delivery'),'accepted UI secure delivery adapter missing');
 
 function files(root){
   const out=[];

@@ -38,8 +38,11 @@ assert.ok(workerSecurity.includes("mutationOriginAllowed(request)"), "Worker API
 
 assert.ok(workerPage.includes('credentials: "same-origin"'), "Worker client API calls must stay same-origin");
 assert.ok(workerPage.includes('>("/connection/preview"'), "Worker invite preview must use the body-based preview endpoint");
-assert.ok(workerPage.includes('body: JSON.stringify({ token })'), "Worker invite token must travel in a request body");
+assert.ok(workerPage.includes('body: JSON.stringify({ token: normalizedToken })'), "Worker invite token must travel in a request body");
 assert.ok(!workerPage.includes("/connection?token="), "Worker invite token must never be placed in a URL");
+assert.ok(!workerPage.includes('.get("connect")'), "Worker must not read invitation authority from URL parameters");
+assert.ok(!workerPage.includes("/?connect="), "Worker sign-in return path must not carry invitation authority");
+assert.ok(workerPage.includes('type="password"'), "Worker invitation code must be entered through an in-page protected field");
 assert.ok(!/localStorage\.setItem\([^\n;]*(?:draftToken|inviteToken|sessionId|\bsid\b)/i.test(workerPage), "Worker authority/session material must not be persisted in localStorage");
 
 assert.ok(workerLayout.includes("<LocalPrivacyControl />"), "Worker layout must mount the local-device privacy control");

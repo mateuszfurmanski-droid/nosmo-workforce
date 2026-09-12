@@ -18,8 +18,16 @@
       "destination": "/api/secure-onboarding-availability"
     },
     {
-      "source": "/api/person-card/onboarding/:path*",
-      "destination": "/api/secure-onboarding?path=:path*"
+      "source": "/api/person-card/onboarding",
+      "destination": "/api/secure-onboarding"
+    },
+    {
+      "source": "/api/person-card/onboarding/(.*)",
+      "destination": "/api/secure-onboarding?path=$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[...path]"
     }
   ],
   "headers": [

@@ -2158,15 +2158,8 @@ export default function Home() {
   }, []);
   useEffect(() => {
     void loadWorkerStatus();
-    const token = new URLSearchParams(window.location.search).get("connect")?.trim() || "";
-    if (token) {
-      queueMicrotask(() => {
-        setPendingConnectionToken(token);
-        setActive("Worker Card");
-        void loadConnectionInvite(token);
-      });
-    }
-    // Initial identity and invite resolution only.
+    // Initial server-side identity resolution only. Invitation authority is
+    // deliberately entered in-page and never recovered from a browser URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -2432,6 +2425,12 @@ export default function Home() {
     }
   }
   async function loadConnectionInvite(token: string) {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
+      setConnectionNotice("Paste the invitation code before reviewing the agency.");
+      return;
+    }
+    setPendingConnectionToken(normalizedToken);
     setConnectionNotice("Checking secure agency invitation...");
     try {
       const result = await workerApi<{
@@ -2441,9 +2440,9 @@ export default function Home() {
         expiresAt: string;
       }>("/connection/preview", {
         method: "POST",
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token: normalizedToken }),
       });
-      setConnectionInvite({ token, ...result });
+      setConnectionInvite({ token: normalizedToken, ...result });
       setConnectionNotice("");
     } catch (error) {
       const status = (error as Error & { status?: number }).status;
@@ -2475,7 +2474,6 @@ export default function Home() {
       setConnectionNotice(`${connectionInvite.agency.name} is connected. Future status changes update automatically.`);
       setConnectionInvite(null);
       setPendingConnectionToken("");
-      window.history.replaceState({}, "", window.location.pathname);
       await loadWorkerStatus();
     } catch {
       setConnectionNotice("The agency could not be connected. Ask them for a new secure link.");
@@ -3348,6 +3346,26 @@ export default function Home() {
                   </div>
                 </div>
                 {profilePhotoNotice && <div className="profile-photo-notice" role="status"><Check />{profilePhotoNotice}</div>}
+                {!connectionInvite && (
+                  <form className="worker-invite-code" onSubmit={(event) => { event.preventDefault(); void loadConnectionInvite(pendingConnectionToken); }}>
+                    <ShieldCheck />
+                    <div>
+                      <small>SECURE AGENCY CONNECTION</small>
+                      <h3>Review an agency invitation</h3>
+                      <p>Paste the one-time code from the recruiter. The code stays in this page only and is never placed in the browser address.</p>
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-label="Agency invitation code"
+                        value={pendingConnectionToken}
+                        onChange={(event) => { setPendingConnectionToken(event.target.value); setConnectionNotice(""); }}
+                        placeholder="Paste invitation code"
+                      />
+                    </div>
+                    <button type="submit" disabled={!pendingConnectionToken.trim()}>Review</button>
+                  </form>
+                )}
                 {connectionInvite && (
                   <section className="worker-connection-invite" aria-labelledby="worker-connection-title">
                     <ShieldCheck />
@@ -3363,8 +3381,8 @@ export default function Home() {
                 {!connectionInvite && pendingConnectionToken && availabilitySyncState === "sign-in-required" && (
                   <section className="worker-connection-invite needs-sign-in">
                     <ShieldCheck />
-                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this link</h3><p>The invitation stays pending until you explicitly approve it.</p></div>
-                    <a href={`/signin-with-chatgpt?return_to=${encodeURIComponent(`/?connect=${pendingConnectionToken}`)}`} target="_top">Sign in</a>
+                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this invitation</h3><p>After sign-in, paste the code again. Nothing is shared until you explicitly approve it.</p></div>
+                    <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
                   </section>
                 )}
                 <section className="availability-command" aria-labelledby="availability-command-title">
