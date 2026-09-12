@@ -76,6 +76,14 @@ export function productionSslOptions(env=process.env){
   return {rejectUnauthorized:true};
 }
 
+export function productionDatabaseUrl(value,env=process.env){
+  if(!isProduction(env)||!value)return value;
+  const url=new URL(String(value));
+  if(url.protocol!=="postgres:"&&url.protocol!=="postgresql:")throw new Error("NOSMO_DATABASE_URL_INVALID");
+  url.searchParams.set("sslmode","verify-full");
+  return url.toString();
+}
+
 export function secureExternalUrl(value,{production=isProduction()}={}){
   if(typeof value!=="string"||!value.trim())return null;
   try{

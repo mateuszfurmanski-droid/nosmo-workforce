@@ -1,5 +1,5 @@
 import pg from "pg";
-import {isProduction,productionSslOptions,redactedLogValue} from "./security-core.js";
+import {isProduction,productionDatabaseUrl,productionSslOptions,redactedLogValue} from "./security-core.js";
 
 export function installSecurePgPool(){
   if(pg.__nosmoSecurePoolInstalled)return;
@@ -8,7 +8,10 @@ export function installSecurePgPool(){
   class NosmoSecurePool extends OriginalPool{
     constructor(config={}){
       const next={...config};
-      if(isProduction())next.ssl=productionSslOptions();
+      if(isProduction()){
+        next.connectionString=productionDatabaseUrl(next.connectionString);
+        next.ssl=productionSslOptions();
+      }
       super(next);
     }
   }

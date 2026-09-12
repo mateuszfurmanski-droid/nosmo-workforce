@@ -7,6 +7,7 @@ import {
   AGENCY_ADMIN_ROLES,
   AGENCY_ROLES,
   configuredAgencyOrigin,
+  productionDatabaseUrl,
   productionSslOptions,
   ratePolicy,
   requiredAgencyRoles,
@@ -49,6 +50,10 @@ assert.equal(configuredAgencyOrigin({NOSMO_AGENCY_PUBLIC_ORIGIN:"https://canonic
 // Production database TLS and outbound URL policy.
 assert.deepEqual(productionSslOptions({NODE_ENV:"production"}),{rejectUnauthorized:true});
 assert.equal(productionSslOptions({NODE_ENV:"test"}),undefined);
+const hardenedDatabaseUrl=productionDatabaseUrl("postgresql://runtime@db.example.invalid/nosmo?sslmode=require",{NODE_ENV:"production"});
+assert.equal(new URL(hardenedDatabaseUrl).searchParams.get("sslmode"),"verify-full");
+assert.equal(productionDatabaseUrl("postgresql://runtime@db.example.invalid/nosmo?sslmode=require",{NODE_ENV:"test"}),"postgresql://runtime@db.example.invalid/nosmo?sslmode=require");
+assert.throws(()=>productionDatabaseUrl("https://db.example.invalid/nosmo",{NODE_ENV:"production"}),/NOSMO_DATABASE_URL_INVALID/);
 assert.ok(secureExternalUrl("https://work.example.test",{production:true}));
 assert.equal(secureExternalUrl("http://work.example.test",{production:true}),null);
 assert.equal(secureExternalUrl("javascript:alert(1)",{production:true}),null);

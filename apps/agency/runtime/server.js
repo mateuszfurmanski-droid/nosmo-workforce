@@ -10,7 +10,7 @@ import * as oidc from "openid-client";
 const {Pool}=pg;
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express();
-const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:undefined});
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:true}:undefined});
 const SESSION_COOKIE="sid";
 const SESSION_TTL_MS=7*24*60*60*1000;
 const OIDC_COOKIE_TTL_MS=10*60*1000;
