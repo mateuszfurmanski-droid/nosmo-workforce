@@ -23,6 +23,15 @@ and Agency deployed Sites version 28 / `NOSMO Agency V1.0026`. This does not cha
 the release classification or retroactively credit the older hardened Preview as a
 test of the newer Agency UI.
 
+
+## Latest Agency v28 Preview evidence — 2026-09-13
+
+Current v28 deployment: `dpl_7Nw8Qwb5J79kTT27sAw3F5Spa26o`, https://nosmo-agency-v10025-preview-5kowuycak.vercel.app, exported from `ca6c412` / apps/agency/runtime. READY, Preview only, no production aliases.
+
+Browser rendering, 18/18 static asset hashes, unchanged application HTML (Vercel toolbar injection only), database health, synthetic Agency A/B isolation including accepted-v28 Ask Nexus, forbidden mutations, CSRF, payload limits and response headers are now verified. All 31 distinct HTTP checks were covered across bounded runs; the initial all-in-one run timed out and is not described as passing. Post-run database verification and exact fixture cleanup passed.
+
+Full details: [Agency v28 live QA](docs/AGENCY_V28_PREVIEW_QA_2026-09-13.md). This supersedes older statements below that v28 is not yet deployed or integrated. Evidence explicitly naming `28aba296` below remains historical. Real provider login still returns 503; no live OIDC callback/session-creation/refresh evidence is credited. Worker Preview is not completed. **Classification remains DEMO ONLY. Production unchanged.**
+
 ## 1. Architecture summary
 
 - NOSMO Agency current accepted UI is deployed Sites version 28 / source commit `96d342f04f1112c22f13cd5c7bb8f55856f887c8`, displayed as V1.0026. The hardened Vercel Preview still serves the earlier version 24 / V1.0025 static bundle under `apps/agency/runtime/public`; its passing evidence remains valid for that runtime but is not evidence for visual/client parity with version 28. Saved Sites version 29 is not deployed or accepted.
