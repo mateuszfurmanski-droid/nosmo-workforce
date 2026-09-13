@@ -1,6 +1,7 @@
-import { neon } from "@neondatabase/serverless";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
 
-type Sql = ReturnType<typeof neon>;
+type Sql = NeonQueryFunction<false, false>;
 type JsonRecord = Record<string, unknown>;
 
 type RequestIdentity = {
@@ -61,6 +62,7 @@ function asRecord(value: unknown): JsonRecord {
 }
 
 function requestIdentity(request: Request): RequestIdentity | null {
+  if (!sitesIdentityAllowed()) return null;
   const email = clean(
     request.headers.get("oai-authenticated-user-email"),
     320,
@@ -235,8 +237,8 @@ async function ensureWorker(
 }
 
 async function getStatus(request: Request): Promise<Response> {
-  const sql = getSql();
   const identity = requireIdentity(request);
+  const sql = getSql();
   const found = await findPersonId(sql, identity);
   if (!found.personId) {
     return json({
@@ -273,8 +275,8 @@ async function getStatus(request: Request): Promise<Response> {
 }
 
 async function updateStatus(request: Request): Promise<Response> {
-  const sql = getSql();
   const identity = requireIdentity(request);
+  const sql = getSql();
   const body = asRecord(await request.json().catch(() => null));
   const status = parseStatus(body.status);
   const availableFrom = status === "ready_on_date" ? safeDate(body.availableFrom) : null;
@@ -422,8 +424,8 @@ async function previewConnection(request: Request): Promise<Response> {
 }
 
 async function acceptConnection(request: Request): Promise<Response> {
-  const sql = getSql();
   const identity = requireIdentity(request);
+  const sql = getSql();
   const body = asRecord(await request.json().catch(() => null));
   const token = clean(body.token, 300);
   if (!token) throw new WorkerHttpError(400, "NEXUS_INVITE_TOKEN_REQUIRED");

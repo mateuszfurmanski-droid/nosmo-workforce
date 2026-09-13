@@ -16,6 +16,9 @@ const browserSecurityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  ...(process.env.VERCEL === "1" ? {
+    typescript: { tsconfigPath: "tsconfig.vercel.json" },
+  } : {}),
   async headers() {
     return [
       {

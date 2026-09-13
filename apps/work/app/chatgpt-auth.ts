@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
 
 export type ChatGPTUser = {
   displayName: string;
@@ -17,6 +18,7 @@ const SIGN_OUT_PATH = "/signout-with-chatgpt";
 const CALLBACK_PATH = "/callback";
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
+  if (!sitesIdentityAllowed()) return null;
   const requestHeaders = await headers();
   const email = requestHeaders.get(USER_EMAIL_HEADER);
   if (!email) return null;

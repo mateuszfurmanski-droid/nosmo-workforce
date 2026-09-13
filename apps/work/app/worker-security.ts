@@ -1,3 +1,5 @@
+import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
+
 type RateBucket = {
   windowStartedAt: number;
   count: number;
@@ -40,10 +42,10 @@ function securedJson(error: string, status: number): Response {
 }
 
 function requestKey(request: Request): string {
-  const identity = request.headers
+  const identity = sitesIdentityAllowed() ? request.headers
     .get("oai-authenticated-user-email")
     ?.trim()
-    .toLowerCase();
+    .toLowerCase() : null;
   if (identity) return `identity:${identity}`;
 
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -85,13 +87,30 @@ function mutationOriginAllowed(request: Request): boolean {
   }
 }
 
-function payloadAllowed(request: Request): boolean {
+async function payloadAllowed(request: Request): Promise<boolean> {
   const method = request.method.toUpperCase();
   if (method === "GET" || method === "HEAD") return true;
   const rawLength = request.headers.get("content-length");
-  if (!rawLength) return true;
-  const length = Number(rawLength);
-  return Number.isFinite(length) && length >= 0 && length <= MAX_MUTATION_BYTES;
+  if (rawLength) {
+    const length = Number(rawLength);
+    if (!Number.isFinite(length) || length < 0 || length > MAX_MUTATION_BYTES) return false;
+  }
+  const reader = request.clone().body?.getReader();
+  if (!reader) return true;
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return true;
+      bytes += value.byteLength;
+      if (bytes > MAX_MUTATION_BYTES) return false;
+    }
+  } catch {
+    return false;
+  } finally {
+    // Do not await cancellation of a tee while the original body is unread.
+    void reader.cancel().catch(() => {});
+  }
 }
 
 function credentialsInUrl(request: Request): boolean {
@@ -124,7 +143,7 @@ export async function secureWorkerRequest(
   if (!mutationOriginAllowed(request)) {
     return securedJson("NEXUS_ORIGIN_DENIED", 403);
   }
-  if (!payloadAllowed(request)) {
+  if (!(await payloadAllowed(request))) {
     return securedJson("NEXUS_PAYLOAD_TOO_LARGE", 413);
   }
   if (!rateAllowed(request, path)) {

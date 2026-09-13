@@ -3785,7 +3785,7 @@ export default function Home() {
                   </article>
                 </section>
               </details>
-              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} defaultOpen={importRecords.length > 0}>
+              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} open={importRecords.length > 0}>
                 <summary>
                   <div><small>PRIVATE INBOX</small><h2>Imported items</h2><p>{importRecords.length} item{importRecords.length === 1 ? "" : "s"} saved on this device</p></div>
                   <span>{importRecords.length || "Empty"}<ChevronDown/></span>

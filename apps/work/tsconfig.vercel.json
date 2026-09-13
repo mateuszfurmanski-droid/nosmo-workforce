@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "allowImportingTsExtensions": true },
+  "exclude": [
+    "node_modules", "build", "db", "worker", "dist", "examples",
+    "vite.config.ts", "drizzle.config.ts"
+  ]
+}
