@@ -2,6 +2,11 @@
 
 Current permanent QA target on `security/nosmo-security-gate`:
 
+- hardened v28 candidate source commit: `f774573e277a2f50252635814de3ca4b20224f46`;
+- local runtime contract, security gate, Worker/Agency handoff and 9 Ask Nexus tests passed;
+- production dependency audit passed with 0 vulnerabilities;
+- isolated Neon target and limited role were verified, while direct socket E2E was blocked by the local runner DNS policy before seeding;
+
 - accepted Sites v28 / V1.0026 UI mirrored into runtime public;
 - all 17 deterministic client assets matched the deployed Sites v28 bytes before the documented invite overlay;
 - Emergency client chunk is pinned to its accepted v28 hash and was not edited independently;
