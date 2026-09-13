@@ -125,6 +125,7 @@ async function cleanup(){
   }catch(error){await client.query("rollback");throw error}finally{client.release()}
 }
 
+let completedRequests=0;
 async function request(base,pathname,{sid,method="GET",body,rawBody,origin=true,headers={}}={}){
   const target=new URL(pathname,base);
   const requestHeaders={...headers};
@@ -135,8 +136,9 @@ async function request(base,pathname,{sid,method="GET",body,rawBody,origin=true,
   let payload;
   if(rawBody!==undefined){payload=rawBody;requestHeaders["content-type"]||="application/json"}
   else if(body!==undefined){payload=JSON.stringify(body);requestHeaders["content-type"]="application/json"}
-  const response=await fetch(target,{method,headers:requestHeaders,body:payload,redirect:"manual"});
+  const response=await fetch(target,{method,headers:requestHeaders,body:payload,redirect:"manual",signal:AbortSignal.timeout(35_000)});
   const text=await response.text();
+  console.log(JSON.stringify({schema:"nosmo-security-qa-progress/v1",check:++completedRequests,method,status:response.status}));
   let json=null;try{json=JSON.parse(text)}catch{}
   return {response,text,json};
 }
