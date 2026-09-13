@@ -1,4 +1,4 @@
-name: NOSMO Agency Sites v24 parity
+name: NOSMO Agency Sites v24 archive parity
 
 on:
   push:
@@ -45,4 +45,3 @@ jobs:
         shell: bash
         run: |
           test "$(sha256sum apps/agency/sites/v24/public/assets/emergency-core-Bm4UH8t1.js | cut -d' ' -f1)" = "62a82dc7e10505ca85b9c6e09029c864a2d7cf621d47d8ad49d02bf2d09fc559"
-          cmp apps/agency/sites/v24/public/assets/emergency-core-Bm4UH8t1.js apps/agency/runtime/public/assets/emergency-core-Bm4UH8t1.js

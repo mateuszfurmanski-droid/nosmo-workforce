@@ -193,6 +193,17 @@ try{
   assert.equal(JSON.stringify(result.json).includes(ids.applicationB),false);
   assert.equal(JSON.stringify(result.json).includes(ids.placementA),true);
   assert.equal(JSON.stringify(result.json).includes(ids.placementB),false);
+  result=await request(base,"/api/agency/nexus/query",{sid:ids.sidA,method:"POST",body:{query:"Find workers",context:{}}});
+  assert.equal(result.response.status,200);
+  assert.equal(result.json?.schema,"nexus-agency-query-response/v1");
+  assert.equal(result.json?.writePerformed,false);
+  assert.equal(JSON.stringify(result.json).includes("Synthetic Worker A"),true);
+  assert.equal(JSON.stringify(result.json).includes("Synthetic Worker B"),false);
+  assert.equal(JSON.stringify(result.json).includes("Synthetic Candidate B"),false);
+  assert.equal(JSON.stringify(result.json).includes("never-return"),false);
+  result=await request(base,"/api/agency/nexus/query",{sid:ids.sidA,method:"POST",body:{query:"Find workers",agencyId:ids.agencyB}});
+  assert.equal(result.response.status,400);
+  assert.equal(result.json?.error,"NEXUS_AGENCY_ID_NOT_ACCEPTED");
 
   // Cross-tenant writes, updates and delivery access are safely denied.
   result=await request(base,`/api/agency/requests/${encodeURIComponent(ids.requestB)}`,{sid:ids.sidA,method:"PATCH",body:{status:"PAUSED",confirmed:true}});
@@ -285,6 +296,7 @@ try{
     requestsJobsIsolated:true,
     applicationsPlacementsIsolated:true,
     inviteDeliveryIsolated:true,
+    askNexusV28TenantIsolated:true,
     privateWorkerFieldsExcluded:true,
     sqlLookingIdentifierSafe:true,
     recruiterAdminMutationDenied:true,

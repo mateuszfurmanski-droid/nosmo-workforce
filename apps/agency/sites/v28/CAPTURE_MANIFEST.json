@@ -1,0 +1,52 @@
+{
+  "schema": "nosmo-agency-sites-source-build/v1",
+  "projectId": "appgprj_6a967b267b348191904db8faca122765",
+  "sitesVersion": 28,
+  "displayedVersion": "NOSMO Agency V1.0026",
+  "sourceCommit": "96d342f04f1112c22f13cd5c7bb8f55856f887c8",
+  "sourceTree": "aceeed8ea6a8669c1c7bcaa5ec852b488a15bdc1",
+  "publicUrl": "https://nosmo-agency.mateusz-furmanski.chatgpt.site/",
+  "verifiedAt": "2026-09-13",
+  "provenance": {
+    "node": "24.x",
+    "buildCommand": "npm ci --ignore-scripts && npm run build",
+    "sourceBuildVerified": true,
+    "liveAssetCount": 17,
+    "liveAssetsByteMatched": 17,
+    "htmlNote": "index.html was rendered by the verified source build because the public response contains provider deployment metadata and a request-specific Cloudflare script"
+  },
+  "canonicalFiles": [
+    {"path": "app-icons/gmail.svg", "bytes": 354, "sha256": "21b263638deb769267d610a85382792624bdae2fc47c1bc2f8ae6fb6a50413e9"},
+    {"path": "app-icons/linkedin.png", "bytes": 834, "sha256": "eda6fe05a8638d28efe6d27dd867cff3259854a02403e234c6a7677db5ad564a"},
+    {"path": "app-icons/whatsapp.svg", "bytes": 1231, "sha256": "3e197e0e1f3e679ee09823c75e1c7bad3a19da9bd1ba01df395268b9ae91816f"},
+    {"path": "assets/emergency-core-or_Gp-rY.js", "bytes": 18340, "sha256": "a37aa9723b318b861090d55ebbb0b9fb2a4897c655ef41c53e074acd06fc3d33"},
+    {"path": "assets/framework-BOexRV2D.js", "bytes": 189805, "sha256": "5861ff3d479c2038a77beba8377c03c80429d5f3519cf23ea6bdb7a2c6566842"},
+    {"path": "assets/index-BPu2ZhZM.js", "bytes": 81004, "sha256": "865d55c13cde4a2fcb74119932459078a93dbfd4f50e4d7727bf8e60b977b15a"},
+    {"path": "assets/index-Dge3vaTv.css", "bytes": 140364, "sha256": "d391a834406be5038848e1ecc114e574bf454ceab3ecc426a139d3fd5f0677bd"},
+    {"path": "assets/layout-segment-context-CvdBgYIZ.js", "bytes": 283, "sha256": "502426619c545e03ad9ea2b5b18d18ada25d735869a7818f6ab0586ad0fd7fea"},
+    {"path": "assets/lib-CX2z2z0g.js", "bytes": 499187, "sha256": "920561d3169887f730fc317697b241baa3e2198d782c855e6b9012ae22f331b1"},
+    {"path": "assets/page-D2Ki4EL9.js", "bytes": 206786, "sha256": "239e9da15ec1d30b05a48200e120060f989816908d07ee70f28bc154532cc5de"},
+    {"path": "assets/pdf.worker-BDW0vFpl.js", "bytes": 1190184, "sha256": "7564e1a1d89f1b4e6e2ec3e31e9af820d1215a745da1e23a3bb018f78a65deae"},
+    {"path": "assets/rolldown-runtime-BM3Ffeng.js", "bytes": 1216, "sha256": "101087c385ddfea7c37eb72790fd5aa7a3d647e85dc24171c830034ed27d3c90"},
+    {"path": "assets/src-Cux5XbTP.js", "bytes": 17248, "sha256": "6cd27918db9dc12eaa06e5a8b155c0b9c8ad364f779d1d39f02a1bfc16f12763"},
+    {"path": "assets/webpack-bi8rgwGR.js", "bytes": 431325, "sha256": "6988bc6d0cb16d0d6b7de145a6abfcc94a8cc6a7e59a453c27b32fcdc0fbfe85"},
+    {"path": "assets/x-BwWSQcK2.js", "bytes": 2186, "sha256": "2e71f43984944aed93e72d64b64013a33ce3f346167f17a631356beab8633a80"},
+    {"path": "index.html", "bytes": 21484, "sha256": "d6d436ecd4057d27b906b1148f0fc7a57694636b9fc21f20e0bb7bd4bebd898e"},
+    {"path": "invite-delivery.js", "bytes": 4107, "sha256": "9b7d846220b714a1d1148bfeb1ec7a6bf55726a9bcecf6d1e8504bee7b2b779a"},
+    {"path": "nexus-logo-ui-mark-n.png", "bytes": 96520, "sha256": "db19276359749c21ccb9e281e05e6dc2e9eb06f8a802a3dc422c1fe2430457e3"},
+    {"path": "nosmo-logo.png", "bytes": 202954, "sha256": "f7bb2d90871124aef778f3e0f5a137768542724e798be765aaf2f9d744d27d69"}
+  ],
+  "securityOverlays": [
+    {
+      "path": "public/assets/index-BPu2ZhZM.js",
+      "sourceSha256": "e0f23ecddac90a06456b50b1fffeff8e0d9fd0151523b836e96664ae404b5d91",
+      "sha256": "865d55c13cde4a2fcb74119932459078a93dbfd4f50e4d7727bf8e60b977b15a",
+      "reason": "Load the body-only invite delivery adapter without changing the accepted UI"
+    },
+    {
+      "path": "public/invite-delivery.js",
+      "sha256": "9b7d846220b714a1d1148bfeb1ec7a6bf55726a9bcecf6d1e8504bee7b2b779a",
+      "reason": "Keep invite credentials out of URLs and browser persistence"
+    }
+  ]
+}

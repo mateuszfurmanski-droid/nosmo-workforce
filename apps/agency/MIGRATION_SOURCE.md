@@ -11,6 +11,9 @@ ChatGPT Sites version 28, source commit
 baseline below remains historical provenance and must not replace the newer accepted
 UI. Saved-but-unpublished Sites version 29 is not accepted.
 
+The accepted version 28 client is now captured under `sites/v28/public` and is the
+only client mirrored into the hardened runtime. Version 24 remains historical.
+
 Source preservation lineage:
 
 - existing Sites project: `appgprj_6a967b267b348191904db8faca122765`

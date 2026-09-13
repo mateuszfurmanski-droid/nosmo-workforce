@@ -137,6 +137,7 @@ async function upsertUser(claims){
 }
 
 app.get("/api/auth/user",(req,res)=>res.json({user:req.isAuthenticated()?req.user:null}));
+app.get("/login",(req,res)=>res.redirect(307,`/api/login?returnTo=${encodeURIComponent(safeReturnTo(req.query.returnTo))}`));
 app.get("/api/login",async(req,res)=>{
   try{
     const config=await getOidc();
@@ -425,6 +426,6 @@ app.get(["/","/index.html"],(_req,res)=>res.sendFile(path.join(acceptedSitesRoot
 app.use((err,_req,res,_next)=>{console.error("NOSMO Agency error",err);res.status(500).json({error:"NOSMO_AGENCY_INTERNAL_ERROR"})});
 
 if(process.env.VERCEL!=="1"&&process.env.NODE_ENV!=="production"){
-  const port=Number(process.env.PORT||4178);app.listen(port,"0.0.0.0",()=>console.log(`NOSMO Agency V1.0025 listening on :${port}`));
+  const port=Number(process.env.PORT||4178);app.listen(port,"0.0.0.0",()=>console.log(`NOSMO Agency V1.0026 listening on :${port}`));
 }
 export default app;

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
@@ -93,6 +94,7 @@ const bootstrap=read("apps/agency/runtime/security-bootstrap.js");
 const onboardingSecurity=read("apps/agency/runtime/onboarding-security.js");
 const agencyServer=read("apps/agency/runtime/server.js");
 const inviteDelivery=read("apps/agency/runtime/public/invite-delivery.js");
+const agencyHtml=read("apps/agency/runtime/public/index.html");
 assert.ok(apiEntry.includes("security-entry.js"),"Agency Vercel API must route through security-entry");
 assert.equal(packageJson.scripts.start,"node secure-host.js","standalone runtime must use secured host");
 assert.ok(packageJson.scripts.check.includes("tests/security-gate.mjs"),"security QA must remain in normal check");
@@ -107,12 +109,21 @@ assert.ok(securityEntry.includes("ROLE_ACCESS_DENIED"));
 assert.ok(onboardingSecurity.startsWith('import "./security-bootstrap.js"'));
 
 const rewrites=vercel.rewrites||[];
+assert.ok(rewrites.some(r=>r.source==="/login"&&r.destination==="/api/login"),"accepted v28 login must enter hardened OIDC");
 assert.ok(rewrites.some(r=>r.source==="/api/person-card/onboarding/availability"&&r.destination==="/api/secure-onboarding-availability"));
 assert.ok(rewrites.some(r=>r.source==="/api/person-card/onboarding/(.*)"&&r.destination==="/api/secure-onboarding?path=$1"));
 assert.ok(rewrites.some(r=>r.source==="/api/(.*)"&&r.destination==="/api/[...path]"),"multi-segment Agency API rewrite missing");
 const globalHeaderRule=(vercel.headers||[]).find(rule=>rule.source==="/(.*)");
 const headerMap=Object.fromEntries((globalHeaderRule?.headers||[]).map(h=>[h.key,h.value]));
 assert.ok(headerMap["Content-Security-Policy"]?.includes("frame-ancestors 'none'"));
+const inlineScripts=[...agencyHtml.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
+assert.ok(inlineScripts.length>0,"accepted Agency bootstrap scripts missing");
+for(const script of inlineScripts){
+  const hash=`'sha256-${crypto.createHash("sha256").update(script).digest("base64")}'`;
+  assert.ok(headers["Content-Security-Policy"].includes(hash),"runtime CSP hash missing for v28 inline script");
+  assert.ok(headerMap["Content-Security-Policy"].includes(hash),"Vercel CSP hash missing for v28 inline script");
+}
+assert.ok(!headerMap["Content-Security-Policy"].includes("script-src 'self' 'unsafe-inline'"),"script CSP must not allow unsafe-inline");
 assert.ok(headerMap["Strict-Transport-Security"]?.includes("max-age="));
 assert.equal(headerMap["X-Frame-Options"],"DENY");
 

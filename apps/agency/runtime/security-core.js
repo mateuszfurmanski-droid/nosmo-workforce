@@ -97,7 +97,7 @@ export function secureExternalUrl(value,{production=isProduction()}={}){
 
 export function securityHeaders({production=isProduction()}={}){
   const headers={
-    "Content-Security-Policy":"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "Content-Security-Policy":"default-src 'self'; script-src 'self' 'sha256-ujvoFcrp9oXwRLoH/7orYQAQs2/d7Jy1/N7zxPr4kJw=' 'sha256-nViTssedYKsHjyK71xoxTLWnyNkCgiab1F/8BVFTmIo=' 'sha256-gADNantsnYa5m+X9oLouNeWhIPiTednww54M+UJZ6ds=' 'sha256-l/sQmWtYWUuch7xCsP6L1GNagLDIM8hodllRNS5zjcY=' 'sha256-azscOADjemj5ayyTkSp1chHUwk0TF7vy2N2yL3JCsrk=' 'sha256-M8Dgk2TtY/WYB7AhDzz4vyiPPfniYGzZz2SQL3JSNKU=' 'sha256-HIXNxJamvcw7xjdtVsk1T/sNByTh6s5f2TJOQs6jFl0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
     "X-Content-Type-Options":"nosniff",
     "X-Frame-Options":"DENY",
     "Referrer-Policy":"strict-origin-when-cross-origin",
