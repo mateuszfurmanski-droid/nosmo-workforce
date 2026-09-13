@@ -24,6 +24,12 @@ the release classification or retroactively credit the older hardened Preview as
 test of the newer Agency UI.
 
 
+## Latest Worker v95 Preview evidence — 2026-09-13
+
+Worker Preview is now READY at https://nosmo-worker-v95-preview-cpqyqkxfy.vercel.app (dpl_5D42mNeKvFE47i86bNUCyDuGwhkZ), target null, aliases []. Ten live HTTP/CSP checks passed; browser verified Worker Card, Documents and Settings V1.0102. Source 1c5ec73. Details: [Worker Preview QA](docs/WORKER_V95_PREVIEW_QA_2026-09-13.md).
+
+This supersedes older statements that Worker Preview has not been completed. The first Worker deployment was unexpectedly marked production and is retained by explicit owner instruction; removal is no longer a prerequisite. Established production projects were not changed. Authentication remains unconfigured on Vercel: Agency Replit OIDC client missing; Worker Sites identity unavailable and correctly rejected. **Overall release: DEMO ONLY.**
+
 ## Latest Agency v28 Preview evidence — 2026-09-13
 
 Current v28 deployment: `dpl_7Nw8Qwb5J79kTT27sAw3F5Spa26o`, https://nosmo-agency-v10025-preview-5kowuycak.vercel.app, exported from `ca6c412` / apps/agency/runtime. READY, Preview only, no production aliases.
