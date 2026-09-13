@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'apps/agency/sites/v24/**'
+      - 'apps/agency/sites/current-baseline.json'
+      - 'apps/agency/sites/verify-current-baseline.mjs'
       - '.github/workflows/agency-sites-v24-parity.yml'
   pull_request:
     paths:
       - 'apps/agency/sites/v24/**'
+      - 'apps/agency/sites/current-baseline.json'
+      - 'apps/agency/sites/verify-current-baseline.mjs'
       - '.github/workflows/agency-sites-v24-parity.yml'
 
 permissions:
@@ -23,6 +27,8 @@ jobs:
           node-version: '24'
       - name: Verify exact captured bytes and dependency closure
         run: node apps/agency/sites/v24/verify-byte-parity.mjs
+      - name: Verify accepted current Agency baseline identity
+        run: node apps/agency/sites/verify-current-baseline.mjs
       - name: Verify static paths resolve
         shell: bash
         run: |

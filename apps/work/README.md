@@ -16,10 +16,17 @@ separate product.
 
 ## Current incremental release
 
-V1.0101 remains the locked recovery point. V1.0102 now adds the installable PWA
-shell, offline reopen support and truthful install guidance without changing the
-accepted Worker visual. V1.0102 must pass repository tests, browser QA, deployment
-QA and real-device acceptance before being marked DONE.
+V1.0101 remains the locked recovery point. The current live visual and functional
+baseline was accepted on 2026-09-13 as ChatGPT Sites version 95, source commit
+`f6027c9ff045aa3dbd201d02a6089a3b11a3b774`, displayed as `NOSMO Work V1.0102`.
+Version 95 explicitly reverts the Emergency Core integration introduced in version
+94, so NOSMO Emergency remains a separate product.
+
+V1.0102 adds the installable PWA shell, offline reopen support and truthful install
+guidance without replacing the accepted Worker visual. The Sites source repository
+was retrieved and verified; the canonical `apps/work` tree retains that lineage and
+adds the reviewed Worker security boundary. Production deployment of those security
+changes remains a separate release decision.
 
 ## Local checks
 

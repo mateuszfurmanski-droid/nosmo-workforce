@@ -17,14 +17,20 @@ Live deployment evidence in this document covers Agency runtime commit `28aba296
 - Production target: none; production aliases: none
 - Production environment variables on this dedicated Preview project: none
 
+Accepted product baselines were clarified on 2026-09-13 after the live Sites
+versions were shown to the owner: Worker Sites version 95 / `NOSMO Work V1.0102`
+and Agency deployed Sites version 28 / `NOSMO Agency V1.0026`. This does not change
+the release classification or retroactively credit the older hardened Preview as a
+test of the newer Agency UI.
+
 ## 1. Architecture summary
 
-- NOSMO Agency accepted UI remains the canonical static bundle under `apps/agency/sites/v24/public`, mirrored exactly into `apps/agency/runtime/public` and protected by the existing contract test. The capture manifest now declares and hashes two narrow security overlays: the body-only invite delivery adapter and its bundle import. The accepted layout was not redesigned.
+- NOSMO Agency current accepted UI is deployed Sites version 28 / source commit `96d342f04f1112c22f13cd5c7bb8f55856f887c8`, displayed as V1.0026. The hardened Vercel Preview still serves the earlier version 24 / V1.0025 static bundle under `apps/agency/runtime/public`; its passing evidence remains valid for that runtime but is not evidence for visual/client parity with version 28. Saved Sites version 29 is not deployed or accepted.
 - Agency runtime is Node.js 24 / Express 5 / PostgreSQL (`pg`) / `openid-client`, with Vercel serverless entrypoints and compatibility APIs.
 - NOSMO Work / Worker is now a Next/Vinext application with a same-origin `/api/worker/*` server boundary. Worker identity is resolved server-side from the platform-authenticated `oai-authenticated-user-email` header, pseudonymised with `NEXUS_IDENTITY_PEPPER`, and bound to `person_id` through `nexus_identity_bindings`. The previous normal-path draft-token/localStorage authority description is no longer the canonical Worker architecture. GitHub Pages now serves only a canonical redirect, not the Worker application runtime.
 - Current Agency database tables are present in Neon project `nosmo-nexus-mvp-dev` (`morning-glitter-88911562`). The separate `nosmo-nexus-cloud-staging` project does not contain the Agency table set.
 - A hardened Vercel Agency Preview is now deployed from the exact source metadata above. Its sanitized health endpoint returns HTTP 200 with `databaseReady:true`, `missingTableCount:0`, and `securityGate:"ENFORCED"`.
-- The current public Worker URL is a Sites deployment at version 95 with Sites source commit `f6027c9ff045aa3dbd201d02a6089a3b11a3b774`. That source commit cannot be resolved in `mateuszfurmanski-droid/nosmo-workforce`, so the public Worker must not be treated as a deployment of this PR.
+- The current accepted public Worker is Sites version 95 with Sites source commit `f6027c9ff045aa3dbd201d02a6089a3b11a3b774`, displayed as V1.0102. Its connected Sites source repository was retrieved and verified, and the canonical `apps/work` tree retains that lineage plus additional security changes. The public deployment still must not be treated as a deployment of this PR because those later security changes are not present live.
 
 ## 2. Authentication model
 
@@ -350,13 +356,14 @@ An additional local interactive browser attempt for the protected Agency Preview
 Release blockers / material risks:
 
 1. Agency `OIDC_CLIENT_ID` is missing in Preview. Successful identity-provider authorization, callback account mapping, session creation, creation-cookie attributes, refresh/expiry, and authenticated logout cannot be credited.
-2. The public Worker is Sites version 95 from an internal source commit that is not resolvable in this GitHub repository. Its live request-order, header and clear-local-data behavior differs from this PR, so current Worker controls are not proven deployed.
-3. The current public Worker document lacks the intended CSP/HSTS/nosniff/frame/referrer/permissions/COOP/cache headers. A compatible strict CSP remains unverified.
-4. Worker local-first PII has a tested double-confirmation clear-device control, but retention/shared-device messaging and device-compromise expectations are not yet approved for a genuine PII pilot.
-5. The Agency interactive browser render could not be executed in this environment because Chrome was unavailable; HTTP/static checks and CI passed, but this limitation is not hidden.
-6. Production database application role/least privilege and network restriction are not proven. Preview evidence is intentionally limited to the isolated QA branch and role.
-7. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
-8. In-process rate limiting is not globally distributed across serverless instances.
+2. The accepted Agency UI is now Sites version 28 / V1.0026, while the hardened Vercel Preview and its parity evidence use the older version 24 / V1.0025 bundle. The newer accepted client must be integrated with the hardened runtime and retested without redesign.
+3. The public Worker is accepted Sites version 95 and its source lineage is now verified, but its live request-order, header and clear-local-data behavior still differs from this PR, so current Worker controls are not proven deployed.
+4. The current public Worker document lacks the intended CSP/HSTS/nosniff/frame/referrer/permissions/COOP/cache headers. A compatible strict CSP remains unverified.
+5. Worker local-first PII has a tested double-confirmation clear-device control, but retention/shared-device messaging and device-compromise expectations are not yet approved for a genuine PII pilot.
+6. The Agency interactive browser render could not be executed in this environment because Chrome was unavailable; HTTP/static checks and CI passed, but this limitation is not hidden.
+7. Production database application role/least privilege and network restriction are not proven. Preview evidence is intentionally limited to the isolated QA branch and role.
+8. Backup retention is only the currently observed 6-hour Neon history setting and no restore drill has been completed.
+9. In-process rate limiting is not globally distributed across serverless instances.
 
 Non-blocking hardening candidates after the above release blockers:
 
@@ -369,6 +376,7 @@ Non-blocking hardening candidates after the above release blockers:
 
 Before a genuine personal-data pilot can be approved:
 
+- integrate the accepted Agency Sites version 28 / V1.0026 client with the hardened Preview runtime without redesign, then rerun parity and live integration QA
 - add the existing Replit OIDC application client ID as `OIDC_CLIENT_ID` in Vercel project `nosmo-agency-v10025-preview`, Preview environment only, then redeploy without `--prod`
 - execute live OIDC login, callback, expiry/refresh and logout tests
 - verify session creation sets Secure, HttpOnly, and SameSite=Lax on the actual callback response
@@ -397,6 +405,6 @@ Evidence supporting this classification:
 - Existing Agency/Worker functional contracts, static security QA, Agency parity, and Worker browser QA passed on PR #18.
 - Dependency audit passed with 0 vulnerabilities reported by npm for the installed runtime dependency set.
 
-However, the minimum PILOT READY release rule is not yet satisfied. Agency OIDC cannot complete without `OIDC_CLIENT_ID`, so live account mapping/session creation and creation-cookie attributes remain unverified. The public Worker source cannot be mapped to this repository and demonstrably lacks part of the current security boundary/header behavior. Those are release blockers even though Agency database and tenant integration now pass.
+However, the minimum PILOT READY release rule is not yet satisfied. The accepted Agency V1.0026 client is newer than the V1.0025 client in the hardened Preview and has not yet passed that integration gate. Agency OIDC also cannot complete without `OIDC_CLIENT_ID`, so live account mapping/session creation and creation-cookie attributes remain unverified. The accepted public Worker lineage is now known, but its deployment demonstrably lacks part of the current repository security boundary/header behavior. Those are release blockers even though Agency database and tenant integration already passed on the earlier hardened client.
 
 Do not use genuine worker/recruiter personal data until this document is updated with passing deployment evidence and the classification is explicitly changed.
