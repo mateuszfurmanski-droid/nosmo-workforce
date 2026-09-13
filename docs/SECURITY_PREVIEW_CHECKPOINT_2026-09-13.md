@@ -1,5 +1,9 @@
 # NOSMO Workforce continuation checkpoint — 2026-09-13
 
+
+## Stage 1 update — live Agency v28 API QA completed
+See [AGENCY_V28_PREVIEW_QA_2026-09-13.md](AGENCY_V28_PREVIEW_QA_2026-09-13.md) for newer evidence. Browser rendering, source asset parity, healthy isolated database, synthetic Agency A/B authorization, Ask Nexus privacy, denied mutations, CSRF and payload/header controls were verified. Fixture cleanup was independently confirmed. Initial protection-access limitations below are historical. OIDC login remains blocked (503); Worker Preview is next. Production was unchanged.
+
 ## Scope and owner instruction
 Continue Agency Sites v28 / V1.0026 and Worker Sites v95 / V1.0102. Preview only. Do not change production, merge PR #18, redesign UI, or touch Emergency/Nexus Core. Owner requested smaller bounded stages with a concrete result after each stage.
 
