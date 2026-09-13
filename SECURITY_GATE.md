@@ -1,17 +1,17 @@
 # NOSMO SECURITY GATE
 
-Date: 2026-09-12
+Date: 2026-09-13
 
 Scope: NOSMO Agency + NOSMO Work / Worker. NOSMO Emergency Button is intentionally out of scope.
 
-Canonical source was initially inspected at `main` commit `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d`. Before the 2026-09-11 continuation, the security branch was re-inspected and merged with current `main` at `911557f489721affba7ae414f49db36f20375b25` without force-push or UI replacement. On 2026-09-12, `main` was still at that commit and PR #18 was 0 commits behind. Security hardening remains on `security/nosmo-security-gate`. Pull request: #18.
+Canonical source was initially inspected at `main` commit `c4d8b544f98e0e39d612b2ceff7f5f5162589b8d`. Before the 2026-09-11 continuation, the security branch was re-inspected and merged with current `main` at `911557f489721affba7ae414f49db36f20375b25` without force-push or UI replacement. On 2026-09-13, `main` was still at that commit and PR #18 was 0 commits behind. Security hardening remains on `security/nosmo-security-gate`. Pull request: #18.
 
-Live deployment evidence in this document covers Agency runtime commit `f9209488ce05896421892102a5fc8f53a9dfc8fb`.
+Live deployment evidence in this document covers Agency runtime commit `28aba2964c836872748019a4416f4f86df790d53`.
 
 - Vercel project: `nosmo-agency-v10025-preview` (`prj_PuaPLBCXCfzno0U0FB1QTE3IteDT`)
 - Environment: Preview only
-- Current inspected URL: `https://nosmo-agency-v10025-preview-fyzx20gze.vercel.app`
-- Deployment: `dpl_ERSg41gHxjuSNpj3QJqZDQJT4q2F`
+- Current inspected URL: `https://nosmo-agency-v10025-preview-hhmuavvho.vercel.app`
+- Deployment: `dpl_8eqQkU3G5YBZkXugs1mVbqQF61Vb`
 - Runtime root: `apps/agency/runtime`
 - Deployment state: READY
 - Production target: none; production aliases: none
@@ -91,7 +91,7 @@ Evidence completed during this pass:
 
 Permanent HTTP A/B test: `apps/agency/runtime/tests/tenant-isolation.e2e.mjs`. It requires either explicit `SECURITY_QA_ALLOW_MUTATION=isolated-branch` plus a dedicated database URL, or `preseeded-isolated-branch` plus an HTTPS Preview and a local fixture file. The second mode exists so database rows can be seeded/verified through the connected Neon control plane when direct PostgreSQL networking is unavailable. Fixture values are validated as synthetic, and no session credential is accepted on the command line.
 
-The permanent runner was executed against Vercel deployment `dpl_EsrGkEm5dPs3xukXGqZ9UBVFzmkR` at commit `f9209488ce05896421892102a5fc8f53a9dfc8fb`, using only synthetic records on Neon branch `security-gate-20260907`. It passed:
+The permanent runner was executed against Vercel deployment `dpl_8eqQkU3G5YBZkXugs1mVbqQF61Vb` at commit `28aba2964c836872748019a4416f4f86df790d53`, using only synthetic records on Neon branch `security-gate-20260907`. It passed:
 
 - missing, invalid, and expired session denial
 - Agency A/B isolation for requests/jobs, roster workers, recruiter profiles, candidates, applications, placements, and invite delivery
@@ -126,11 +126,11 @@ Agency-imported roster email/phone/private notes are Agency-owned operational re
 
 Permanent privacy contract checks are included in existing Agency contract QA and in `tests/security-gate.mjs`.
 
-Current Worker security assessment: the canonical Worker API no longer uses the old signed draft authority token in `localStorage` for normal authenticated status/connection operations. Agency invite creation now returns only an opaque invite reference in the URL fragment; the credential is obtained through an authenticated, same-origin Agency POST and transferred to Worker in a POST body. Worker accepts an invitation code through a password-style in-page field and does not read `?connect=`.
+Current Worker security assessment: the canonical Worker API no longer uses the old signed draft authority token in `localStorage` for normal authenticated status/connection operations. Agency invite creation now returns only an opaque invite reference in the URL fragment; the credential is obtained through an authenticated, same-origin Agency POST and transferred to Worker in a POST body. Worker accepts an invitation code through a password-style in-page field and does not read `?connect=`. The dormant compatibility handler that could reconstruct a query-string credential has now been removed completely, and permanent QA rejects its return.
 
 Worker now includes **Settings -> Data & privacy -> Clear local personal data**, with double confirmation and IndexedDB/local browser-data cleanup covered by permanent QA. The browser still intentionally retains substantial local-first personal data until that control is used. Shared-device messaging, retention policy, device-compromise review, and a verified deployment of the current code remain necessary before genuine Worker PII is approved.
 
-The public Worker Sites deployment is not source-mapped to this GitHub commit. Live negative checks on version 95 did confirm HTTPS, unauthenticated `/api/worker/status` denial, and rejection of a client-supplied platform identity header. However, its missing-origin/oversized/token-in-URL behavior differs from the current repository security boundary, and its document responses lack the intended CSP/HSTS/frame/referrer/permissions/COOP headers. It is therefore not deployment evidence for this PR.
+The public Worker Sites deployment is not source-mapped to this GitHub commit. Rechecked on 2026-09-13, it remained version 95 and did confirm HTTPS, unauthenticated `/api/worker/status` denial, rejection of a client-supplied platform identity header, and cross-origin mutation denial. However, its missing-origin, actual oversized-body and token-in-URL requests all reached authentication denial instead of the current repository's earlier boundary responses. Its document responses lack the intended CSP/HSTS/nosniff/frame/referrer/permissions/COOP/cache headers, and the deployed JavaScript assets do not contain the current clear-local-data control/selector/IndexedDB deletion implementation. It is therefore not deployment evidence for this PR.
 
 ## 6. Database security
 
@@ -214,7 +214,7 @@ Current limiter is process-instance memory and therefore is not a globally consi
 
 Worker `/api/worker/*` now has a separate best-effort per-instance boundary: 120 requests/minute general, 30 requests/minute for connection flows, plus a 64 KiB mutation Content-Length limit. Like the Agency limiter, this is not a substitute for a distributed provider/edge control.
 
-Live Preview evidence: a 35-request login burst on the tested `f9209488` deployment produced 29 safe HTTP 503 responses for the missing OIDC client and 6 HTTP 429 responses. This proves enforcement on the exercised instance, not globally distributed enforcement.
+Live Preview evidence: a 35-request sequential login burst on the tested `28aba296` deployment produced 30 safe HTTP 503 responses for the missing OIDC client and 5 HTTP 429 responses, with no other status. This proves enforcement on the exercised instance, not globally distributed enforcement.
 
 ## 11. Logging / audit trail
 
@@ -327,16 +327,16 @@ Added permanent isolated HTTP integration QA:
 Evidence actually passed during this pass:
 
 - Manual isolated Neon A/B SQL-layer tenant test: **PASSED**.
-- Permanent `tenant-isolation.e2e.mjs` against hardened Vercel Preview commit `f9209488ce05896421892102a5fc8f53a9dfc8fb`: **PASSED**.
+- Permanent `tenant-isolation.e2e.mjs` against hardened Vercel Preview commit `28aba2964c836872748019a4416f4f86df790d53`: **PASSED**.
 - Separate Neon post-run non-mutation verification and synthetic-data cleanup verification: **PASSED**.
 - Live body-only invitation creation/delivery: **PASSED**; the credential appeared only in the authenticated POST response body and not in returned URLs.
 - Live valid-session logout and database invalidation: **PASSED**.
 - Live health, unauthenticated/invalid/expired-session, CSRF, malformed JSON, oversized payload, security headers, HTTPS, and rate-limit checks: **PASSED**.
-- PR #18 `Worker Agency handoff QA`: **PASSED** on `f9209488`.
-- PR #18 `NOSMO Security Gate`: **PASSED** on `f9209488`.
-- PR #18 `NOSMO Agency Sites v24 parity`: **PASSED** on `f9209488`.
-- PR #18 `NOSMO Work V1.0102 Browser QA`: **PASSED** on `f9209488`.
-- Existing Agency runtime contract inside the gate: **PASSED** (21 compatibility routes, accepted API prefix, accepted UI byte parity, recruiter-safe consent gate, placement readiness gate, Ask Nexus read-only).
+- PR #18 `Worker Agency handoff QA`: **PASSED** on `28aba296`.
+- PR #18 `NOSMO Security Gate`: **PASSED** on `28aba296`.
+- PR #18 `NOSMO Agency Sites v24 parity`: **PASSED** on `28aba296`.
+- PR #18 `NOSMO Work V1.0102 Browser QA`: **PASSED** on `28aba296`.
+- Existing Agency runtime contract inside the gate: **PASSED** (20 compatibility routes plus the body-only invite route in the primary server, accepted API prefix, accepted UI byte parity, recruiter-safe consent gate, placement readiness gate, Ask Nexus read-only).
 - Existing Worker↔Agency handoff contract: **PASSED** (HTTPS remote API requirement, explicit consent, recruiter-safe projection, private fields excluded, availability sync/offline retry).
 - New `nosmo-security-gate-static-qa/v1`: **PASSED** (authorization, CSRF origin, production TLS verification, headers, safe errors, rate policies, secured entrypoints, Worker consent projection, SQL interpolation guard, committed-secret scan).
 - Dependency audit on Node 24.20.0 / npm 11.19.0: **PASSED — `found 0 vulnerabilities`**.
@@ -350,8 +350,8 @@ An additional local interactive browser attempt for the protected Agency Preview
 Release blockers / material risks:
 
 1. Agency `OIDC_CLIENT_ID` is missing in Preview. Successful identity-provider authorization, callback account mapping, session creation, creation-cookie attributes, refresh/expiry, and authenticated logout cannot be credited.
-2. The public Worker is Sites version 95 from an internal source commit that is not resolvable in this GitHub repository. Its live request-order and header behavior differs from this PR, so current Worker controls are not proven deployed.
-3. The current public Worker document lacks the intended CSP/HSTS/frame/referrer/permissions/COOP headers. A compatible strict CSP remains unverified.
+2. The public Worker is Sites version 95 from an internal source commit that is not resolvable in this GitHub repository. Its live request-order, header and clear-local-data behavior differs from this PR, so current Worker controls are not proven deployed.
+3. The current public Worker document lacks the intended CSP/HSTS/nosniff/frame/referrer/permissions/COOP/cache headers. A compatible strict CSP remains unverified.
 4. Worker local-first PII has a tested double-confirmation clear-device control, but retention/shared-device messaging and device-compromise expectations are not yet approved for a genuine PII pilot.
 5. The Agency interactive browser render could not be executed in this environment because Chrome was unavailable; HTTP/static checks and CI passed, but this limitation is not hidden.
 6. Production database application role/least privilege and network restriction are not proven. Preview evidence is intentionally limited to the isolated QA branch and role.
