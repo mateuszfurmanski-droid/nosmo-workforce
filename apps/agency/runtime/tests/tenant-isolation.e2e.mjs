@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 
+const phase=process.env.SECURITY_QA_PHASE||"all";
+const phases=["auth","read","write","perimeter"];
+assert.ok(phase==="all"||phases.includes(phase),"Unknown SECURITY_QA_PHASE");
+const runPhase=(name)=>phase==="all"||phase===name;
 const databaseUrl=process.env.SECURITY_QA_DATABASE_URL?.trim();
 const mutationOptIn=process.env.SECURITY_QA_ALLOW_MUTATION;
 const remoteBaseUrl=process.env.SECURITY_QA_BASE_URL?.trim();
@@ -160,14 +164,18 @@ try{
     base=new URL(`http://127.0.0.1:${address.port}`);
   }
 
+  let result;
+  if(runPhase("auth")){
   // Unauthenticated and invalid sessions fail closed.
-  let result=await request(base,"/api/agency/pipeline",{origin:false});
+  result=await request(base,"/api/agency/pipeline",{origin:false});
   assert.equal(result.response.status,401);
   result=await request(base,"/api/agency/pipeline",{sid:"not-a-real-session",origin:false});
   assert.equal(result.response.status,401);
   result=await request(base,"/api/agency/pipeline",{sid:ids.sidExpired,origin:false});
   assert.equal(result.response.status,401);
 
+  }
+  if(runPhase("read")){
   // Agency A cannot read Agency B requests or roster rows.
   result=await request(base,"/api/agency/pipeline",{sid:ids.sidA,origin:false});
   assert.equal(result.response.status,200);
@@ -207,6 +215,8 @@ try{
   assert.equal(result.response.status,400);
   assert.equal(result.json?.error,"NEXUS_AGENCY_ID_NOT_ACCEPTED");
 
+  }
+  if(runPhase("write")){
   // Cross-tenant writes, updates and delivery access are safely denied.
   result=await request(base,`/api/agency/requests/${encodeURIComponent(ids.requestB)}`,{sid:ids.sidA,method:"PATCH",body:{status:"PAUSED",confirmed:true}});
   assert.equal(result.response.status,404);
@@ -246,6 +256,8 @@ try{
   result=await request(base,"/api/agency/account",{sid:ids.sidRecruiter,method:"POST",body:{agencyName:"SHOULD NOT RENAME"}});
   assert.equal(result.response.status,403);
 
+  }
+  if(runPhase("perimeter")){
   // Browser state changes require same-origin evidence.
   result=await request(base,`/api/agency/requests/${ids.requestA}`,{sid:ids.sidA,method:"PATCH",body:{status:"PAUSED",confirmed:true},origin:false});
   assert.equal(result.response.status,403);
@@ -268,6 +280,7 @@ try{
   assert.ok(result.response.headers.get("content-security-policy")?.includes("frame-ancestors 'none'"));
   assert.equal(result.response.headers.get("cache-control"),"no-store");
 
+  }
   // Verify denied cross-tenant write did not mutate Agency B.
   if(adminPool){
     const verification=await adminPool.query(`select
@@ -284,28 +297,11 @@ try{
   }
 
   console.log(JSON.stringify({
-    schema:"nosmo-tenant-isolation-e2e/v1",
-    status:"PASS",
-    unauthenticatedDenied:true,
-    invalidSessionDenied:true,
-    expiredSessionDenied:true,
-    crossTenantReadDenied:true,
-    crossTenantWriteDenied:true,
-    crossTenantDeleteDenied:true,
-    recruiterProfileIsolated:true,
-    candidatesIsolated:true,
-    workerRecordsIsolated:true,
-    requestsJobsIsolated:true,
-    applicationsPlacementsIsolated:true,
-    inviteDeliveryIsolated:true,
-    askNexusV28TenantIsolated:true,
-    privateWorkerFieldsExcluded:true,
-    sqlLookingIdentifierSafe:true,
-    recruiterAdminMutationDenied:true,
-    csrfOriginDenied:true,
-    malformedJsonRejected:true,
-    oversizedPayloadRejected:true,
-    securityHeadersPresent:true,
+    schema:"nosmo-tenant-isolation-e2e/v2",
+    status:phase==="all"?"PASS":"PHASE_PASS",
+    phase,
+    passedPhases:phases.filter(runPhase),
+    completedRequests,
     databaseMutationVerified:Boolean(adminPool),
     externalFixtureCleanupRequired:preseededRemoteMode
   },null,2));
