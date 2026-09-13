@@ -1,0 +1,68 @@
+name: NOSMO Security Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - apps/agency/runtime/**
+      - apps/work/**
+      - SECURITY_GATE.md
+      - .env.example
+      - .gitignore
+      - .github/workflows/nosmo-security-gate.yml
+  push:
+    branches:
+      - main
+    paths:
+      - apps/agency/runtime/**
+      - apps/work/**
+      - SECURITY_GATE.md
+      - .env.example
+      - .gitignore
+      - .github/workflows/nosmo-security-gate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agency-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/agency/runtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/agency/runtime/package.json
+      - name: Install Agency runtime dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Agency functional contracts plus security QA
+        run: npm run check
+      - name: Agency dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=high
+
+  worker-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/work
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/work/package-lock.json
+      - name: Install Worker dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Worker security boundary and authority-storage QA
+        run: node --test tests/security-boundary.test.mjs tests/worker-security-contract.test.mjs
+      - name: Worker production dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=high

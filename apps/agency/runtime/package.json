@@ -1,12 +1,13 @@
 {
-  "name": "@nosmo/agency-sites-v24-runtime",
-  "version": "1.0.25",
+  "name": "@nosmo/agency-sites-v28-runtime",
+  "version": "1.0.26",
   "private": true,
   "type": "module",
   "engines": {"node": "24.x"},
   "scripts": {
-    "start": "node server.js",
-    "check": "node --check server.js && node --check compat.js && node --check 'api/person-card/onboarding/[...path].js' && node --check api/person-card/onboarding/availability.js && node tests/contract.mjs && node tests/worker-handoff-contract.mjs"
+    "start": "node secure-host.js",
+    "check": "node --check server.js && node --check compat.js && node --check agency-nexus.mjs && node --check security-core.js && node --check security-bootstrap.js && node --check security-entry.js && node --check onboarding-security.js && node --check secure-host.js && node --check 'api/[...path].js' && node --check api/secure-onboarding.js && node --check api/secure-onboarding-availability.js && node --check 'api/person-card/onboarding/[...path].js' && node --check api/person-card/onboarding/availability.js && node --test tests/agency-nexus.test.mjs && node tests/contract.mjs && node tests/worker-handoff-contract.mjs && node tests/security-gate.mjs",
+    "security:e2e": "node tests/tenant-isolation.e2e.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",

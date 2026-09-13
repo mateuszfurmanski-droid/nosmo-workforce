@@ -3513,6 +3513,75 @@
 }
 
 /* V1.0095: one worker-owned status, shared only with explicitly connected agencies. */
+.worker-invite-code {
+  margin: 12px 15px 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.worker-invite-code > svg {
+  width: 22px;
+  color: var(--accent);
+}
+
+.worker-invite-code small,
+.worker-invite-code h3,
+.worker-invite-code p {
+  display: block;
+  margin: 0;
+}
+
+.worker-invite-code small {
+  color: var(--accent);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.worker-invite-code h3 {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.worker-invite-code p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.worker-invite-code input {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+}
+
+.worker-invite-code > button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .worker-connection-invite {
   margin: 12px 15px 0;
   padding: 11px;
@@ -3682,11 +3751,13 @@
 }
 
 @media (max-width: 760px) {
+  .worker-invite-code,
   .worker-connection-invite {
     margin: 10px 11px 0;
     grid-template-columns: 24px minmax(0, 1fr);
   }
 
+  .worker-invite-code > button,
   .worker-connection-invite > button,
   .worker-connection-invite > a {
     grid-column: 1 / -1;

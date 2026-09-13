@@ -7,8 +7,12 @@ import {fileURLToPath} from 'node:url';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const runtime=path.resolve(here,'..');
 const agency=path.resolve(runtime,'..');
-const frontend=fs.readFileSync(path.join(runtime,'public/assets/page-D2n6_To6.js'),'utf8');
+const frontend=fs.readFileSync(path.join(runtime,'public/assets/page-D2Ki4EL9.js'),'utf8');
 const compat=fs.readFileSync(path.join(runtime,'compat.js'),'utf8');
+const nexus=fs.readFileSync(path.join(runtime,'agency-nexus.mjs'),'utf8');
+const server=fs.readFileSync(path.join(runtime,'server.js'),'utf8');
+const vercel=JSON.parse(fs.readFileSync(path.join(runtime,'vercel.json'),'utf8'));
+const inviteDelivery=fs.readFileSync(path.join(runtime,'public/invite-delivery.js'),'utf8');
 
 const required=[
   ['GET','/api/agency/health'],
@@ -31,7 +35,6 @@ const required=[
   ['POST','/api/agency/applications/:applicationId/placement'],
   ['PATCH','/api/agency/placements/:placementId'],
   ['POST','/api/agency/nexus/query'],
-  ['POST','/api/agency/invites'],
 ];
 
 for(const [method,route] of required){
@@ -40,12 +43,26 @@ for(const [method,route] of required){
 }
 
 assert.ok(frontend.includes('fetch(`/api/agency${e}`'),'accepted frontend no longer targets /api/agency');
-assert.ok(compat.includes('writePerformed:false'),'Ask Nexus must remain read-only');
+for(const field of ['resultGroups','suggestedActions','dataFreshness','writePerformed']){
+  assert.ok(frontend.includes(field),`accepted v28 Ask Nexus field missing: ${field}`);
+}
+assert.ok(compat.includes('runAgencyNexusQuery'),'v28 Ask Nexus compatibility engine is not connected');
+assert.ok(nexus.includes('schema: "nexus-agency-query-response/v1"'),'v28 Ask Nexus response contract missing');
+assert.ok(nexus.includes('writePerformed: false'),'Ask Nexus must remain read-only');
+assert.ok(compat.includes('NEXUS_AGENCY_ID_NOT_ACCEPTED'),'browser tenant override guard missing from Ask Nexus');
 assert.ok(compat.includes('privateWorkerFieldsIncluded:false'),'private Worker fields guard missing');
 assert.ok(compat.includes("scope='RECRUITER_SAFE'"),'recruiter-safe consent scope guard missing');
 assert.ok(compat.includes('NEXUS_PLACEMENT_READINESS_BLOCKED'),'placement BLOCKED readiness gate missing');
 assert.ok(compat.includes('NEXUS_PLACEMENT_READINESS_REVIEW_REQUIRED'),'placement CHECK confirmation gate missing');
 assert.ok(compat.includes('workerAppConfirmed:false'),'import must not fake Worker App confirmation');
+assert.ok(server.includes('credentialInUrl:false'),'Agency invite response must declare a body-only credential boundary');
+assert.ok(server.includes('deliverAgencyInvite'),'Agency invite delivery handler missing');
+assert.ok(!server.includes('searchParams.set("inviteToken"'),'active Agency handler still emits an invite token URL');
+assert.ok(!compat.includes('installLegacyInviteRoute'),'legacy URL invite route switch must be removed');
+assert.ok(!compat.includes('searchParams.set("inviteToken"'),'compatibility routes must not emit an invite token URL');
+assert.ok(inviteDelivery.includes('/api/agency/invites/${encodeURIComponent(inviteId)}/delivery'),'accepted UI secure delivery adapter missing');
+assert.ok(server.includes('app.get("/login"'),'accepted v28 login route is not bridged to hardened OIDC');
+assert.ok(vercel.rewrites.some((rule)=>rule.source==='/login'&&rule.destination==='/api/login'),'Vercel login rewrite missing');
 
 function files(root){
   const out=[];
@@ -56,11 +73,11 @@ function files(root){
   return out;
 }
 function hash(file){return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')}
-const canonical=path.join(agency,'sites/v24/public');
+const canonical=path.join(agency,'sites/v28/public');
 const generated=path.join(runtime,'public');
 const canonicalFiles=files(canonical).map(f=>path.relative(canonical,f)).sort();
 const generatedFiles=files(generated).map(f=>path.relative(generated,f)).sort();
 assert.deepEqual(generatedFiles,canonicalFiles,'runtime public file list differs from accepted Sites bundle');
 for(const rel of canonicalFiles) assert.equal(hash(path.join(generated,rel)),hash(path.join(canonical,rel)),`byte mismatch: ${rel}`);
 
-console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v1',requiredCompatRoutes:required.length,acceptedApiPrefix:true,uiByteParity:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true},null,2));
+console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v2',acceptedSitesVersion:28,displayedVersion:'V1.0026',requiredCompatRoutes:required.length,acceptedApiPrefix:true,uiByteParity:true,askNexusV28Contract:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true,oidcLoginBridge:true},null,2));

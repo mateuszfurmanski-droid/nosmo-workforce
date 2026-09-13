@@ -1,267 +1,41 @@
 {
-  "schema": "nosmo-agency-api-parity-map/v1",
-  "sourceFrontend": "apps/agency/sites/v24/public/assets/page-D2n6_To6.js",
-  "sourceBackend": [
-    "apps/agency/legacy/v1.0024/backend/agency.ts",
-    "apps/agency/legacy/v1.0024/backend/agency-v1-finalisation.ts"
+  "schema": "nosmo-agency-api-parity-map/v2",
+  "sourceFrontend": "apps/agency/sites/v28/public/assets/page-D2Ki4EL9.js",
+  "sourceCommit": "96d342f04f1112c22f13cd5c7bb8f55856f887c8",
+  "runtime": "apps/agency/runtime",
+  "verifiedAt": "2026-09-13",
+  "frontendUniqueRouteCount": 21,
+  "mappedCount": 21,
+  "missingCount": 0,
+  "routes": [
+    {"method": "GET", "frontend": "/health", "runtime": "/api/agency/health"},
+    {"method": "GET", "frontend": "/account", "runtime": "/api/agency/account"},
+    {"method": "POST", "frontend": "/account", "runtime": "/api/agency/account"},
+    {"method": "GET", "frontend": "/profile", "runtime": "/api/agency/profile"},
+    {"method": "PATCH", "frontend": "/profile", "runtime": "/api/agency/profile"},
+    {"method": "GET", "frontend": "/candidates", "runtime": "/api/agency/candidates"},
+    {"method": "GET", "frontend": "/activity", "runtime": "/api/agency/activity"},
+    {"method": "GET", "frontend": "/roster", "runtime": "/api/agency/roster"},
+    {"method": "POST", "frontend": "/roster/import", "runtime": "/api/agency/roster/import"},
+    {"method": "PATCH", "frontend": "/roster/:rosterWorkerId", "runtime": "/api/agency/roster/:rosterWorkerId"},
+    {"method": "POST", "frontend": "/roster/:rosterWorkerId/events", "runtime": "/api/agency/roster/:rosterWorkerId/events"},
+    {"method": "GET", "frontend": "/pipeline", "runtime": "/api/agency/pipeline"},
+    {"method": "POST", "frontend": "/requests", "runtime": "/api/agency/requests"},
+    {"method": "PATCH", "frontend": "/requests/:requestId", "runtime": "/api/agency/requests/:requestId"},
+    {"method": "POST", "frontend": "/requests/:requestId/applications", "runtime": "/api/agency/requests/:requestId/applications"},
+    {"method": "PATCH", "frontend": "/applications/:applicationId", "runtime": "/api/agency/applications/:applicationId"},
+    {"method": "POST", "frontend": "/applications/:applicationId/events", "runtime": "/api/agency/applications/:applicationId/events"},
+    {"method": "POST", "frontend": "/applications/:applicationId/placement", "runtime": "/api/agency/applications/:applicationId/placement"},
+    {"method": "PATCH", "frontend": "/placements/:placementId", "runtime": "/api/agency/placements/:placementId"},
+    {"method": "POST", "frontend": "/nexus/query", "runtime": "/api/agency/nexus/query"},
+    {"method": "POST", "frontend": "/invites", "runtime": "/api/agency/invites"}
   ],
-  "generatedAt": "2026-09-05T20:31:19.195Z",
-  "frontendCallCount": 23,
-  "mappedCount": 9,
-  "missingCount": 14,
-  "calls": [
-    {
-      "method": "GET",
-      "route": "/account",
-      "normalizedFrontendRoute": "/account",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/account"
-      ]
-    },
-    {
-      "method": "GET",
-      "route": "/activity?limit=50",
-      "normalizedFrontendRoute": "/activity",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/activity"
-      ]
-    },
-    {
-      "method": "GET",
-      "route": "/candidates?limit=200",
-      "normalizedFrontendRoute": "/candidates",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/candidates"
-      ]
-    },
-    {
-      "method": "GET",
-      "route": "/health",
-      "normalizedFrontendRoute": "/health",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "GET",
-      "route": "/pipeline",
-      "normalizedFrontendRoute": "/pipeline",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "GET",
-      "route": "/profile",
-      "normalizedFrontendRoute": "/profile",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/profile"
-      ]
-    },
-    {
-      "method": "GET",
-      "route": "/roster",
-      "normalizedFrontendRoute": "/roster",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/v1/roster"
-      ]
-    },
-    {
-      "method": "PATCH",
-      "route": "/applications/${encodeURIComponent(e.applicationId)}",
-      "normalizedFrontendRoute": "/applications/:param",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/v1/applications/:applicationId"
-      ]
-    },
-    {
-      "method": "PATCH",
-      "route": "/placements/${encodeURIComponent(e.placementId)}",
-      "normalizedFrontendRoute": "/placements/:param",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "PATCH",
-      "route": "/profile",
-      "normalizedFrontendRoute": "/profile",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/profile"
-      ]
-    },
-    {
-      "method": "PATCH",
-      "route": "/requests/${encodeURIComponent(e.requestId)}",
-      "normalizedFrontendRoute": "/requests/:param",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "PATCH",
-      "route": "/roster/${encodeURIComponent(e.rosterWorkerId)}",
-      "normalizedFrontendRoute": "/roster/:param",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
+  "securityOverlayRoutes": [
     {
       "method": "POST",
-      "route": "/account",
-      "normalizedFrontendRoute": "/account",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/account"
-      ]
-    },
-    {
-      "method": "POST",
-      "route": "/applications/${encodeURIComponent(a.applicationId)}/events",
-      "normalizedFrontendRoute": "/applications/:param/events",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/applications/${encodeURIComponent(e.applicationId)}/events",
-      "normalizedFrontendRoute": "/applications/:param/events",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/applications/${encodeURIComponent(i.applicationId)}/events",
-      "normalizedFrontendRoute": "/applications/:param/events",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/applications/${encodeURIComponent(Ke.applicationId)}/placement",
-      "normalizedFrontendRoute": "/applications/:param/placement",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/invites",
-      "normalizedFrontendRoute": "/invites",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/nexus/query",
-      "normalizedFrontendRoute": "/nexus/query",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/requests",
-      "normalizedFrontendRoute": "/requests",
-      "status": "MAPPED",
-      "backendRoutes": [
-        "/person-card/agency/v1/requests"
-      ]
-    },
-    {
-      "method": "POST",
-      "route": "/requests/${encodeURIComponent(t.requestId)}/applications",
-      "normalizedFrontendRoute": "/requests/:param/applications",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/roster/${encodeURIComponent(e.rosterWorkerId)}/events",
-      "normalizedFrontendRoute": "/roster/:param/events",
-      "status": "MISSING",
-      "backendRoutes": []
-    },
-    {
-      "method": "POST",
-      "route": "/roster/import",
-      "normalizedFrontendRoute": "/roster/import",
-      "status": "MISSING",
-      "backendRoutes": []
-    }
-  ],
-  "backendRoutes": [
-    {
-      "method": "GET",
-      "route": "/person-card/agency/_health"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/account"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/activity"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/candidates"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/candidates/:personId"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/profile"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/v1/_health"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/v1/dashboard"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/v1/requests"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/v1/requests/:requestId/applications"
-    },
-    {
-      "method": "GET",
-      "route": "/person-card/agency/v1/roster"
-    },
-    {
-      "method": "PATCH",
-      "route": "/person-card/agency/candidates/:personId"
-    },
-    {
-      "method": "PATCH",
-      "route": "/person-card/agency/profile"
-    },
-    {
-      "method": "PATCH",
-      "route": "/person-card/agency/v1/applications/:applicationId"
-    },
-    {
-      "method": "POST",
-      "route": "/person-card/agency/account"
-    },
-    {
-      "method": "POST",
-      "route": "/person-card/agency/v1/ask-nexus/query"
-    },
-    {
-      "method": "POST",
-      "route": "/person-card/agency/v1/placements"
-    },
-    {
-      "method": "POST",
-      "route": "/person-card/agency/v1/requests"
+      "frontend": "/invites/:inviteId/delivery",
+      "runtime": "/api/agency/invites/:inviteId/delivery",
+      "purpose": "Retrieve the invite credential in an authenticated same-origin response body"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { secureWorkerRequest } from "../../../worker-security";
 import { handleWorkerRequest } from "../../../worker-server";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ type RouteContext = {
 
 async function dispatch(request: Request, context: RouteContext) {
   const { path } = await context.params;
-  return handleWorkerRequest(request, path);
+  return secureWorkerRequest(request, path, () => handleWorkerRequest(request, path));
 }
 
 export const GET = dispatch;
