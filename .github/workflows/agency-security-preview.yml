@@ -43,6 +43,25 @@ jobs:
           set -euo pipefail
           mkdir -p .vercel
           printf '%s\n' '{"orgId":"team_xYGLaQSQvOQxxs3S5O6cfkQR","projectId":"prj_PuaPLBCXCfzno0U0FB1QTE3IteDT"}' > .vercel/project.json
+      - name: Import existing Agency OIDC client into Preview only
+        shell: bash
+        env:
+          AGENCY_OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID || secrets.REPL_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AGENCY_OIDC_CLIENT_ID:-}" ]; then
+            echo "::notice::No repository OIDC_CLIENT_ID or REPL_ID secret is available; Vercel Preview was not changed."
+            exit 0
+          fi
+
+          if npx --yes vercel@latest env ls preview --no-color --token "$VERCEL_TOKEN" | grep -Eq '(^|[[:space:]])OIDC_CLIENT_ID([[:space:]]|$)'; then
+            echo "OIDC_CLIENT_ID is already configured for Vercel Preview."
+            exit 0
+          fi
+
+          printf '%s' "$AGENCY_OIDC_CLIENT_ID" \
+            | npx --yes vercel@latest env add OIDC_CLIENT_ID preview --sensitive --yes --token "$VERCEL_TOKEN"
+          echo "OIDC_CLIENT_ID was added to Vercel Preview only."
       - name: Pull preview environment without printing values
         shell: bash
         run: |
