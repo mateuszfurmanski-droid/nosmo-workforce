@@ -78,6 +78,8 @@ const generated=path.join(runtime,'public');
 const canonicalFiles=files(canonical).map(f=>path.relative(canonical,f)).sort();
 const generatedFiles=files(generated).map(f=>path.relative(generated,f)).sort();
 assert.deepEqual(generatedFiles,canonicalFiles,'runtime public file list differs from accepted Sites bundle');
-for(const rel of canonicalFiles) assert.equal(hash(path.join(generated,rel)),hash(path.join(canonical,rel)),`byte mismatch: ${rel}`);
+// User-authorized Agency UI corrections (2026-09-14); preserve all other v28 assets.
+const revisedUiAssets=new Set(['index.html','assets/page-D2Ki4EL9.js','assets/index-BPu2ZhZM.js','assets/index-Dge3vaTv.css']);
+for(const rel of canonicalFiles) if(!revisedUiAssets.has(rel)) assert.equal(hash(path.join(generated,rel)),hash(path.join(canonical,rel)),`byte mismatch: ${rel}`);
 
-console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v2',acceptedSitesVersion:28,displayedVersion:'V1.0026',requiredCompatRoutes:required.length,acceptedApiPrefix:true,uiByteParity:true,askNexusV28Contract:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true,oidcLoginBridge:true},null,2));
+console.log(JSON.stringify({schema:'nosmo-agency-runtime-contract/v2',acceptedSitesVersion:28,displayedVersion:'V1.0026',requiredCompatRoutes:required.length,acceptedApiPrefix:true,uiByteParity:false,retainedAssetsByteParity:true,userApprovedUiCorrections:true,askNexusV28Contract:true,askNexusReadOnly:true,recruiterSafeConsentGate:true,placementReadinessGate:true,workerAppConfirmationNotFaked:true,oidcLoginBridge:true},null,2));
