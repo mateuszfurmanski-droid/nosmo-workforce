@@ -1376,6 +1376,7 @@ export default function Home() {
     [nativeShareConflict, setNativeShareConflict] = useState<NativeShareConflict | null>(null),
     [availabilitySyncState, setAvailabilitySyncState] = useState<AvailabilitySyncState>("loading"),
     [connectedAgencies, setConnectedAgencies] = useState<ConnectedAgency[]>([]),
+    [revokingAgency, setRevokingAgency] = useState<string | null>(null),
     [availabilitySyncedAt, setAvailabilitySyncedAt] = useState(""),
     [connectionInvite, setConnectionInvite] = useState<WorkerConnectionInvite | null>(null),
     [pendingConnectionToken, setPendingConnectionToken] = useState(""),
@@ -2454,6 +2455,20 @@ export default function Home() {
         : "This agency connection link is unavailable or has expired.");
     }
   }
+  async function stopAgencySharing(agency: ConnectedAgency) {
+    if (!window.confirm(`Stop sharing your live Worker profile with ${agency.name}? Their own recruitment records will remain. Reconnecting will require a new invitation.`)) return;
+    setRevokingAgency(agency.agencyId);
+    try {
+      await workerApi("/connection", { method: "DELETE", body: JSON.stringify({ agencyId: agency.agencyId }) });
+      setConnectedAgencies((current) => current.filter((item) => item.agencyId !== agency.agencyId));
+      setConnectionNotice(`Sharing with ${agency.name} has stopped.`);
+      await loadWorkerStatus();
+    } catch {
+      setConnectionNotice("Could not confirm that sharing stopped. Please try again.");
+    } finally {
+      setRevokingAgency(null);
+    }
+  }
   async function acceptAgencyConnection() {
     if (!connectionInvite) return;
     setConnectingAgency(true);
@@ -3435,6 +3450,14 @@ export default function Home() {
                         ? <button type="button" onClick={() => void syncAvailability(availability, profile.availableFrom)}>Retry</button>
                         : null}
                   </div>
+                  {connectedAgencies.length > 0 && <div className="worker-sharing-controls" aria-label="Agency sharing permissions">
+                    {connectedAgencies.map((agency) => <div key={agency.agencyId}>
+                      <span>{agency.name}</span>
+                      <button type="button" disabled={revokingAgency !== null} onClick={() => void stopAgencySharing(agency)}>
+                        {revokingAgency === agency.agencyId ? "Stopping..." : "Stop sharing"}
+                      </button>
+                    </div>)}
+                  </div>}
                   {connectionNotice && <small className="worker-connection-notice"><Check />{connectionNotice}</small>}
                 </section>
                 <details className="worker-card-details">

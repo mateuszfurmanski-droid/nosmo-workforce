@@ -486,6 +486,37 @@ async function acceptConnection(request: Request, verifiedIdentity?: RequestIden
   });
 }
 
+async function revokeConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
+  const body = asRecord(await request.json().catch(() => null));
+  const agencyId = clean(body.agencyId, 255);
+  if (!agencyId) throw new WorkerHttpError(400, "NEXUS_AGENCY_ID_REQUIRED");
+  const sql = getSql();
+  const worker = await findPersonId(sql, identity);
+  if (!worker.personId) throw new WorkerHttpError(404, "NEXUS_CONNECTION_NOT_FOUND");
+  const eventId = `work-event-${crypto.randomUUID()}`;
+  const record = JSON.stringify({ schema: "nexus-worker-consent-revoked/v1", agencyId, scope: "RECRUITER_SAFE" });
+  const revoked = await sql`
+    WITH revoked_grant AS (
+      UPDATE nexus_person_agency_access_grants
+      SET status = 'REVOKED', revoked_at = now(), updated_at = now()
+      WHERE agency_id = ${agencyId}
+        AND person_id = ${worker.personId}
+        AND scope = 'RECRUITER_SAFE'
+        AND status = 'ACTIVE'
+      RETURNING person_id
+    )
+    INSERT INTO nexus_person_work_events (
+      event_id, person_id, invite_id, event_type, actor_type, record_json, persisted_at
+    )
+    SELECT ${eventId}, person_id, NULL, 'CONSENT_REVOKED', 'WORKER', ${record}::jsonb, now()
+    FROM revoked_grant
+    RETURNING event_id
+  `;
+  if (!revoked.length) throw new WorkerHttpError(404, "NEXUS_CONNECTION_NOT_FOUND");
+  return json({ schema: "nosmo-worker-connection-revoked/v1", revoked: true, agencyId });
+}
+
 function assertSameOrigin(request: Request) {
   if (request.method === "GET" || request.method === "HEAD") return;
   const origin = request.headers.get("origin");
@@ -517,6 +548,9 @@ export async function handleWorkerRequest(
     }
     if (method === "POST" && route === "connection") {
       return await acceptConnection(request, verifiedIdentity);
+    }
+    if (method === "DELETE" && route === "connection") {
+      return await revokeConnection(request, verifiedIdentity);
     }
     return json({ error: "NEXUS_WORKER_ROUTE_NOT_FOUND" }, 404);
   } catch (error) {
