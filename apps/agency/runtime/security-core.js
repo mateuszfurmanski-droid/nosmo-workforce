@@ -45,7 +45,7 @@ export function sameOriginRequest(req,env=process.env){
 }
 
 export function isAgencyApiPath(pathname=""){
-  return pathname==="/api/login"||pathname==="/api/callback"||pathname==="/api/auth/user"||pathname==="/api/logout"||pathname.startsWith("/api/agency/")||pathname.startsWith("/api/person-card/agency/");
+  return pathname==="/api/auth/clerk-session"||pathname==="/api/login"||pathname==="/api/callback"||pathname==="/api/auth/user"||pathname==="/api/logout"||pathname.startsWith("/api/agency/")||pathname.startsWith("/api/person-card/agency/");
 }
 
 export function isAgencyHealthPath(pathname=""){
@@ -62,7 +62,7 @@ export function requiredAgencyRoles(method="GET",pathname="",hasMembership=false
   if((pathname==="/api/agency/account"||pathname==="/api/person-card/agency/account")&&upper==="POST"){
     return hasMembership?AGENCY_ADMIN_ROLES:null;
   }
-  if(pathname==="/api/login"||pathname==="/api/callback"||pathname==="/api/auth/user"||pathname==="/api/logout")return null;
+  if(pathname==="/api/auth/clerk-session"||pathname==="/api/login"||pathname==="/api/callback"||pathname==="/api/auth/user"||pathname==="/api/logout")return null;
   if(pathname.startsWith("/api/agency/")||pathname.startsWith("/api/person-card/agency/"))return AGENCY_ROLES;
   return null;
 }
@@ -123,7 +123,7 @@ export function safeApiErrorBody(body,statusCode=500){
 
 export function ratePolicy(method="GET",pathname=""){
   const upper=String(method).toUpperCase();
-  if(pathname==="/api/login"||pathname==="/api/callback")return {windowMs:10*60_000,limit:30,bucket:"auth"};
+  if(pathname==="/api/auth/clerk-session"||pathname==="/api/login"||pathname==="/api/callback")return {windowMs:10*60_000,limit:30,bucket:"auth"};
   if(pathname.includes("/invites"))return {windowMs:60*60_000,limit:60,bucket:"invite"};
   if(pathname.includes("ask-nexus")||pathname.includes("/nexus/query"))return {windowMs:60_000,limit:60,bucket:"assistant"};
   if(!SAFE_METHODS.has(upper))return {windowMs:60_000,limit:180,bucket:"write"};

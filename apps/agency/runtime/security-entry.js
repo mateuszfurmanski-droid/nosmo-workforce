@@ -1,4 +1,5 @@
 import "./security-bootstrap.js";
+import {usesClerk,readValidatedSession} from "./clerk-auth.js";
 import crypto from "node:crypto";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -81,10 +82,8 @@ function hasDangerousObjectKey(value,depth=0,budget={nodes:0}){
   return false;
 }
 
-async function sessionContext(sid){
-  if(!sid)return {authenticated:false,memberships:[]};
-  const sessionResult=await pool.query("select sess from sessions where sid=$1 and expire>now() limit 1",[sid]);
-  const session=sessionResult.rows[0]?.sess;
+async function sessionContext(req){
+  const session=await readValidatedSession(req,pool);
   const userId=session?.user?.id;
   if(!userId)return {authenticated:false,memberships:[]};
   const memberships=await pool.query(`select m.agency_id as "agencyId",upper(m.role) as role
@@ -161,7 +160,7 @@ app.use(async(req,res,next)=>{
   }
   if(isProduction()&&(req.path==="/api/login"||req.path==="/api/callback")){
     if(!configuredAgencyOrigin()){res.status(503).json({error:"NOSMO_AGENCY_PUBLIC_ORIGIN_REQUIRED"});return}
-    if(!secureExternalUrl(process.env.ISSUER_URL||"https://replit.com/oidc")){res.status(503).json({error:"NOSMO_OIDC_ISSUER_INVALID"});return}
+    if(!usesClerk()&&!secureExternalUrl(process.env.ISSUER_URL||"https://replit.com/oidc")){res.status(503).json({error:"NOSMO_OIDC_ISSUER_INVALID"});return}
   }
   if(isProduction()&&req.method!=="GET"&&req.path.includes("/invites")&&!secureExternalUrl(process.env.WORK_APP_BASE_URL||"")){
     res.status(503).json({error:"NOSMO_WORK_APP_BASE_URL_INVALID"});return;
@@ -172,7 +171,7 @@ app.use(async(req,res,next)=>{
   }
   let context={authenticated:false,memberships:[]};
   if(req.cookies?.[SESSION_COOKIE]){
-    try{context=await sessionContext(req.cookies[SESSION_COOKIE])}
+    try{context=await sessionContext(req)}
     catch(error){console.error("NOSMO security context failed",error);res.status(503).json({error:"NOSMO_SECURITY_CONTEXT_UNAVAILABLE"});return}
   }
   if(context.memberships.length>1){

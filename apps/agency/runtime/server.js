@@ -6,6 +6,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import pg from "pg";
 import * as oidc from "openid-client";
+import {usesClerk,clerkLoginPage,verifyClerkLogin,readValidatedSession,revokeClerkSession} from "./clerk-auth.js";
 
 const {Pool}=pg;
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
@@ -75,7 +76,7 @@ function getOrigin(req){
   const host=String(req.headers["x-forwarded-host"]||req.headers.host||"localhost").split(",")[0].trim();
   return `${proto}://${host}`;
 }
-function safeReturnTo(value){return typeof value==="string"&&value.startsWith("/")&&!value.startsWith("//")?value:"/"}
+function safeReturnTo(value){return typeof value==="string"&&value.startsWith("/")&&!value.startsWith("//")&&!/[\\\r\n]/.test(value)?value:"/"}
 function setCookie(res,name,value,maxAge){res.cookie(name,value,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge})}
 function sameOrigin(req){
   const expected=getOrigin(req);
@@ -108,6 +109,11 @@ function sessionId(req){const auth=req.headers.authorization;return auth?.starts
 async function authMiddleware(req,res,next){
   req.user=null;
   req.isAuthenticated=()=>Boolean(req.user?.id);
+  if(usesClerk()){
+    const session=await readValidatedSession(req,pool);
+    req.user=session?.user||null;
+    next();return;
+  }
   const sid=sessionId(req);
   if(!sid){next();return}
   let session=await getSession(sid);
@@ -136,9 +142,23 @@ async function upsertUser(claims){
   return result.rows[0];
 }
 
+app.post("/api/auth/clerk-session",async(req,res)=>{
+  if(!usesClerk()){res.status(404).end();return}
+  if(!sameOrigin(req)){res.status(403).json({error:"NOSMO_CSRF_ORIGIN_DENIED"});return}
+  if(typeof req.body?.token!=="string"||req.body.token.length>16384){res.status(400).json({error:"NOSMO_CLERK_TOKEN_REQUIRED"});return}
+  let identity;
+  try{identity=await verifyClerkLogin(req.body.token)}
+  catch{res.status(401).json({error:"NOSMO_CLERK_AUTH_REQUIRED"});return}
+  const user=await upsertUser({sub:identity.subject,first_name:"NOSMO user"});
+  const sid=await createSession({...identity,user});
+  await deleteSession(req.cookies?.[SESSION_COOKIE]);
+  setCookie(res,SESSION_COOKIE,sid,Math.min(SESSION_TTL_MS,identity.expiresAt-Date.now()));
+  res.json({ok:true});
+});
 app.get("/api/auth/user",(req,res)=>res.json({user:req.isAuthenticated()?req.user:null}));
 app.get("/login",(req,res)=>res.redirect(307,`/api/login?returnTo=${encodeURIComponent(safeReturnTo(req.query.returnTo))}`));
 app.get("/api/login",async(req,res)=>{
+  if(usesClerk()){clerkLoginPage(res,safeReturnTo(req.query.returnTo));return}
   try{
     const config=await getOidc();
     const callbackUrl=`${getOrigin(req)}/api/callback`;
@@ -153,6 +173,7 @@ app.get("/api/login",async(req,res)=>{
   }catch(error){console.error("Agency login init failed",error);res.status(503).send("NOSMO Agency sign-in is not configured.")}
 });
 app.get("/api/callback",async(req,res)=>{
+  if(usesClerk()){res.redirect("/api/login");return}
   const verifier=req.cookies?.agency_code_verifier,nonce=req.cookies?.agency_nonce,expectedState=req.cookies?.agency_state;
   if(!verifier||!expectedState){res.redirect("/api/login");return}
   try{
@@ -172,6 +193,13 @@ app.get("/api/callback",async(req,res)=>{
 });
 app.post("/api/logout",async(req,res)=>{
   if(!sameOrigin(req)){res.status(403).json({error:"FORBIDDEN"});return}
+  if(usesClerk()){
+    const session=await readValidatedSession(req,pool);
+    await deleteSession(req.cookies?.[SESSION_COOKIE]);
+    res.clearCookie(SESSION_COOKIE,{path:"/"});
+    await revokeClerkSession(session);
+    res.json({redirectUrl:"/"});return;
+  }
   const sid=sessionId(req);await deleteSession(sid);res.clearCookie(SESSION_COOKIE,{path:"/"});
   try{const config=await getOidc();const redirect=oidc.buildEndSessionUrl(config,{client_id:OIDC_CLIENT_ID,post_logout_redirect_uri:getOrigin(req)});res.json({redirectUrl:redirect.href})}
   catch{res.json({redirectUrl:"/"})}
