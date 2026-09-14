@@ -239,7 +239,7 @@ const analysisSchema = {
 
 export async function POST(request: Request) {
   const user = await getChatGPTUser();
-  if (!user) return NextResponse.json({ error: "Sign in with ChatGPT to use Nexus document analysis.", code: "sign_in_required" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Sign in to use Nexus document analysis.", code: "sign_in_required" }, { status: 401 });
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "Nexus document analysis is not configured on this deployment.", code: "not_configured" }, { status: 503 });

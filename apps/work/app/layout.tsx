@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import "./globals.css";
+import "@clerk/ui/themes/shadcn.css";
 import "./jobflow.css";
 import LocalPrivacyControl from "./local-privacy-control";
 import { headers } from "next/headers";
@@ -38,13 +41,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Vercel CSP uses a fresh nonce, so its HTML must render per request.
-  if (!sitesIdentityAllowed()) await headers();
+  const useSitesIdentity = sitesIdentityAllowed();
+  // Clerk's strict CSP uses a fresh nonce, so Vercel HTML renders per request.
+  if (!useSitesIdentity) await headers();
+  const content = (
+    <>
+      {children}
+      <LocalPrivacyControl />
+    </>
+  );
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
-        <LocalPrivacyControl />
+        {useSitesIdentity ? (
+          content
+        ) : (
+          <ClerkProvider dynamic appearance={{ theme: shadcn }}>
+            {content}
+          </ClerkProvider>
+        )}
       </body>
     </html>
   );

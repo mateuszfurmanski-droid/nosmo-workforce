@@ -4,8 +4,9 @@ import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
 type Sql = NeonQueryFunction<false, false>;
 type JsonRecord = Record<string, unknown>;
 
-type RequestIdentity = {
-  email: string;
+export type RequestIdentity = {
+  provider: "chatgpt-email-v1" | "clerk-v1";
+  subject: string;
   displayName: string;
 };
 
@@ -81,11 +82,11 @@ function requestIdentity(request: Request): RequestIdentity | null {
       displayName = email;
     }
   }
-  return { email, displayName };
+  return { provider: "chatgpt-email-v1", subject: email, displayName };
 }
 
-function requireIdentity(request: Request): RequestIdentity {
-  const identity = requestIdentity(request);
+function requireIdentity(request: Request, verifiedIdentity?: RequestIdentity | null): RequestIdentity {
+  const identity = verifiedIdentity ?? requestIdentity(request);
   if (!identity) throw new WorkerHttpError(401, "NEXUS_SIGN_IN_REQUIRED");
   return identity;
 }
@@ -100,12 +101,15 @@ async function sha256(value: string): Promise<string> {
   ).join("");
 }
 
-async function identityDigest(email: string): Promise<string> {
+async function identityDigest(identity: RequestIdentity): Promise<string> {
   const pepper = process.env.NEXUS_IDENTITY_PEPPER;
   if (!pepper) {
     throw new WorkerHttpError(503, "NEXUS_IDENTITY_NOT_CONFIGURED");
   }
-  return sha256(`${pepper}:${email.toLowerCase()}`);
+  const subject = identity.provider === "chatgpt-email-v1"
+    ? identity.subject.toLowerCase()
+    : `${identity.provider}:${identity.subject}`;
+  return sha256(`${pepper}:${subject}`);
 }
 
 function availabilityLabel(status: AvailabilityStatus, availableFrom: string | null) {
@@ -127,11 +131,11 @@ function parseStatus(value: unknown): AvailabilityStatus {
 }
 
 async function findPersonId(sql: Sql, identity: RequestIdentity) {
-  const digest = await identityDigest(identity.email);
+  const digest = await identityDigest(identity);
   const rows = await sql`
     SELECT person_id AS "personId"
     FROM nexus_identity_bindings
-    WHERE provider = 'chatgpt-email-v1'
+    WHERE provider = ${identity.provider}
       AND provider_subject_digest = ${digest}
       AND status = 'ACTIVE'
     LIMIT 1
@@ -203,7 +207,7 @@ async function ensureWorker(
           status, verified_at, created_at
         )
         VALUES (
-          ${bindingId}, 'chatgpt-email-v1', ${found.digest}, ${personId},
+          ${bindingId}, ${identity.provider}, ${found.digest}, ${personId},
           'ACTIVE', now(), now()
         )
         ON CONFLICT (provider, provider_subject_digest) DO NOTHING
@@ -236,8 +240,8 @@ async function ensureWorker(
   return { personId, selfInviteId, displayName, primaryTrade, location };
 }
 
-async function getStatus(request: Request): Promise<Response> {
-  const identity = requireIdentity(request);
+async function getStatus(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
   const found = await findPersonId(sql, identity);
   if (!found.personId) {
@@ -274,8 +278,8 @@ async function getStatus(request: Request): Promise<Response> {
   });
 }
 
-async function updateStatus(request: Request): Promise<Response> {
-  const identity = requireIdentity(request);
+async function updateStatus(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
   const body = asRecord(await request.json().catch(() => null));
   const status = parseStatus(body.status);
@@ -407,8 +411,8 @@ async function inviteFromToken(sql: Sql, token: string) {
   };
 }
 
-async function previewConnection(request: Request): Promise<Response> {
-  requireIdentity(request);
+async function previewConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  requireIdentity(request, verifiedIdentity);
   const body = asRecord(await request.json().catch(() => null));
   const token = clean(body.token, 300);
   if (!token) throw new WorkerHttpError(400, "NEXUS_INVITE_TOKEN_REQUIRED");
@@ -423,8 +427,8 @@ async function previewConnection(request: Request): Promise<Response> {
   });
 }
 
-async function acceptConnection(request: Request): Promise<Response> {
-  const identity = requireIdentity(request);
+async function acceptConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
   const body = asRecord(await request.json().catch(() => null));
   const token = clean(body.token, 300);
@@ -500,18 +504,19 @@ function assertSameOrigin(request: Request) {
 export async function handleWorkerRequest(
   request: Request,
   path: string[],
+  verifiedIdentity?: RequestIdentity | null,
 ): Promise<Response> {
   try {
     assertSameOrigin(request);
     const method = request.method.toUpperCase();
     const route = path.join("/");
-    if (method === "GET" && route === "status") return await getStatus(request);
-    if (method === "PATCH" && route === "status") return await updateStatus(request);
+    if (method === "GET" && route === "status") return await getStatus(request, verifiedIdentity);
+    if (method === "PATCH" && route === "status") return await updateStatus(request, verifiedIdentity);
     if (method === "POST" && route === "connection/preview") {
-      return await previewConnection(request);
+      return await previewConnection(request, verifiedIdentity);
     }
     if (method === "POST" && route === "connection") {
-      return await acceptConnection(request);
+      return await acceptConnection(request, verifiedIdentity);
     }
     return json({ error: "NEXUS_WORKER_ROUTE_NOT_FOUND" }, 404);
   } catch (error) {

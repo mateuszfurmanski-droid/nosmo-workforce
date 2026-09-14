@@ -16,6 +16,10 @@ const browserSecurityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_NOSMO_AUTH_MODE:
+      process.env.VERCEL === "1" || process.env.VERCEL_ENV ? "clerk" : "sites",
+  },
   ...(process.env.VERCEL === "1" ? {
     typescript: { tsconfigPath: "tsconfig.vercel.json" },
   } : {}),

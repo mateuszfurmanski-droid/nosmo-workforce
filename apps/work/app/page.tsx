@@ -11,6 +11,7 @@ import "./camera.css";
 import "./dark.css";
 import "./compact-theme.css";
 import "./apps-command.css";
+import WorkerAuthControls from "./worker-auth-controls";
 import {
   Bell,
   Bot,
@@ -47,6 +48,8 @@ import {
   X,
 } from "lucide-react";
 type Status = "New" | "To apply" | "Applied" | "Reply" | "Interview" | "Offer" | "Rejected" | "Closed";
+const CLERK_AUTH_ENABLED = process.env.NEXT_PUBLIC_NOSMO_AUTH_MODE === "clerk";
+const SIGN_IN_HREF = "/auth/sign-in?return_to=%2F";
 type Job = {
   id: number;
   company: string;
@@ -2989,6 +2992,7 @@ export default function Home() {
             <span><small>ASK NEXUS</small><b>{ui.askPrompt}</b></span>
             <ChevronDown />
           </button>
+          {CLERK_AUTH_ENABLED && <WorkerAuthControls />}
         </div>
         <header>
           <b className="mobile-title">NOSMO Work</b>
@@ -3019,7 +3023,7 @@ export default function Home() {
             <section id="work-search-results" className="home-search-results">
               <div className="home-results-head"><div><small>SEARCH RESULTS</small><h2>{globalSearchKind}</h2></div><span>{globalSearchKind === "Work" ? `${liveSearchJobs?.length ?? 0} saved in this search` : "Search options"}</span></div>
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Ask Nexus is searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently. Progress is checked automatically.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={setSelected}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, true)}</small></div>}
@@ -3074,7 +3078,7 @@ export default function Home() {
                   </details>
                   <p className="jobs-search-promise"><Check/><span>Up to 20 verified direct vacancies per batch. New results are saved here automatically; duplicates are skipped.</span></p>
                   {globalSearchStatus === "running" && <div className="search-live-state"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
                   {searchMeta && globalSearchStatus === "idle" && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} new {searchMeta.returned === 1 ? "job" : "jobs"} saved in Jobs</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 </section>
               )}
@@ -3382,7 +3386,7 @@ export default function Home() {
                   <section className="worker-connection-invite needs-sign-in">
                     <ShieldCheck />
                     <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this invitation</h3><p>After sign-in, paste the code again. Nothing is shared until you explicitly approve it.</p></div>
-                    <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
+                    <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                   </section>
                 )}
                 <section className="availability-command" aria-labelledby="availability-command-title">
@@ -3426,7 +3430,7 @@ export default function Home() {
                               : "No message is sent."}</small>
                     </span>
                     {availabilitySyncState === "sign-in-required"
-                      ? <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
+                      ? <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                       : availabilitySyncState === "error"
                         ? <button type="button" onClick={() => void syncAvailability(availability, profile.availableFrom)}>Retry</button>
                         : null}
@@ -3938,7 +3942,7 @@ export default function Home() {
             <div className="unified-search-box"><Search/><input autoFocus disabled={globalSearchStatus === "running"} value={query} onChange={(e) => { setQuery(e.target.value); resetLiveSearchSession(); }} onKeyDown={(e) => { if (e.key === "Enter") runGlobalSearch(); }} placeholder={globalSearchKind === "Tools & materials" ? "e.g. impact driver, OSB boards, 5x80 screws" : "What do you need?"}/><button disabled={globalSearchStatus === "running"} onClick={() => runGlobalSearch()}>{globalSearchStatus === "running" ? "Searching..." : "Search"}</button></div>
             {query.trim() && <div className="nexus-modal-results">
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={(job) => { setSelected(job); setAskNexusModal(false); }}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, false)}</small></div>}

@@ -25,7 +25,7 @@ assert.ok(workerRoute.includes("secureWorkerRequest"), "Worker API must pass thr
 assert.ok(workerRoute.includes("handleWorkerRequest"), "Worker API must use the canonical server handler");
 assert.ok(workerServer.includes('request.headers.get("oai-authenticated-user-email")'), "Worker identity must come from authenticated Sites headers");
 assert.ok(workerServer.includes("process.env.NEXUS_IDENTITY_PEPPER"), "Worker identity digest must require a server-side pepper");
-assert.ok(workerServer.includes("identityDigest(identity.email)"), "Worker database identity must use the pseudonymous digest binding");
+assert.ok(workerServer.includes("identityDigest(identity)"), "Worker database identity must use the pseudonymous digest binding");
 assert.ok(workerServer.includes("assertSameOrigin(request)"), "Worker write handler must enforce same-origin requests");
 
 assert.ok(workerSecurity.includes("credentialsInUrl(request)"), "Worker security boundary must reject credentials in URLs");

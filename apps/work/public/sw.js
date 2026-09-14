@@ -9,7 +9,9 @@ const CORE_URLS = [
 ];
 
 function isPrivatePath(pathname) {
-  return pathname.startsWith("/api/") || pathname.startsWith("/signin-with-chatgpt");
+  return pathname.startsWith("/api/") || pathname.startsWith("/signin-with-chatgpt") ||
+    pathname.startsWith("/signout-with-chatgpt") || pathname.startsWith("/auth/") ||
+    pathname.startsWith("/__clerk") || pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
 }
 
 function isStaticAsset(request, url) {
@@ -19,7 +21,7 @@ function isStaticAsset(request, url) {
 
 async function cacheResponse(cache, request) {
   const response = await fetch(request, { cache: "reload" });
-  if (response.ok) await cache.put(request, response.clone());
+  if (response.ok && !/no-store|private/i.test(response.headers.get("cache-control") || "")) await cache.put(request, response.clone());
   return response;
 }
 
@@ -57,7 +59,7 @@ async function navigationResponse(request, url) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const response = await fetch(request);
-    if (response.ok && url.pathname === "/" && !url.search) {
+    if (response.ok && !/no-store|private/i.test(response.headers.get("cache-control") || "") && url.pathname === "/" && !url.search) {
       await cache.put("/", response.clone());
     }
     return response;
@@ -75,7 +77,7 @@ async function staticResponse(request) {
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) await cache.put(request, response.clone());
+  if (response.ok && !/no-store|private/i.test(response.headers.get("cache-control") || "")) await cache.put(request, response.clone());
   return response;
 }
 
