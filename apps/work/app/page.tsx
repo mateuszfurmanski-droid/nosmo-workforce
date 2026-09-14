@@ -3003,11 +3003,14 @@ export default function Home() {
       <section className="work">
         <div className="worker-nexus-bar">
           <button aria-label="Open Ask Nexus" aria-expanded={askNexusModal} onClick={() => setAskNexusModal(true)}>
-            <img src="/nexus-logo-ui-mark-n.png" alt="NEXUS"/>
+            <span className="nexus-theme-mark" role="img" aria-label="NEXUS" />
             <span><small>ASK NEXUS</small><b>{ui.askPrompt}</b></span>
             <ChevronDown />
           </button>
           {CLERK_AUTH_ENABLED && <WorkerAuthControls />}
+          <a className="worker-emergency-shortcut" href="https://nosmo-emergency-button.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Open NOSMO Emergency" title="NOSMO Emergency">
+            <strong aria-hidden="true">!</strong><small>SOS</small>
+          </a>
         </div>
         <header>
           <b className="mobile-title">NOSMO Work</b>

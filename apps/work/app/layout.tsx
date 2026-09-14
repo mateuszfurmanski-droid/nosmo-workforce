@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { shadcn } from "@clerk/ui/themes";
 import "./globals.css";
-import "@clerk/ui/themes/shadcn.css";
 import "./jobflow.css";
 import LocalPrivacyControl from "./local-privacy-control";
 import { headers } from "next/headers";
@@ -56,7 +54,14 @@ export default async function RootLayout({
         {useSitesIdentity ? (
           content
         ) : (
-          <ClerkProvider dynamic appearance={{ theme: shadcn }}>
+          <ClerkProvider dynamic appearance={{
+            variables: { borderRadius: "4px" },
+            elements: {
+              cardBox: { backgroundColor: "var(--surface, #ffffff)" },
+              card: { backgroundColor: "var(--surface, #ffffff)", color: "var(--ink, #182338)" },
+              footer: { backgroundColor: "var(--surface-soft, #f3f5f7)" },
+            },
+          }}>
             {content}
           </ClerkProvider>
         )}
