@@ -12,3 +12,23 @@
 .worker-app-preparation-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
 .worker-app-handoff-note{padding:12px;border-left:2px solid var(--accent);background:var(--surface-soft)}
 @media(max-width:560px){.worker-app-preparation{padding:14px}.worker-app-preparation-actions{display:grid;grid-template-columns:1fr}}
+
+.nexus-chat-welcome{font-size:20px!important;line-height:1.4;margin:12px 0}
+.nexus-chat-log{display:grid;gap:12px;max-height:42dvh;overflow:auto;overscroll-behavior:contain}
+.nexus-chat-message{padding:12px 14px;border-left:2px solid var(--accent);background:var(--surface-soft)}
+.nexus-chat-message--user{margin-left:8%;background:var(--accent-soft)}
+.nexus-chat-message p,.nexus-chat-draft{white-space:pre-wrap;margin:6px 0}
+.nexus-chat-composer{display:grid;gap:10px;margin:16px 0}
+.nexus-chat-composer label{margin:0;font-weight:600}
+.nexus-chat-composer textarea{min-height:112px;font-size:17px;line-height:1.5}
+.nexus-chat-composer button{justify-self:end;min-width:150px}
+.nexus-chat-context,.nexus-manual-details{border-top:1px solid var(--line);padding:12px 0}
+.nexus-chat-context summary,.nexus-manual-details summary{cursor:pointer;padding:8px 0;font-size:14px;font-weight:600}
+.nexus-chat-context p{color:var(--muted)}
+.nexus-chat-plan,.nexus-active-draft{padding:16px;margin:16px 0;border:1px solid var(--accent);background:var(--surface-soft)}
+.worker-app-preparation{width:100%;max-width:none}
+@media(min-width:700px){.worker-app-preparation{padding:24px}.nexus-chat-composer textarea{min-height:132px;font-size:18px}.nexus-chat-message p{font-size:16px}}
+/* Keep the conversation above the fold in tablet browser sheets. */
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head{margin-bottom:8px;padding-bottom:0}
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head .nexus-command-identity,.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head p,.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head .nexus-command-security{display:none}
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head h1{font-size:18px;margin:0}

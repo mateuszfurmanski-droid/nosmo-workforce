@@ -111,3 +111,16 @@ Text handoff and attachment handoff are separate capabilities: do not assume tha
 - Verify the relevant SMS/email/app-specific preparation screens against each platform's actual supported capabilities.
 - Nothing is sent automatically, and opening an app does not mark the message sent.
 - This requirement extends Track A above; it does not imply access to private message history.
+
+
+## User decision: chat-first mini Nexus for every app (2026-09-15)
+
+Default preparation is a natural-language conversation, not a task/recipient form. Example: "wyslij dokumenty do tej agencji co mi przyslala oferte". Applies to all 12 apps. Keep forms under optional Edit details. App tiles remain expanded at the top.
+
+Use actual available worker context: saved contacts, imported document metadata, imported agency-reply analysis. Never treat seed jobs or a contact alone as a received offer. Resolve a unique agency and relevant documents; ask one short question when evidence is missing or ambiguous. No silent inbox access and no invented recipients/documents. Show recipient, full draft and document checklist before the worker continues. Actual document attachment remains manual until a separately verified integration supports it.
+
+This stage adds an authenticated server-side OpenAI Responses planner with structured output, grounded ID validation, origin/body guards, bounded context, timeout and per-instance rate limits. It executes no external actions. Missing configuration, login, timeout and provider errors must be visible; no canned answer impersonating AI. Conversation context is limited to this workspace and the last nine messages, with up to 50 contacts and 50 document metadata records. No raw file upload by this planner. Review API configuration and signed-in model roundtrip before claiming AI operational acceptance.
+
+Tablet UX: prominent multiline composer, smaller headings, optional forms, full available content width. The ChatGPT/iPad browser sheet size is host-controlled; open in Safari for a larger host viewport. No claim that CSS resizes that sheet.
+
+Remaining product work: consented inbox/offer ingestion, durable context retrieval, attachment handoff and per-provider action execution. These are separate stages, not completed by the planner UI. Nexus Core, Agency, production and Security Gate unchanged.

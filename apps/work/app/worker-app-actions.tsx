@@ -5,6 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import { CalendarDays, ChevronRight, Phone, Send } from "lucide-react";
 import { preparedCommunicationUrl, type AppDraft } from "./app-preparation";
 import "./worker-app-actions.css";
+import NexusAppChat from "./nexus-app-chat";
+import type { NexusContext } from "./nexus-action-plan";
 
 const apps = [
   { name: "Gmail", src: "/app-icons/gmail.svg", glyph: "", icon: null, url: "https://mail.google.com/", tone: "gmail", kind: "email" },
@@ -21,7 +23,7 @@ const apps = [
   { name: "CSCS / CITB", src: "", glyph: "CSCS", icon: null, url: "https://www.cscs.uk.com/", tone: "cscs", kind: "cards" },
 ] as const;
 type Contact = { id: string; name: string; phones: string[]; emails: string[] };
-type Props = { language: string; contacts: Contact[]; onOpen: (url: string) => void; visible: boolean };
+type Props = { language: string; contacts: Contact[]; context: NexusContext; onOpen: (url: string) => void; visible: boolean };
 const emptyDraft: AppDraft = { recipient: "", subject: "", body: "", purpose: "" };
 
 // Account changes remount the workspace, discarding the previous account's drafts.
@@ -31,9 +33,10 @@ export function SignedInAppActions(props: Props) {
   return <WorkerAppActions key={user?.id || "signed-out"} {...props} />;
 }
 
-export default function WorkerAppActions({ language, contacts, onOpen, visible }: Props) {
+export default function WorkerAppActions({ language, contacts, context, onOpen, visible }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, AppDraft>>({});
+  const [documentLists, setDocumentLists] = useState<Record<string, string[]>>({});
   const [notice, setNotice] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const lastTile = useRef<HTMLButtonElement | null>(null);
@@ -74,9 +77,10 @@ export default function WorkerAppActions({ language, contacts, onOpen, visible }
     </div>
     {app && <section className="worker-app-preparation" aria-labelledby="app-preparation-title">
       <button type="button" onClick={back}>{t("Back to apps", "Wroc do apek")}</button>
-      <small>NOSMO · {t("PREPARE", "PRZYGOTUJ")}</small>
+      <small>NEXUS · {t("YOUR WORK ASSISTANT", "TWOJ ASYSTENT PRACY")}</small>
       <h2 ref={heading} tabIndex={-1} id="app-preparation-title">{app.name}</h2>
-      <p>{t("Prepare here. Open the destination when you are ready.", "Przygotuj tutaj. Otworz wybrana apke, gdy wszystko bedzie gotowe.")}</p>
+      <NexusAppChat key={app.name} app={app.name} language={language} context={context} onDraft={(next, ids) => { update(next); setDocumentLists(current => ({ ...current, [app.name]: ids })); }} />
+      <details className="nexus-manual-details"><summary>{t("Edit details (optional)", "Edytuj szczegoly (opcjonalnie)")}</summary>
       <label>{t("What do you want to do?", "Co chcesz zrobic?")}<select value={draft.purpose} onChange={(event) => update({ purpose: event.target.value })}>
         <option value="">{t("Choose a task", "Wybierz zadanie")}</option>{taskOptions.map((option) => <option key={option}>{option}</option>)}
       </select></label>
@@ -97,6 +101,8 @@ export default function WorkerAppActions({ language, contacts, onOpen, visible }
         <textarea rows={6} value={draft.body} onChange={(event) => update({ body: event.target.value })}/>
       </label>
       {communication && app.kind !== "call" && <button type="button" disabled={!!draft.body} onClick={() => update({ body: pl ? "Dzien dobry, chcialbym zapytac o dostepna prace. Prosze o informacje o stanowisku, lokalizacji i terminie rozpoczecia. Dziekuje." : "Hello, I would like to ask about available work. Please send details of the role, location and start date. Thank you." })}>{t("Start with a work enquiry", "Zacznij od zapytania o prace")}</button>}
+      </details>
+      {(draft.body || draft.recipient || draft.subject) && <div className="nexus-active-draft"><strong>{t("Current draft", "Aktualny szkic")}</strong><p>{draft.recipient}</p><p>{draft.subject}</p><p className="nexus-chat-draft">{draft.body}</p>{!!documentLists[app.name]?.length && <p>{t("Attach separately", "Dolacz osobno")}: {documentLists[app.name].map(id => context.documents.find(d => d.id === id)?.title || t("Document no longer available", "Dokument juz niedostepny")).join(", ")}</p>}</div>}
       <div className="worker-app-handoff-note">
         {app.name === "WhatsApp" ? t("Opens the selected number with your message ready. Check the conversation and press Send in WhatsApp. Files must be attached separately.", "Otworzy wybrany numer z gotowa wiadomoscia. Sprawdz rozmowe i nacisnij Wyslij w WhatsApp. Pliki dolacz osobno.")
           : app.name === "Gmail" ? t("Opens a Gmail web draft with recipient, subject and message. Gmail may ask you to sign in. Attach files there; nothing is sent here.", "Otworzy wersje WWW Gmail z odbiorca, tematem i trescia. Gmail moze poprosic o logowanie. Pliki dolacz tam; tutaj nic nie jest wysylane.")

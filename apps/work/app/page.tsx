@@ -1071,7 +1071,7 @@ const UI_TEXT = {
     dataHelp: "Storage, backup and original demo data",
     allSettings: "All settings",
     appsTitle: "Apps",
-    appsIntro: "Work tools first. Connected services stay folded until you need them.",
+    appsIntro: "Choose an app. Tell Nexus what you want to do.",
     workTools: "WORK TOOLS",
     connectedApps: "CONNECTED APPS",
     connectedAppsHelp: "Email, messages, job boards and site services",
@@ -1118,7 +1118,7 @@ const UI_TEXT = {
     dataHelp: "Pamięć, kopia zapasowa i początkowe dane demonstracyjne",
     allSettings: "Wszystkie ustawienia",
     appsTitle: "Aplikacje",
-    appsIntro: "Najpierw narzędzia pracy. Połączone usługi są schowane, dopóki ich nie potrzebujesz.",
+    appsIntro: "Wybierz apke. Napisz Nexusowi, co chcesz zrobic.",
     workTools: "NARZĘDZIA PRACY",
     connectedApps: "POŁĄCZONE APLIKACJE",
     connectedAppsHelp: "E-mail, wiadomości, portale pracy i usługi budowlane",
@@ -3511,8 +3511,8 @@ export default function Home() {
               </header>
 
               {CLERK_AUTH_ENABLED
-                ? <SignedInAppActions language={language} contacts={workContacts} onOpen={openExternal} visible={active === "Apps"} />
-                : <WorkerAppActions language={language} contacts={workContacts} onOpen={openExternal} visible={active === "Apps"} />}
+                ? <SignedInAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />
+                : <WorkerAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />}
 
               <div className="nexus-command-section-title"><small>{ui.workTools}</small><span/></div>
               <section className="nexus-command-grid" aria-label="Work tools">
