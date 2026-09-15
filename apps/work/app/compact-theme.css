@@ -5654,3 +5654,17 @@
  #worker-app .worker-nexus-bar .nexus-theme-mark {flex-basis:36px!important;width:36px!important;}
  #worker-app .worker-nexus-bar>button {padding:8px!important;gap:8px!important;}
 }
+
+/* First-login setup: one task at a time, matching the existing Worker theme. */
+.worker-setup {width:min(780px,100%);margin:0 auto 20px;padding:20px;border:1px solid var(--accent);background:var(--surface);color:var(--ink);overflow-wrap:anywhere;}
+.worker-setup>small {color:var(--accent);font-weight:800;letter-spacing:.08em;}
+.worker-setup h2 {margin:10px 0;font-size:22px;}
+.worker-setup p {font-size:15px;line-height:1.5;}
+.worker-setup button,.worker-setup-upload,.worker-setup-resume {min-height:48px;padding:12px 16px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;}
+.worker-setup-upload {display:block;}
+.worker-setup input {display:block;max-width:100%;margin-top:10px;min-height:44px;}
+.worker-setup summary {padding:14px 0;cursor:pointer;}
+.worker-setup-actions {display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+.worker-setup button:disabled {opacity:.55;cursor:wait;}
+.worker-setup-resume {display:block;margin:0 auto 16px;}
+@media(max-width:560px){.worker-setup{padding:16px;}.worker-setup-actions{display:grid;grid-template-columns:1fr;}.worker-setup>button{width:100%;}}

@@ -12,6 +12,7 @@ import "./dark.css";
 import "./compact-theme.css";
 import "./apps-command.css";
 import WorkerAuthControls from "./worker-auth-controls";
+import WorkerFirstLogin from "./worker-first-login";
 import {
   Bell,
   Bot,
@@ -3020,6 +3021,16 @@ export default function Home() {
           </button>
         </header>
         <div className="content">
+          {CLERK_AUTH_ENABLED && <WorkerFirstLogin
+            language={language}
+            showResume={active === "Settings"}
+            onContacts={importPhoneContacts}
+            onContactFile={(files) => importFiles("Contacts", files)}
+            onDocuments={async (files) => { setActive("Documents"); await analyseNexusFiles(files); }}
+            onFinish={() => setActive("Worker Card")}
+            contactNotice={importNotice}
+            documentNotice={nexusImportNotice}
+          />}
           {active === "Overview" && (
             <section className="home-person">
               <button className="home-avatar" onClick={() => setActive("Worker Card")} aria-label="View Worker Card">{profile.name.split(" ").map((part) => part[0]).join("").slice(0,2)}</button>
