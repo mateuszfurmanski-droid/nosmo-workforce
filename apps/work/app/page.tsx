@@ -13,6 +13,7 @@ import "./compact-theme.css";
 import "./apps-command.css";
 import WorkerAuthControls from "./worker-auth-controls";
 import WorkerFirstLogin from "./worker-first-login";
+import WorkerAppActions, { SignedInAppActions } from "./worker-app-actions";
 import {
   Bell,
   Bot,
@@ -3499,8 +3500,7 @@ export default function Home() {
               </section>
             </>
           )}
-          {active === "Apps" && (
-            <section className="nexus-command-page" aria-labelledby="apps-command-title">
+            <section hidden={active !== "Apps"} className="nexus-command-page" aria-labelledby="apps-command-title">
               <header className="nexus-command-head">
                 <div>
                   <span className="nexus-command-identity"><small>NOSMO WORK</small><em>Powered by NEXUS</em></span>
@@ -3510,23 +3510,9 @@ export default function Home() {
                 <span className="nexus-command-security" title="Private launcher"><ShieldCheck/></span>
               </header>
 
-              <div className="nexus-command-section-title"><small>{ui.connectedApps}</small><span/></div>
-                <section className="nexus-command-grid nexus-command-grid--external" aria-label="Connected work apps">
-                  {[
-                    {name:"Gmail",src:"/app-icons/gmail.svg",glyph:"",icon:null,url:"https://mail.google.com/",tone:"gmail"},
-                    {name:"WhatsApp",src:"/app-icons/whatsapp.svg",glyph:"",icon:null,url:whatsappUrl(),tone:"whatsapp"},
-                    {name:"Call",src:"",glyph:"",icon:Phone,url:"tel:",tone:"call"},
-                    {name:"Messages",src:"",glyph:"",icon:Send,url:"sms:",tone:"messages"},
-                    {name:"Indeed",src:"/app-icons/indeed.svg",glyph:"",icon:null,url:"https://uk.indeed.com/",tone:"indeed"},
-                    {name:"LinkedIn",src:"",glyph:"in",icon:null,url:"https://www.linkedin.com/jobs/",tone:"linkedin"},
-                    {name:"Reed",src:"",glyph:"R•••",icon:null,url:"https://www.reed.co.uk/jobs",tone:"reed"},
-                    {name:"Totaljobs",src:"",glyph:"tj",icon:null,url:"https://www.totaljobs.com/",tone:"totaljobs"},
-                    {name:"CV-Library",src:"",glyph:"CV",icon:null,url:"https://www.cv-library.co.uk/",tone:"cvlib"},
-                    {name:"Drive",src:"/app-icons/drive.svg",glyph:"",icon:null,url:"https://drive.google.com/",tone:"drive"},
-                    {name:"Calendar",src:"",glyph:"",icon:CalendarDays,url:"https://calendar.google.com/",tone:"calendar"},
-                    {name:"CSCS / CITB",src:"",glyph:"CSCS",icon:null,url:"https://www.cscs.uk.com/",tone:"cscs"},
-                  ].map((app)=>{const Icon=app.icon;return <button type="button" className={`nexus-command-module nexus-command-module--external tone-${app.tone}`} key={app.name} onClick={()=>openExternal(app.url)}><i className="nexus-command-icon">{app.src ? <img src={app.src} alt=""/> : Icon ? <Icon/> : <b className={`nexus-command-glyph glyph-${app.tone}`}>{app.glyph}</b>}</i><span>{app.name}</span><ExternalLink className="nexus-command-action" aria-hidden="true"/></button>})}
-                </section>
+              {CLERK_AUTH_ENABLED
+                ? <SignedInAppActions language={language} contacts={workContacts} onOpen={openExternal} visible={active === "Apps"} />
+                : <WorkerAppActions language={language} contacts={workContacts} onOpen={openExternal} visible={active === "Apps"} />}
 
               <div className="nexus-command-section-title"><small>{ui.workTools}</small><span/></div>
               <section className="nexus-command-grid" aria-label="Work tools">
@@ -3564,7 +3550,6 @@ export default function Home() {
 
               <footer className="nexus-command-privacy"><ShieldCheck/><span>{ui.privateLauncher}</span></footer>
             </section>
-          )}
           {active === "Settings" && (
             <>
               <header className="settings-page-head">
