@@ -5,3 +5,11 @@ Continuation of mini-Nexus addon. Parent 10c3b74b7d30882dd71fa8f9144b4e0048644f5
 Signed-in Clerk user history is saved in this browser's localStorage under an account-specific key. Guest history stays in memory only. New Preview origins do not share browser storage. This is reusable prompt history, NOT offer/call/document case memory. Cross-device history, authentic model roundtrip and shared case memory remain pending. No Agency/Core/production or database changes.
 
 4 focused tests pass: deduplication, corrupt/bounded data, relevant ranking, account key separation/no guest persistence. TS syntax passes. Build/browser checks pending at source commit.
+
+
+## Deployment and browser result
+
+Source deac7dbed80cc5a890026b7359e3d98d449da22b.
+Deployment dpl_H9eF2Kd75yJZiiNNgbGwau7ikEqZ READY (preview only); no duplicate after interrupted response.
+URL https://nosmo-worker-v95-preview-mpmkewlew.vercel.app/
+Browser: starter suggestions visible above composer; clicking inserts editable text without submitting; explicit Ask remembers request even when guest auth gate blocks AI; same saved request visible after navigating WhatsApp -> Calendar. Signed-in persistence/account switching and mobile layout not browser-verified. No outgoing message/call/file share. User visual acceptance pending.
