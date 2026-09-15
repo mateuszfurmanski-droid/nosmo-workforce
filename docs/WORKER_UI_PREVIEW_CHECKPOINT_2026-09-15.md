@@ -10,7 +10,12 @@ Scope: Worker UI only. Branch security/nosmo-security-gate, PR #18. No productio
 - All 136 prepared Worker deployment files verified by Git blob SHA against the remote tree, relative to apps/work. No .env files included or read.
 
 ## Preview
-Pending deployment of verified payload to prj_OV3yHKWZm91ULCE7bf4lrL3iKped, target preview.
+Deployment READY: dpl_CgqCR5CoEQyWCAEePvxzV5TuN87X.
+URL: https://nosmo-worker-v95-preview-j4sq8u4ct.vercel.app/
+Project: prj_OV3yHKWZm91ULCE7bf4lrL3iKped. Preview target (Vercel response target=null), aliases=[].
+Remote build completed successfully in approximately 59 seconds.
+App opened in browser after creating a temporary Vercel share link. Header and Worker Card rendered; main id=worker-app verified.
+Documentation checkpoint commit: a3019a47db18313b6bbd445b540a986a1d8d6ac0.
 Build: next build. Install: npm ci --ignore-scripts --no-audit --no-fund.
 
 ## Verification
