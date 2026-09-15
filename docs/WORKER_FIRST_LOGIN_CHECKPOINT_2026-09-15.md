@@ -25,3 +25,13 @@ User request: replace the technical import-first experience with guided setup im
 Deploy Worker Preview only, then verify first sign-in, returning completed account, Later/reopen, another account, cancellation, unsupported contacts, document errors/review and 320/360/390px layouts. Preserve the existing UI checkpoint and unresolved signed-in avatar/mobile checks.
 
 Security Gate and pilot readiness remain unchanged: Preview/demo.
+
+
+## Preview deployment result
+- Deployed source HEAD: e4d2801a45716d92c791ccd9ccc160be91409dec (includes implementation 3ffe26f).
+- All 137 uploaded files verified by Git blob hash against remote HEAD. No .env files read or uploaded.
+- Deployment: dpl_BswUnaDdzeyPh2LBqQWmeSFiskbC.
+- URL: https://nosmo-worker-v95-preview-r5rmc3rhd.vercel.app
+- Vercel READY; preview target (response target=null); aliases=[]; build approximately 58 seconds.
+- next build succeeded. Signed-in onboarding, real import and mobile browser verification remain pending. This supersedes the earlier not-deployed status only.
+- The chat client showed a streaming interruption, but deployment completion was independently confirmed through Vercel.
