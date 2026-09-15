@@ -7,3 +7,10 @@ User screenshot IMG_0449 confirms authenticated /api/nexus-actions reports not_c
 User wants automatic source discovery and intake, not manual exports. Next separate stages: consented source connection/selection; search those sources; recognize and import documents; shared offer/contact/call/document context. Current browser does not have unrestricted device storage/contact/inbox access. Ask Nexus alone cannot search unconnected sources. This help stage does not implement automatic document search or attachment sharing. Production, Core, Agency, Neon unchanged.
 
 Syntax checks passed; build/browser verification pending at source commit.
+
+
+## Confirmed deployment
+
+Source e7c62af319c4877f100b1d93d9394f38c39520a1. Deployment dpl_8VYHkEkdj6qAn9NwHzYSif5W8gTu READY, Preview only, no aliases. URL https://nosmo-worker-v95-preview-6d1cu6w6p.vercel.app/ .
+Previous source 162137f35e2d9d706f0ef4af413955fd28e0fd5b had the same help component browser-verified: Apps -> Manage apps & imports -> Import from phone -> I don't have a contacts file -> iPad/iPhone opens instructions. Final source adds the missing I have a contacts file action in Imports. Final build passed; that additional file-picker button has not been browser-verified. Signed-in wizard and mobile not tested in our browser. User acceptance pending.
+AI not_configured remains unresolved; do not call this an operational AI flow. User also sees ChatGPT Reasoning failed/stream interruptions; these do not establish a deployment failure. Remote commit and Vercel status rechecked after interruption. No duplicate deployment was created for the status check.
