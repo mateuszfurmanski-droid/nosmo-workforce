@@ -5606,3 +5606,28 @@
 .worker-bottom-nav button{border:1px solid var(--line)!important;box-shadow:none!important}
 .worker-bottom-nav button.on{border-top:3px solid var(--accent)!important;background:var(--accent-soft)!important}
 @media(max-width:560px){.worker-nexus-bar{flex-wrap:wrap}.worker-nexus-bar:has(.worker-emergency-shortcut)>button{order:0;flex:1 1 calc(100% - 62px)}.worker-emergency-shortcut{order:1}.worker-nexus-bar .worker-auth-controls{order:2;flex:1 0 100%;justify-content:flex-end;min-height:32px}.worker-nexus-bar .nexus-theme-mark{flex-basis:46px;width:46px;height:28px}.worker-bottom-nav{padding-bottom:calc(4px + env(safe-area-inset-bottom))!important}}
+
+/* Refined Worker controls: square actions, round identity, geometric navigation. */
+.worker-nexus-bar .worker-auth-controls .worker-auth-sign-in,
+.worker-nexus-bar .worker-auth-controls .worker-auth-sign-up{border-radius:2px!important}
+.worker-nexus-bar .worker-auth-controls .worker-auth-sign-up{background:var(--accent)!important;border-color:var(--accent)!important;color:var(--on-accent)!important}
+.worker-nexus-bar .worker-auth-controls:has(.cl-userButtonTrigger){min-width:0;gap:0}
+.worker-nexus-bar .worker-auth-controls>span{display:none}
+.worker-nexus-bar .worker-auth-controls .cl-userButtonTrigger{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important}
+.worker-nexus-bar .worker-auth-controls .cl-avatarBox{width:33.6px!important;height:33.6px!important;border-radius:50%!important}
+.worker-nexus-bar .worker-auth-controls .cl-avatarImage{border-radius:50%!important}
+.worker-nexus-bar .worker-emergency-shortcut{flex:0 0 40px;min-height:44px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#ef493e}
+.worker-nexus-bar .worker-emergency-shortcut strong{font-family:inherit;font-weight:800;font-size:34px;line-height:1;color:inherit}
+.worker-emergency-shortcut:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+[data-skin] .worker-bottom-nav{gap:4px!important;padding:4px!important;border-radius:2px!important}
+[data-skin] .worker-bottom-nav button{border-radius:2px!important;border:1px solid var(--line)!important;background:var(--surface)!important;color:var(--muted)!important;gap:7px!important}
+[data-skin] .worker-bottom-nav button.on{border:1px solid var(--accent)!important;background:var(--accent-soft)!important;color:var(--accent)!important}
+[data-skin] .worker-bottom-nav button::before,
+[data-skin] .worker-bottom-nav button::after{content:none!important;display:none!important}
+[data-skin] .worker-bottom-nav button svg{width:22px!important;height:22px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.4!important;stroke-linecap:square!important;stroke-linejoin:miter!important}
+@media(max-width:560px){
+ .worker-nexus-bar:has(.worker-emergency-shortcut)>button{flex:1 1 calc(100% - 96px)}
+ .worker-nexus-bar .worker-auth-controls:has(.cl-userButtonTrigger){order:1;flex:0 0 auto}
+ .worker-nexus-bar .worker-emergency-shortcut{order:2}
+ [data-skin] .worker-bottom-nav{padding-bottom:calc(4px + env(safe-area-inset-bottom))!important}
+}

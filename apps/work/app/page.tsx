@@ -3009,7 +3009,7 @@ export default function Home() {
           </button>
           {CLERK_AUTH_ENABLED && <WorkerAuthControls />}
           <a className="worker-emergency-shortcut" href="https://nosmo-emergency-button.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Open NOSMO Emergency" title="NOSMO Emergency">
-            <strong aria-hidden="true">!</strong><small>SOS</small>
+            <strong aria-hidden="true">!</strong>
           </a>
         </div>
         <header>
@@ -3836,11 +3836,11 @@ export default function Home() {
         </div>
       </section>
       <nav className="bottom-nav worker-bottom-nav">
-        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><CircleUserRound/>{ui.workerCard}</button>
-        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><FileText/>{ui.documents}</button>
-        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><BriefcaseBusiness/>{ui.jobs}</button>
-        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><Smartphone/>{ui.appsTitle}</button>
-        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><Settings/>{ui.settingsTitle}</button>
+        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM7 9h3v3H7zM6 16h5M14 9h4M14 13h4M14 16h3"/></svg>{ui.workerCard}</button>
+        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h8"/></svg>{ui.documents}</button>
+        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3zM8 7V3h8v4M3 12h18M10 12v3h4v-3"/></svg>{ui.jobs}</button>
+        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>{ui.appsTitle}</button>
+        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4m4 0h10M3 12h10m4 0h4M3 18h4m4 0h10M7 3h4v6H7zM13 9h4v6h-4zM7 15h4v6H7z"/></svg>{ui.settingsTitle}</button>
       </nav>
       {contactEditor && (
         <div className="backdrop" onMouseDown={() => setContactEditor(null)}>
