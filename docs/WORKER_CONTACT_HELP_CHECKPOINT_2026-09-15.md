@@ -18,3 +18,7 @@ AI not_configured remains unresolved; do not call this an operational AI flow. U
 ## AI configuration redeployment — 2026-09-16 user local time
 
 User reports saving OPENAI_API_KEY for Preview in Vercel. Secret not read or copied by agent. Confirmed branch HEAD before deployment a9cc1ddd30eab43600e31a3b07ee802123944583. Local Worker source blob hashes matched remote HEAD (only addon documentation differed). Redeployed existing application, no feature changes. Deployment dpl_6SUMzZgrC697eDdyKLBnutn5ArFm READY; target preview requested; aliases empty. URL https://nosmo-worker-v95-preview-fei0xaq8a.vercel.app/ . Build passed. Authenticated model response and runtime credential availability remain unverified; user must test Ask Nexus while signed in. Do not claim AI PASS from successful build. Production/Core/Agency/database untouched.
+
+## Inline instructions — 2026-09-16
+
+Source a15cba45fdfb41727127ba3ec2896b534c79f62f. Full contact instructions now visible without expanding, covering iPad/iPhone, Samsung/Android, saving/finding .vcf and transfer from another device. Preview dpl_HnFBH2A9APmG4AJJa8QJgmh9o8CD READY; https://nosmo-worker-v95-preview-6olijzhgb.vercel.app/ . Build passed; visual/mobile verification and acceptance pending. User screenshot of preceding fei0xaq8a Preview still shows not_configured while signed in: AI configuration blocker remains unresolved despite reported key setup. No production/Core/Agency/database changes.
