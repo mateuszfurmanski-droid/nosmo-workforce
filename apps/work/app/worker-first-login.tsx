@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import WorkerContactHelp from "./worker-contact-help";
 
 type Props = {
   language: string;
@@ -79,7 +80,8 @@ export default function WorkerFirstLogin(props: Props) {
       <p>{t("Choose your recruiters and work contacts. NOSMO will organise the selected contacts on this device. Nothing is sent to an agency.", "Wybierz rekruterow i kontakty do pracy. NOSMO uporzadkuje wybrane kontakty na tym urzadzeniu. Nic nie wysle do agencji.")}</p>
       {canPickContacts ? <button type="button" disabled={busy} onClick={() => void run(props.onContacts)}>
         {t("Choose work contacts", "Wybierz kontakty do pracy")}
-      </button> : <p>{t("This browser cannot open your phone contacts. Skip this step for now, or use a saved contacts file below.", "Ta przegladarka nie otwiera kontaktow telefonu. Na razie pomin ten krok albo wybierz zapisany plik kontaktow ponizej.")}</p>}
+      </button> : <p>{t("This browser cannot open the contact book directly. Don't have a file? The guide below shows how Contacts can create one for you.", "Ta przegladarka nie otwiera ksiazki kontaktow bezposrednio. Nie masz pliku? Ponizej pokazemy, jak Kontakty moga utworzyc go za Ciebie.")}</p>}
+      <WorkerContactHelp language={props.language}/>
       <details><summary>{t("I have a contacts file", "Mam plik kontaktow")}</summary>
         <label>{t("Choose contacts file", "Wybierz plik kontaktow")}<input type="file" disabled={busy} accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => {
           const files = event.currentTarget.files;

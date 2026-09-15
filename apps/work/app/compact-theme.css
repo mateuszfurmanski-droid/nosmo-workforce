@@ -5668,3 +5668,12 @@
 .worker-setup button:disabled {opacity:.55;cursor:wait;}
 .worker-setup-resume {display:block;margin:0 auto 16px;}
 @media(max-width:560px){.worker-setup{padding:16px;}.worker-setup-actions{display:grid;grid-template-columns:1fr;}.worker-setup>button{width:100%;}}
+
+.worker-contact-help{width:100%;min-width:0;margin:12px 0;grid-column:1/-1}
+.worker-contact-help>button{min-height:48px;padding:12px 16px;border:1px solid var(--accent);border-radius:0;background:var(--accent-soft);color:var(--ink);font:inherit;cursor:pointer}
+.worker-contact-help>div{padding:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.worker-contact-help details{display:block;margin:8px 0}
+.worker-contact-help summary{display:block;padding:12px 0;cursor:pointer;font-weight:700}
+.worker-contact-help ol{display:block;padding-left:24px}
+.worker-contact-help li{display:list-item;margin:10px 0;line-height:1.5}
+.worker-contact-help a{color:var(--accent);text-decoration:underline}

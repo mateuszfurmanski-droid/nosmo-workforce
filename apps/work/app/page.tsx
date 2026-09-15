@@ -13,6 +13,7 @@ import "./compact-theme.css";
 import "./apps-command.css";
 import WorkerAuthControls from "./worker-auth-controls";
 import WorkerFirstLogin from "./worker-first-login";
+import WorkerContactHelp from "./worker-contact-help";
 import WorkerAppActions, { SignedInAppActions } from "./worker-app-actions";
 import {
   Bell,
@@ -3798,6 +3799,7 @@ export default function Home() {
                     <i><CircleUserRound /></i>
                     <div><h3>Contacts</h3><p>Choose individual phone contacts. On supported Android browsers the system contact picker opens directly.</p><small>Fallback: import a .vcf contact file.</small></div>
                     <button onClick={() => void importPhoneContacts()}>Select contacts</button>
+                    <WorkerContactHelp language={language}/>
                     <input id="nosmo-contact-file" hidden type="file" accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => { void importFiles("Contacts", event.target.files); event.target.value = ""; }} />
                   </article>
                   <article>
