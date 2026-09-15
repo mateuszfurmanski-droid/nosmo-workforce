@@ -7,6 +7,7 @@ import { preparedCommunicationUrl, type AppDraft } from "./app-preparation";
 import "./worker-app-actions.css";
 import NexusAppChat from "./nexus-app-chat";
 import type { NexusContext } from "./nexus-action-plan";
+import { cleanPromptHistory, promptHistoryKey, rememberPrompt } from "./nexus-prompt-history";
 
 const apps = [
   { name: "Gmail", src: "/app-icons/gmail.svg", glyph: "", icon: null, url: "https://mail.google.com/", tone: "gmail", kind: "email" },
@@ -23,17 +24,43 @@ const apps = [
   { name: "CSCS / CITB", src: "", glyph: "CSCS", icon: null, url: "https://www.cscs.uk.com/", tone: "cscs", kind: "cards" },
 ] as const;
 type Contact = { id: string; name: string; phones: string[]; emails: string[] };
-type Props = { language: string; contacts: Contact[]; context: NexusContext; onOpen: (url: string) => void; visible: boolean };
+type Props = { language: string; contacts: Contact[]; context: NexusContext; onOpen: (url: string) => void; visible: boolean; accountId?: string };
 const emptyDraft: AppDraft = { recipient: "", subject: "", body: "", purpose: "" };
 
 // Account changes remount the workspace, discarding the previous account's drafts.
 export function SignedInAppActions(props: Props) {
   const { isLoaded, user } = useUser();
   if (!isLoaded) return null;
-  return <WorkerAppActions key={user?.id || "signed-out"} {...props} />;
+  return <WorkerAppActions key={user?.id || "signed-out"} {...props} accountId={user?.id} />;
 }
 
-export default function WorkerAppActions({ language, contacts, context, onOpen, visible }: Props) {
+export default function WorkerAppActions({ language, contacts, context, onOpen, visible, accountId }: Props) {
+  const [promptHistory, setPromptHistory] = useState<string[]>([]);
+  const promptHistoryRef = useRef<string[]>([]);
+  const [historyStorage, setHistoryStorage] = useState(false);
+  useEffect(() => {
+    const key = promptHistoryKey(accountId);
+    let history: string[] = [];
+    if (key) {
+      try { history = cleanPromptHistory(JSON.parse(localStorage.getItem(key) || "[]")); setHistoryStorage(true); }
+      catch { setHistoryStorage(false); }
+    }
+    promptHistoryRef.current = history; setPromptHistory(history);
+  }, [accountId]);
+  function savePrompt(text: string) {
+    const history = rememberPrompt(promptHistoryRef.current, text);
+    promptHistoryRef.current = history; setPromptHistory(history);
+    const key = promptHistoryKey(accountId);
+    if (key) {
+      try { localStorage.setItem(key, JSON.stringify(history)); setHistoryStorage(true); }
+      catch { setHistoryStorage(false); }
+    }
+  }
+  function clearPrompts() {
+    promptHistoryRef.current = []; setPromptHistory([]);
+    const key = promptHistoryKey(accountId);
+    if (key) { try { localStorage.removeItem(key); } catch { setHistoryStorage(false); } }
+  }
   const [selected, setSelected] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, AppDraft>>({});
   const [documentLists, setDocumentLists] = useState<Record<string, string[]>>({});
@@ -79,7 +106,7 @@ export default function WorkerAppActions({ language, contacts, context, onOpen, 
       <button type="button" onClick={back}>{t("Back to apps", "Wroc do apek")}</button>
       <small>NEXUS · {t("YOUR WORK ASSISTANT", "TWOJ ASYSTENT PRACY")}</small>
       <h2 ref={heading} tabIndex={-1} id="app-preparation-title">{app.name}</h2>
-      <NexusAppChat key={app.name} app={app.name} language={language} context={context} onDraft={(next, ids) => { update(next); setDocumentLists(current => ({ ...current, [app.name]: ids })); }} />
+      <NexusAppChat key={app.name} app={app.name} language={language} context={context} promptHistory={promptHistory} onRemember={savePrompt} onClearHistory={clearPrompts} historyStorage={historyStorage} onDraft={(next, ids) => { update(next); setDocumentLists(current => ({ ...current, [app.name]: ids })); }} />
       <details className="nexus-manual-details"><summary>{t("Edit details (optional)", "Edytuj szczegoly (opcjonalnie)")}</summary>
       <label>{t("What do you want to do?", "Co chcesz zrobic?")}<select value={draft.purpose} onChange={(event) => update({ purpose: event.target.value })}>
         <option value="">{t("Choose a task", "Wybierz zadanie")}</option>{taskOptions.map((option) => <option key={option}>{option}</option>)}
