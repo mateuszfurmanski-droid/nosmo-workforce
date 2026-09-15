@@ -19,3 +19,14 @@ Validation before deployment: 6 focused URL/recipient tests pass, including mult
 Reference contracts consulted: https://faq.whatsapp.com/5913398998672934 ; https://www.rfc-editor.org/info/rfc5724/ ; https://www.rfc-editor.org/info/rfc6068/ . Gmail web composer behavior and SMS device-specific behavior still require real-account/device verification. Do not claim all native-app handoffs PASS.
 
 Next: Preview deployment, all-tile in-app entry verification, draft/back/edit checks, screenshots. Do not send messages or place calls as part of testing. Signed-in onboarding, mobile/avatar checks and Security Gate remain separate pending work.
+
+
+## Preview result
+- Source commit: 896ad945b4e000c0c9c427e34ab164363aa0f00d.
+- Deployment dpl_6jqkwdbE8tVNNfDfNwhs7nLZH4SQ is READY, preview target=null.
+- URL: https://nosmo-worker-v95-preview-irafqixdo.vercel.app/
+- Browser opened the live app successfully. All 12 external tiles were individually clicked; each displayed its named in-app preparation heading without leaving NOSMO.
+- WhatsApp Continue initially disabled, enabled after entering a fictional test number and complete multiline test message. Continue was NOT clicked; no messages/calls performed.
+- Native handoff, attachments, signed-in account changes and mobile verification are NOT verified by these checks. User visual acceptance pending.
+- Observed minor follow-up: Apps intro still says services stay folded; update this stale descriptive copy in the next small change.
+- Streaming interruption recurred while deploying; deployment recovered by listing existing deployments rather than resubmitting.
