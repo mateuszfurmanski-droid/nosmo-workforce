@@ -2999,7 +2999,7 @@ export default function Home() {
     </div>;
   }
   return (
-    <main className="shell">
+    <main id="worker-app" className="shell">
       <section className="work">
         <div className="worker-nexus-bar">
           <button aria-label="Open Ask Nexus" aria-expanded={askNexusModal} onClick={() => setAskNexusModal(true)}>
