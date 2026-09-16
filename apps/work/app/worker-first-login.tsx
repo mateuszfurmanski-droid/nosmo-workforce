@@ -77,11 +77,10 @@ export default function WorkerFirstLogin(props: Props) {
       t("Your next step", "Twoj nastepny krok"),
     ][state.step]}</h2>
     {state.step === 0 && <>
-      <p>{t("Choose your recruiters and work contacts. NOSMO will organise the selected contacts on this device. Nothing is sent to an agency.", "Wybierz rekruterow i kontakty do pracy. NOSMO uporzadkuje wybrane kontakty na tym urzadzeniu. Nic nie wysle do agencji.")}</p>
+      <p>{t("Add your recruiters and work contacts. Nothing is sent to an agency.", "Dodaj rekruterow i kontakty do pracy. Nic nie wyslemy do agencji.")}</p>
       {canPickContacts ? <button type="button" disabled={busy} onClick={() => void run(props.onContacts)}>
         {t("Choose work contacts", "Wybierz kontakty do pracy")}
-      </button> : <p>{t("This browser cannot open the contact book directly. Don't have a file? The guide below shows how Contacts can create one for you.", "Ta przegladarka nie otwiera ksiazki kontaktow bezposrednio. Nie masz pliku? Ponizej pokazemy, jak Kontakty moga utworzyc go za Ciebie.")}</p>}
-      <WorkerContactHelp language={props.language}/>
+      </button> : null}      <WorkerContactHelp language={props.language}/>
       <details><summary>{t("I have a contacts file", "Mam plik kontaktow")}</summary>
         <label>{t("Choose contacts file", "Wybierz plik kontaktow")}<input type="file" disabled={busy} accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => {
           const files = event.currentTarget.files;

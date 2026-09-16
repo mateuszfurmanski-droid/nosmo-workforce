@@ -1,42 +1,46 @@
 "use client";
+import { useState } from "react";
 
 export default function WorkerContactHelp({ language }: { language: string }) {
+  const [system, setSystem] = useState<"android" | "iphone" | null>(null);
+  const [contacts, setContacts] = useState<"samsung" | "google" | null>(null);
   const t = (en: string, pl: string) => language === "pl" ? pl : en;
+  const steps = system === "iphone" ? [
+    t("Open Contacts → Lists.", "Otworz Kontakty → Listy."),
+    t("Hold your work list → Export. Select names, phone numbers and emails → Done.", "Przytrzymaj liste do pracy → Eksportuj. Wybierz nazwy, telefony i email → Gotowe."),
+    t("Save to Files → choose a folder → Save.", "Zachowaj w Plikach → wybierz folder → Zachowaj."),
+  ] : contacts === "samsung" ? [
+    t("Open Contacts → Menu → Manage contacts.", "Otworz Kontakty → Menu → Zarzadzaj kontaktami."),
+    t("Import or export contacts → Export → device storage.", "Importuj lub eksportuj kontakty → Eksportuj → pamiec telefonu."),
+    t("Find the .vcf file in My Files. Check the export scope: some versions include all contacts.", "Znajdz plik .vcf w Moje pliki. Sprawdz zakres eksportu: niektore wersje obejmuja wszystkie kontakty."),
+  ] : [
+    t("Open Google Contacts → Fix & manage.", "Otworz Kontakty Google → Napraw i zarzadzaj."),
+    t("Export to file → choose your work account → Export to .VCF file.", "Eksportuj do pliku → wybierz konto do pracy → Eksportuj do pliku .VCF."),
+    t("Save the file in Downloads.", "Zapisz plik w folderze Pobrane."),
+  ];
+  const ready = system === "iphone" || (system === "android" && contacts !== null);
   return <div className="worker-contact-help">
-    <h3>{t("How to bring your contacts into NOSMO", "Jak dodac kontakty do NOSMO")}</h3>
-    <div>
-      <p>{t("You do not need to make a spreadsheet. Your Contacts app can create the file for you. Do this on the phone where you use NOSMO. Follow the steps for your Contacts app below. The file ends in .vcf (vCard); you do not need to copy numbers one by one.", "Nie musisz tworzyc arkusza. Aplikacja Kontakty moze utworzyc plik za Ciebie. Zrob to na telefonie, na ktorym uzywasz NOSMO. Ponizej znajdziesz kroki dla swojej aplikacji Kontakty. Plik ma koncowke .vcf (vCard); nie musisz kopiowac numerow pojedynczo.")}</p>
-      <section aria-label="iPhone"><h4>iPhone</h4>
-        <ol>
-          <li>{t("Open Contacts, then Lists.", "Otworz Kontakty, potem Listy.")}</li>
-          <li>{t("Touch and hold your work contacts list, then choose Export. You can create a work-only list first.", "Przytrzymaj liste kontaktow do pracy i wybierz Eksportuj. Mozesz najpierw utworzyc liste tylko do pracy.")}</li>
-          <li>{t("Choose names, phone numbers and emails, then Done. Use Save to Files in the share menu, choose Downloads in iCloud Drive or On My iPhone, then Save.", "Wybierz nazwy, numery i adresy email, potem Gotowe. W menu udostepniania wybierz Zachowaj w Plikach, potem Pobrane w iCloud Drive lub Na moim iPhonie i Zachowaj.")}</li>
-          <li>{t("Return to NOSMO on the same phone and choose I have a contacts file. Select the file you just saved.", "Wroc do NOSMO na tym samym telefonie i wybierz Mam plik kontaktow. Wskaz zapisany plik.")}</li>
-        </ol>
-        <a href="https://support.apple.com/guide/iphone/iphone" target="_blank" rel="noopener noreferrer">{t("Apple instructions", "Instrukcja Apple")}</a>
-      </section>
-      <section aria-label="Android — Samsung Contacts"><h4>{t("Android — Samsung Contacts", "Android — Kontakty Samsung")}</h4>
-        <ol>
-          <li>{t("If Choose work contacts is available here, use it: you can select contacts directly without a file.", "Jesli widzisz tutaj Wybierz kontakty do pracy, uzyj tego przycisku: wybierzesz kontakty bez pliku.")}</li>
-          <li>{t("Otherwise open Contacts, then Menu, Manage contacts, Import or export contacts.", "W przeciwnym razie otworz Kontakty, potem Menu, Zarzadzaj kontaktami, Importuj lub eksportuj kontakty.")}</li>
-          <li>{t("Choose Export and device storage. Review which contacts will be exported; some versions export all contacts.", "Wybierz Eksportuj i pamiec urzadzenia. Sprawdz zakres eksportu; niektore wersje eksportuja wszystkie kontakty.")}</li>
-          <li>{t("Return to NOSMO on the same phone, choose I have a contacts file and select the exported .vcf file. If you cannot find it, open My Files and search for .vcf.", "Wroc do NOSMO na tym samym telefonie, wybierz Mam plik kontaktow i wskaz wyeksportowany plik .vcf. Jesli go nie widzisz, otworz Moje pliki i wyszukaj .vcf.")}</li>
-        </ol>
-        <a href="https://www.samsung.com/uk/support/mobile-devices/how-do-i-manage-my-contacts/" target="_blank" rel="noopener noreferrer">{t("Samsung instructions", "Instrukcja Samsung")}</a>
-      </section>
-      <section aria-label="Android — Google Contacts">
-        <h4>{t("Android — Google Contacts", "Android — Kontakty Google")}</h4>
-        <ol>
-          <li>{t("Open Google Contacts on your phone.", "Otworz Kontakty Google na telefonie.")}</li>
-          <li>{t("Open Fix & manage, then Export to file. Menu names may vary with the app version.", "Otworz Napraw i zarzadzaj, potem Eksportuj do pliku. Nazwy menu moga zalezec od wersji aplikacji.")}</li>
-          <li>{t("Choose the account with your work contacts, then Export to .VCF file. Save it in Downloads.", "Wybierz konto z kontaktami do pracy, potem Eksportuj do pliku .VCF. Zapisz go w folderze Pobrane.")}</li>
-          <li>{t("Return to NOSMO on the same phone, choose I have a contacts file and select the saved .vcf file from Downloads.", "Wroc do NOSMO na tym samym telefonie, wybierz Mam plik kontaktow i wskaz zapisany plik .vcf z folderu Pobrane.")}</li>
-        </ol>
-        <a href="https://support.google.com/contacts/answer/7199294?co=GENIE.Platform%3DAndroid" target="_blank" rel="noopener noreferrer">{t("Google instructions", "Instrukcja Google")}</a>
-      </section>
-      <h4>{t("Optional: contacts on another phone", "Opcjonalnie: kontakty na innym telefonie")}</h4>
-      <p>{t("Export the .vcf file on that phone. Send it to your own email or save it in your own Drive, then download it on the phone where you use NOSMO. Choose I have a contacts file and select it. You do not need this step if your contacts are already on this phone.", "Wyeksportuj plik .vcf na tamtym telefonie. Wyslij go na swoj email lub zapisz na swoim Dysku, potem pobierz na telefonie, na ktorym uzywasz NOSMO. Wybierz Mam plik kontaktow i wskaz plik. Ten krok nie jest potrzebny, jesli kontakty sa juz na tym telefonie.")}</p>
-      <p>{t("Import work contacts only. Exporting creates a copy and does not move contacts out of your Contacts app.", "Importuj tylko kontakty do pracy. Eksport tworzy kopie i nie przenosi kontaktow z aplikacji Kontakty.")}</p>
+    <h3>{t("Need a contacts file?", "Potrzebujesz pliku kontaktow?")}</h3>
+    <p>{t("Choose your phone. We will show you how.", "Wybierz telefon. Pokazemy Ci, jak to zrobic.")}</p>
+    <div className="contact-system-options" role="group" aria-label={t("Phone system", "System telefonu")}>
+      <button type="button" aria-pressed={system === "android"} onClick={() => { setSystem("android"); setContacts(null); }}>Android</button>
+      <button type="button" aria-pressed={system === "iphone"} onClick={() => { setSystem("iphone"); setContacts(null); }}>iPhone</button>
     </div>
+    {system === "android" && <>
+      <p>{t("Which Contacts app do you use?", "Ktorej aplikacji Kontakty uzywasz?")}</p>
+      <div className="contact-system-options" role="group" aria-label={t("Contacts app", "Aplikacja Kontakty")}>
+        <button type="button" aria-pressed={contacts === "samsung"} onClick={() => setContacts("samsung")}>Samsung</button>
+        <button type="button" aria-pressed={contacts === "google"} onClick={() => setContacts("google")}>Google</button>
+      </div>
+    </>}
+    {ready && <section className="contact-selected-guide" aria-label={t("Contact import instructions", "Instrukcja importu kontaktow")}>
+      <ol>{steps.map((step, i) => <li key={i}>{step}</li>)}
+        <li>{t("Return to NOSMO → I have a contacts file → choose the saved .vcf file.", "Wroc do NOSMO → Mam plik kontaktow → wybierz zapisany plik .vcf.")}</li>
+      </ol>
+      <p>{t("Use work contacts only. Your original contacts stay on your phone.", "Uzyj tylko kontaktow do pracy. Oryginalne kontakty zostaja na telefonie.")}</p>
+      <details><summary>{t("Cannot find the file?", "Nie widzisz pliku?")}</summary>
+        <p>{t("Search for .vcf in Files or My Files. Menu names can vary by phone version. If your contacts are on another phone, export there and transfer the file to this phone using your own email or Drive.", "Wyszukaj .vcf w Plikach lub Moje pliki. Nazwy menu moga zalezec od wersji telefonu. Jesli kontakty masz na innym telefonie, wyeksportuj je tam i przenies plik na ten telefon przez swoj email lub Dysk.")}</p>
+      </details>
+    </section>}
   </div>;
 }
