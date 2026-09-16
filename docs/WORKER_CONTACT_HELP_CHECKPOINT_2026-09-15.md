@@ -22,3 +22,7 @@ User reports saving OPENAI_API_KEY for Preview in Vercel. Secret not read or cop
 ## Inline instructions — 2026-09-16
 
 Source a15cba45fdfb41727127ba3ec2896b534c79f62f. Full contact instructions now visible without expanding, covering iPad/iPhone, Samsung/Android, saving/finding .vcf and transfer from another device. Preview dpl_HnFBH2A9APmG4AJJa8QJgmh9o8CD READY; https://nosmo-worker-v95-preview-6olijzhgb.vercel.app/ . Build passed; visual/mobile verification and acceptance pending. User screenshot of preceding fei0xaq8a Preview still shows not_configured while signed in: AI configuration blocker remains unresolved despite reported key setup. No production/Core/Agency/database changes.
+
+## Phone end-user correction — 2026-09-16
+
+Source aa722b9b0c6a294b8e963613fdf661fa8015ce5b. User clarified this is end-user phone onboarding, not instructions tailored to developer's iPad. Removed iPad-specific copy; full visible instructions cover iPhone, Samsung Contacts and Google Contacts with return to NOSMO on the same phone. Cross-device transfer is optional. Preview dpl_AvPHPKJuMfqpeSwdAWUBKNoibxNk READY: https://nosmo-worker-v95-preview-jf1fxsp5d.vercel.app/ . Build passed. Actual phone visual verification and user acceptance pending. AI configuration blocker unchanged; no production changes.
