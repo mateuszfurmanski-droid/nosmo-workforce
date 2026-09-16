@@ -1,10 +1,12 @@
-import { neon } from "@neondatabase/serverless";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
 
-type Sql = ReturnType<typeof neon>;
+type Sql = NeonQueryFunction<false, false>;
 type JsonRecord = Record<string, unknown>;
 
-type RequestIdentity = {
-  email: string;
+export type RequestIdentity = {
+  provider: "chatgpt-email-v1" | "clerk-v1";
+  subject: string;
   displayName: string;
 };
 
@@ -61,6 +63,7 @@ function asRecord(value: unknown): JsonRecord {
 }
 
 function requestIdentity(request: Request): RequestIdentity | null {
+  if (!sitesIdentityAllowed()) return null;
   const email = clean(
     request.headers.get("oai-authenticated-user-email"),
     320,
@@ -79,11 +82,11 @@ function requestIdentity(request: Request): RequestIdentity | null {
       displayName = email;
     }
   }
-  return { email, displayName };
+  return { provider: "chatgpt-email-v1", subject: email, displayName };
 }
 
-function requireIdentity(request: Request): RequestIdentity {
-  const identity = requestIdentity(request);
+function requireIdentity(request: Request, verifiedIdentity?: RequestIdentity | null): RequestIdentity {
+  const identity = verifiedIdentity ?? requestIdentity(request);
   if (!identity) throw new WorkerHttpError(401, "NEXUS_SIGN_IN_REQUIRED");
   return identity;
 }
@@ -98,12 +101,15 @@ async function sha256(value: string): Promise<string> {
   ).join("");
 }
 
-async function identityDigest(email: string): Promise<string> {
+async function identityDigest(identity: RequestIdentity): Promise<string> {
   const pepper = process.env.NEXUS_IDENTITY_PEPPER;
   if (!pepper) {
     throw new WorkerHttpError(503, "NEXUS_IDENTITY_NOT_CONFIGURED");
   }
-  return sha256(`${pepper}:${email.toLowerCase()}`);
+  const subject = identity.provider === "chatgpt-email-v1"
+    ? identity.subject.toLowerCase()
+    : `${identity.provider}:${identity.subject}`;
+  return sha256(`${pepper}:${subject}`);
 }
 
 function availabilityLabel(status: AvailabilityStatus, availableFrom: string | null) {
@@ -125,11 +131,11 @@ function parseStatus(value: unknown): AvailabilityStatus {
 }
 
 async function findPersonId(sql: Sql, identity: RequestIdentity) {
-  const digest = await identityDigest(identity.email);
+  const digest = await identityDigest(identity);
   const rows = await sql`
     SELECT person_id AS "personId"
     FROM nexus_identity_bindings
-    WHERE provider = 'chatgpt-email-v1'
+    WHERE provider = ${identity.provider}
       AND provider_subject_digest = ${digest}
       AND status = 'ACTIVE'
     LIMIT 1
@@ -201,7 +207,7 @@ async function ensureWorker(
           status, verified_at, created_at
         )
         VALUES (
-          ${bindingId}, 'chatgpt-email-v1', ${found.digest}, ${personId},
+          ${bindingId}, ${identity.provider}, ${found.digest}, ${personId},
           'ACTIVE', now(), now()
         )
         ON CONFLICT (provider, provider_subject_digest) DO NOTHING
@@ -234,9 +240,9 @@ async function ensureWorker(
   return { personId, selfInviteId, displayName, primaryTrade, location };
 }
 
-async function getStatus(request: Request): Promise<Response> {
+async function getStatus(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
-  const identity = requireIdentity(request);
   const found = await findPersonId(sql, identity);
   if (!found.personId) {
     return json({
@@ -272,9 +278,9 @@ async function getStatus(request: Request): Promise<Response> {
   });
 }
 
-async function updateStatus(request: Request): Promise<Response> {
+async function updateStatus(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
-  const identity = requireIdentity(request);
   const body = asRecord(await request.json().catch(() => null));
   const status = parseStatus(body.status);
   const availableFrom = status === "ready_on_date" ? safeDate(body.availableFrom) : null;
@@ -405,10 +411,10 @@ async function inviteFromToken(sql: Sql, token: string) {
   };
 }
 
-async function previewConnection(request: Request): Promise<Response> {
-  requireIdentity(request);
-  const url = new URL(request.url);
-  const token = clean(url.searchParams.get("token"), 300);
+async function previewConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  requireIdentity(request, verifiedIdentity);
+  const body = asRecord(await request.json().catch(() => null));
+  const token = clean(body.token, 300);
   if (!token) throw new WorkerHttpError(400, "NEXUS_INVITE_TOKEN_REQUIRED");
   const invite = await inviteFromToken(getSql(), token);
   return json({
@@ -421,9 +427,9 @@ async function previewConnection(request: Request): Promise<Response> {
   });
 }
 
-async function acceptConnection(request: Request): Promise<Response> {
+async function acceptConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
   const sql = getSql();
-  const identity = requireIdentity(request);
   const body = asRecord(await request.json().catch(() => null));
   const token = clean(body.token, 300);
   if (!token) throw new WorkerHttpError(400, "NEXUS_INVITE_TOKEN_REQUIRED");
@@ -480,10 +486,41 @@ async function acceptConnection(request: Request): Promise<Response> {
   });
 }
 
+async function revokeConnection(request: Request, verifiedIdentity?: RequestIdentity | null): Promise<Response> {
+  const identity = requireIdentity(request, verifiedIdentity);
+  const body = asRecord(await request.json().catch(() => null));
+  const agencyId = clean(body.agencyId, 255);
+  if (!agencyId) throw new WorkerHttpError(400, "NEXUS_AGENCY_ID_REQUIRED");
+  const sql = getSql();
+  const worker = await findPersonId(sql, identity);
+  if (!worker.personId) throw new WorkerHttpError(404, "NEXUS_CONNECTION_NOT_FOUND");
+  const eventId = `work-event-${crypto.randomUUID()}`;
+  const record = JSON.stringify({ schema: "nexus-worker-consent-revoked/v1", agencyId, scope: "RECRUITER_SAFE" });
+  const revoked = await sql`
+    WITH revoked_grant AS (
+      UPDATE nexus_person_agency_access_grants
+      SET status = 'REVOKED', revoked_at = now(), updated_at = now()
+      WHERE agency_id = ${agencyId}
+        AND person_id = ${worker.personId}
+        AND scope = 'RECRUITER_SAFE'
+        AND status = 'ACTIVE'
+      RETURNING person_id
+    )
+    INSERT INTO nexus_person_work_events (
+      event_id, person_id, invite_id, event_type, actor_type, record_json, persisted_at
+    )
+    SELECT ${eventId}, person_id, NULL, 'CONSENT_REVOKED', 'WORKER', ${record}::jsonb, now()
+    FROM revoked_grant
+    RETURNING event_id
+  `;
+  if (!revoked.length) throw new WorkerHttpError(404, "NEXUS_CONNECTION_NOT_FOUND");
+  return json({ schema: "nosmo-worker-connection-revoked/v1", revoked: true, agencyId });
+}
+
 function assertSameOrigin(request: Request) {
   if (request.method === "GET" || request.method === "HEAD") return;
   const origin = request.headers.get("origin");
-  if (!origin) return;
+  if (!origin) throw new WorkerHttpError(403, "NEXUS_ORIGIN_DENIED");
   let originUrl: URL;
   try {
     originUrl = new URL(origin);
@@ -498,18 +535,22 @@ function assertSameOrigin(request: Request) {
 export async function handleWorkerRequest(
   request: Request,
   path: string[],
+  verifiedIdentity?: RequestIdentity | null,
 ): Promise<Response> {
   try {
     assertSameOrigin(request);
     const method = request.method.toUpperCase();
     const route = path.join("/");
-    if (method === "GET" && route === "status") return await getStatus(request);
-    if (method === "PATCH" && route === "status") return await updateStatus(request);
-    if (method === "GET" && route === "connection") {
-      return await previewConnection(request);
+    if (method === "GET" && route === "status") return await getStatus(request, verifiedIdentity);
+    if (method === "PATCH" && route === "status") return await updateStatus(request, verifiedIdentity);
+    if (method === "POST" && route === "connection/preview") {
+      return await previewConnection(request, verifiedIdentity);
     }
     if (method === "POST" && route === "connection") {
-      return await acceptConnection(request);
+      return await acceptConnection(request, verifiedIdentity);
+    }
+    if (method === "DELETE" && route === "connection") {
+      return await revokeConnection(request, verifiedIdentity);
     }
     return json({ error: "NEXUS_WORKER_ROUTE_NOT_FOUND" }, 404);
   } catch (error) {

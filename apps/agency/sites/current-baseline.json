@@ -1,0 +1,23 @@
+{
+  "schema": "nosmo-agency-sites-baseline/v1",
+  "acceptedOn": "2026-09-13",
+  "provider": "ChatGPT Sites",
+  "projectId": "appgprj_6a967b267b348191904db8faca122765",
+  "versionNumber": 28,
+  "commitSha": "96d342f04f1112c22f13cd5c7bb8f55856f887c8",
+  "gitTree": "aceeed8ea6a8669c1c7bcaa5ec852b488a15bdc1",
+  "displayedVersion": "V1.0026",
+  "publicUrl": "https://nosmo-agency.mateusz-furmanski.chatgpt.site",
+  "sourceRepositoryVerified": true,
+  "savedButNotDeployedVersion": {
+    "versionNumber": 29,
+    "commitSha": "bfdbbe10ab052a584cff0f14d36983ffdb48c499",
+    "accepted": false
+  },
+  "sha256": {
+    "app/page.tsx": "ce99aa7593508c7c813f4947668a58f587374026f362eec5b9beeea46ea87624",
+    "app/globals.css": "c18756524836baa12e4a9a62bb78bcce5d01b8470d60b00ec1ab1ddbfea5caca",
+    "app/agency-server.ts": "4682422f983cefaadb0cab2561a9d37e68580c0615270a567f5cb8534182fffe",
+    "package-lock.json": "3251d415b827d27f0ffdbb88e4e11cb4a21aa311cadc3f264b0d2481908276f1"
+  }
+}

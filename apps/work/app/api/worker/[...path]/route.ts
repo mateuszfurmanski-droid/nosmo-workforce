@@ -1,3 +1,5 @@
+import { getChatGPTUser } from "../../../chatgpt-auth";
+import { secureWorkerRequest } from "../../../worker-security";
 import { handleWorkerRequest } from "../../../worker-server";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +10,10 @@ type RouteContext = {
 
 async function dispatch(request: Request, context: RouteContext) {
   const { path } = await context.params;
-  return handleWorkerRequest(request, path);
+  return secureWorkerRequest(request, path, async () => {
+    const user = await getChatGPTUser();
+    return handleWorkerRequest(request, path, user);
+  });
 }
 
 export const GET = dispatch;
