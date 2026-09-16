@@ -26,3 +26,7 @@ Source a15cba45fdfb41727127ba3ec2896b534c79f62f. Full contact instructions now v
 ## Phone end-user correction — 2026-09-16
 
 Source aa722b9b0c6a294b8e963613fdf661fa8015ce5b. User clarified this is end-user phone onboarding, not instructions tailored to developer's iPad. Removed iPad-specific copy; full visible instructions cover iPhone, Samsung Contacts and Google Contacts with return to NOSMO on the same phone. Cross-device transfer is optional. Preview dpl_AvPHPKJuMfqpeSwdAWUBKNoibxNk READY: https://nosmo-worker-v95-preview-jf1fxsp5d.vercel.app/ . Build passed. Actual phone visual verification and user acceptance pending. AI configuration blocker unchanged; no production changes.
+
+## System selection — 2026-09-16
+
+Contact guide now starts with Android/iPhone selection; Android then asks Samsung/Google. Only the selected four-step guide is rendered. Shortened onboarding introduction; extra file-finding help remains optional. TSX syntax checks passed for both components. Deployment dpl_8EKrX1Wnsh7BkcmUBZVcJibHYxiU READY, https://nosmo-worker-v95-preview-frmfo9vr5.vercel.app/ . Build passed, no production aliases. Browser/mobile interaction verification and user acceptance pending. AI configuration remains unresolved. Source commit 6ad082021cfedd1347c5b0f3a7d7fc2c3568195f.
