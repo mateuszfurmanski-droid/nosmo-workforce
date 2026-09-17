@@ -5,6 +5,15 @@ Target path: `apps/agency/`
 
 Canonical migration baseline: NOSMO Agency V1.0024.
 
+Current accepted live UI baseline (confirmed 2026-09-13): NOSMO Agency V1.0026,
+ChatGPT Sites version 28, source commit
+`96d342f04f1112c22f13cd5c7bb8f55856f887c8`. The original V1.0024 migration
+baseline below remains historical provenance and must not replace the newer accepted
+UI. Saved-but-unpublished Sites version 29 is not accepted.
+
+The accepted version 28 client is now captured under `sites/v28/public` and is the
+only client mirrored into the hardened runtime. Version 24 remains historical.
+
 Source preservation lineage:
 
 - existing Sites project: `appgprj_6a967b267b348191904db8faca122765`

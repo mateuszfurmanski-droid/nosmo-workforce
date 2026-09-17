@@ -11,6 +11,10 @@ import "./camera.css";
 import "./dark.css";
 import "./compact-theme.css";
 import "./apps-command.css";
+import WorkerAuthControls from "./worker-auth-controls";
+import WorkerFirstLogin from "./worker-first-login";
+import WorkerContactHelp from "./worker-contact-help";
+import WorkerAppActions, { SignedInAppActions } from "./worker-app-actions";
 import {
   Bell,
   Bot,
@@ -47,6 +51,8 @@ import {
   X,
 } from "lucide-react";
 type Status = "New" | "To apply" | "Applied" | "Reply" | "Interview" | "Offer" | "Rejected" | "Closed";
+const CLERK_AUTH_ENABLED = process.env.NEXT_PUBLIC_NOSMO_AUTH_MODE === "clerk";
+const SIGN_IN_HREF = "/auth/sign-in?return_to=%2F";
 type Job = {
   id: number;
   company: string;
@@ -1066,7 +1072,7 @@ const UI_TEXT = {
     dataHelp: "Storage, backup and original demo data",
     allSettings: "All settings",
     appsTitle: "Apps",
-    appsIntro: "Work tools first. Connected services stay folded until you need them.",
+    appsIntro: "Choose an app. Tell Nexus what you want to do.",
     workTools: "WORK TOOLS",
     connectedApps: "CONNECTED APPS",
     connectedAppsHelp: "Email, messages, job boards and site services",
@@ -1113,7 +1119,7 @@ const UI_TEXT = {
     dataHelp: "Pamięć, kopia zapasowa i początkowe dane demonstracyjne",
     allSettings: "Wszystkie ustawienia",
     appsTitle: "Aplikacje",
-    appsIntro: "Najpierw narzędzia pracy. Połączone usługi są schowane, dopóki ich nie potrzebujesz.",
+    appsIntro: "Wybierz apke. Napisz Nexusowi, co chcesz zrobic.",
     workTools: "NARZĘDZIA PRACY",
     connectedApps: "POŁĄCZONE APLIKACJE",
     connectedAppsHelp: "E-mail, wiadomości, portale pracy i usługi budowlane",
@@ -1373,6 +1379,7 @@ export default function Home() {
     [nativeShareConflict, setNativeShareConflict] = useState<NativeShareConflict | null>(null),
     [availabilitySyncState, setAvailabilitySyncState] = useState<AvailabilitySyncState>("loading"),
     [connectedAgencies, setConnectedAgencies] = useState<ConnectedAgency[]>([]),
+    [revokingAgency, setRevokingAgency] = useState<string | null>(null),
     [availabilitySyncedAt, setAvailabilitySyncedAt] = useState(""),
     [connectionInvite, setConnectionInvite] = useState<WorkerConnectionInvite | null>(null),
     [pendingConnectionToken, setPendingConnectionToken] = useState(""),
@@ -2158,15 +2165,8 @@ export default function Home() {
   }, []);
   useEffect(() => {
     void loadWorkerStatus();
-    const token = new URLSearchParams(window.location.search).get("connect")?.trim() || "";
-    if (token) {
-      queueMicrotask(() => {
-        setPendingConnectionToken(token);
-        setActive("Worker Card");
-        void loadConnectionInvite(token);
-      });
-    }
-    // Initial identity and invite resolution only.
+    // Initial server-side identity resolution only. Invitation authority is
+    // deliberately entered in-page and never recovered from a browser URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -2432,6 +2432,12 @@ export default function Home() {
     }
   }
   async function loadConnectionInvite(token: string) {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
+      setConnectionNotice("Paste the invitation code before reviewing the agency.");
+      return;
+    }
+    setPendingConnectionToken(normalizedToken);
     setConnectionNotice("Checking secure agency invitation...");
     try {
       const result = await workerApi<{
@@ -2439,14 +2445,31 @@ export default function Home() {
         suggestedTrade: string | null;
         suggestedLocation: string | null;
         expiresAt: string;
-      }>(`/connection?token=${encodeURIComponent(token)}`);
-      setConnectionInvite({ token, ...result });
+      }>("/connection/preview", {
+        method: "POST",
+        body: JSON.stringify({ token: normalizedToken }),
+      });
+      setConnectionInvite({ token: normalizedToken, ...result });
       setConnectionNotice("");
     } catch (error) {
       const status = (error as Error & { status?: number }).status;
       setConnectionNotice(status === 401
         ? "Sign in with ChatGPT to review this agency connection."
         : "This agency connection link is unavailable or has expired.");
+    }
+  }
+  async function stopAgencySharing(agency: ConnectedAgency) {
+    if (!window.confirm(`Stop sharing your live Worker profile with ${agency.name}? Their own recruitment records will remain. Reconnecting will require a new invitation.`)) return;
+    setRevokingAgency(agency.agencyId);
+    try {
+      await workerApi("/connection", { method: "DELETE", body: JSON.stringify({ agencyId: agency.agencyId }) });
+      setConnectedAgencies((current) => current.filter((item) => item.agencyId !== agency.agencyId));
+      setConnectionNotice(`Sharing with ${agency.name} has stopped.`);
+      await loadWorkerStatus();
+    } catch {
+      setConnectionNotice("Could not confirm that sharing stopped. Please try again.");
+    } finally {
+      setRevokingAgency(null);
     }
   }
   async function acceptAgencyConnection() {
@@ -2472,7 +2495,6 @@ export default function Home() {
       setConnectionNotice(`${connectionInvite.agency.name} is connected. Future status changes update automatically.`);
       setConnectionInvite(null);
       setPendingConnectionToken("");
-      window.history.replaceState({}, "", window.location.pathname);
       await loadWorkerStatus();
     } catch {
       setConnectionNotice("The agency could not be connected. Ask them for a new secure link.");
@@ -2980,14 +3002,18 @@ export default function Home() {
     </div>;
   }
   return (
-    <main className="shell">
+    <main id="worker-app" className="shell">
       <section className="work">
         <div className="worker-nexus-bar">
           <button aria-label="Open Ask Nexus" aria-expanded={askNexusModal} onClick={() => setAskNexusModal(true)}>
-            <img src="/nexus-logo-ui-mark-n.png" alt="NEXUS"/>
+            <span className="nexus-theme-mark" role="img" aria-label="NEXUS" />
             <span><small>ASK NEXUS</small><b>{ui.askPrompt}</b></span>
             <ChevronDown />
           </button>
+          {CLERK_AUTH_ENABLED && <WorkerAuthControls />}
+          <a className="worker-emergency-shortcut" href="https://nosmo-emergency-button.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Open NOSMO Emergency" title="NOSMO Emergency">
+            <strong aria-hidden="true">!</strong>
+          </a>
         </div>
         <header>
           <b className="mobile-title">NOSMO Work</b>
@@ -2997,6 +3023,16 @@ export default function Home() {
           </button>
         </header>
         <div className="content">
+          {CLERK_AUTH_ENABLED && <WorkerFirstLogin
+            language={language}
+            showResume={active === "Settings"}
+            onContacts={importPhoneContacts}
+            onContactFile={(files) => importFiles("Contacts", files)}
+            onDocuments={async (files) => { setActive("Documents"); await analyseNexusFiles(files); }}
+            onFinish={() => setActive("Worker Card")}
+            contactNotice={importNotice}
+            documentNotice={nexusImportNotice}
+          />}
           {active === "Overview" && (
             <section className="home-person">
               <button className="home-avatar" onClick={() => setActive("Worker Card")} aria-label="View Worker Card">{profile.name.split(" ").map((part) => part[0]).join("").slice(0,2)}</button>
@@ -3018,7 +3054,7 @@ export default function Home() {
             <section id="work-search-results" className="home-search-results">
               <div className="home-results-head"><div><small>SEARCH RESULTS</small><h2>{globalSearchKind}</h2></div><span>{globalSearchKind === "Work" ? `${liveSearchJobs?.length ?? 0} saved in this search` : "Search options"}</span></div>
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Ask Nexus is searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently. Progress is checked automatically.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={setSelected}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, true)}</small></div>}
@@ -3073,7 +3109,7 @@ export default function Home() {
                   </details>
                   <p className="jobs-search-promise"><Check/><span>Up to 20 verified direct vacancies per batch. New results are saved here automatically; duplicates are skipped.</span></p>
                   {globalSearchStatus === "running" && <div className="search-live-state"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
                   {searchMeta && globalSearchStatus === "idle" && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} new {searchMeta.returned === 1 ? "job" : "jobs"} saved in Jobs</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 </section>
               )}
@@ -3345,6 +3381,26 @@ export default function Home() {
                   </div>
                 </div>
                 {profilePhotoNotice && <div className="profile-photo-notice" role="status"><Check />{profilePhotoNotice}</div>}
+                {!connectionInvite && (
+                  <form className="worker-invite-code" onSubmit={(event) => { event.preventDefault(); void loadConnectionInvite(pendingConnectionToken); }}>
+                    <ShieldCheck />
+                    <div>
+                      <small>SECURE AGENCY CONNECTION</small>
+                      <h3>Review an agency invitation</h3>
+                      <p>Paste the one-time code from the recruiter. The code stays in this page only and is never placed in the browser address.</p>
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-label="Agency invitation code"
+                        value={pendingConnectionToken}
+                        onChange={(event) => { setPendingConnectionToken(event.target.value); setConnectionNotice(""); }}
+                        placeholder="Paste invitation code"
+                      />
+                    </div>
+                    <button type="submit" disabled={!pendingConnectionToken.trim()}>Review</button>
+                  </form>
+                )}
                 {connectionInvite && (
                   <section className="worker-connection-invite" aria-labelledby="worker-connection-title">
                     <ShieldCheck />
@@ -3360,8 +3416,8 @@ export default function Home() {
                 {!connectionInvite && pendingConnectionToken && availabilitySyncState === "sign-in-required" && (
                   <section className="worker-connection-invite needs-sign-in">
                     <ShieldCheck />
-                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this link</h3><p>The invitation stays pending until you explicitly approve it.</p></div>
-                    <a href={`/signin-with-chatgpt?return_to=${encodeURIComponent(`/?connect=${pendingConnectionToken}`)}`} target="_top">Sign in</a>
+                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this invitation</h3><p>After sign-in, paste the code again. Nothing is shared until you explicitly approve it.</p></div>
+                    <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                   </section>
                 )}
                 <section className="availability-command" aria-labelledby="availability-command-title">
@@ -3405,11 +3461,19 @@ export default function Home() {
                               : "No message is sent."}</small>
                     </span>
                     {availabilitySyncState === "sign-in-required"
-                      ? <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
+                      ? <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                       : availabilitySyncState === "error"
                         ? <button type="button" onClick={() => void syncAvailability(availability, profile.availableFrom)}>Retry</button>
                         : null}
                   </div>
+                  {connectedAgencies.length > 0 && <div className="worker-sharing-controls" aria-label="Agency sharing permissions">
+                    {connectedAgencies.map((agency) => <div key={agency.agencyId}>
+                      <span>{agency.name}</span>
+                      <button type="button" disabled={revokingAgency !== null} onClick={() => void stopAgencySharing(agency)}>
+                        {revokingAgency === agency.agencyId ? "Stopping..." : "Stop sharing"}
+                      </button>
+                    </div>)}
+                  </div>}
                   {connectionNotice && <small className="worker-connection-notice"><Check />{connectionNotice}</small>}
                 </section>
                 <details className="worker-card-details">
@@ -3437,8 +3501,7 @@ export default function Home() {
               </section>
             </>
           )}
-          {active === "Apps" && (
-            <section className="nexus-command-page" aria-labelledby="apps-command-title">
+            <section hidden={active !== "Apps"} className="nexus-command-page" aria-labelledby="apps-command-title">
               <header className="nexus-command-head">
                 <div>
                   <span className="nexus-command-identity"><small>NOSMO WORK</small><em>Powered by NEXUS</em></span>
@@ -3447,6 +3510,10 @@ export default function Home() {
                 </div>
                 <span className="nexus-command-security" title="Private launcher"><ShieldCheck/></span>
               </header>
+
+              {CLERK_AUTH_ENABLED
+                ? <SignedInAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />
+                : <WorkerAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />}
 
               <div className="nexus-command-section-title"><small>{ui.workTools}</small><span/></div>
               <section className="nexus-command-grid" aria-label="Work tools">
@@ -3475,29 +3542,7 @@ export default function Home() {
                 <button type="button" className="nexus-command-module" onClick={()=>{setDocumentCategory("ID / Right to Work");setActive("Documents")}}><i className="nexus-command-icon"><ShieldCheck/></i><span>{ui.privateVault}</span><em className="nexus-command-signal is-core" aria-hidden="true"/></button>
               </section>
 
-              <details className="nexus-command-disclosure">
-                <summary>
-                  <span><small>{ui.connectedApps}</small><b>{ui.connectedAppsHelp}</b></span>
-                  <em>{ui.appsCount}</em>
-                  <ChevronDown/>
-                </summary>
-                <section className="nexus-command-grid nexus-command-grid--external" aria-label="Connected work apps">
-                  {[
-                    {name:"Gmail",src:"/app-icons/gmail.svg",glyph:"",icon:null,url:"https://mail.google.com/",tone:"gmail"},
-                    {name:"WhatsApp",src:"/app-icons/whatsapp.svg",glyph:"",icon:null,url:whatsappUrl(),tone:"whatsapp"},
-                    {name:"Call",src:"",glyph:"",icon:Phone,url:"tel:",tone:"call"},
-                    {name:"Messages",src:"",glyph:"",icon:Send,url:"sms:",tone:"messages"},
-                    {name:"Indeed",src:"/app-icons/indeed.svg",glyph:"",icon:null,url:"https://uk.indeed.com/",tone:"indeed"},
-                    {name:"LinkedIn",src:"",glyph:"in",icon:null,url:"https://www.linkedin.com/jobs/",tone:"linkedin"},
-                    {name:"Reed",src:"",glyph:"R•••",icon:null,url:"https://www.reed.co.uk/jobs",tone:"reed"},
-                    {name:"Totaljobs",src:"",glyph:"tj",icon:null,url:"https://www.totaljobs.com/",tone:"totaljobs"},
-                    {name:"CV-Library",src:"",glyph:"CV",icon:null,url:"https://www.cv-library.co.uk/",tone:"cvlib"},
-                    {name:"Drive",src:"/app-icons/drive.svg",glyph:"",icon:null,url:"https://drive.google.com/",tone:"drive"},
-                    {name:"Calendar",src:"",glyph:"",icon:CalendarDays,url:"https://calendar.google.com/",tone:"calendar"},
-                    {name:"CSCS / CITB",src:"",glyph:"CSCS",icon:null,url:"https://www.cscs.uk.com/",tone:"cscs"},
-                  ].map((app)=>{const Icon=app.icon;return <button type="button" className={`nexus-command-module nexus-command-module--external tone-${app.tone}`} key={app.name} onClick={()=>openExternal(app.url)}><i className="nexus-command-icon">{app.src ? <img src={app.src} alt=""/> : Icon ? <Icon/> : <b className={`nexus-command-glyph glyph-${app.tone}`}>{app.glyph}</b>}</i><span>{app.name}</span><ExternalLink className="nexus-command-action" aria-hidden="true"/></button>})}
-                </section>
-              </details>
+
 
               <section className="nexus-command-manage" aria-label="App and import settings">
                 <button type="button" onClick={openIntegrations}><i><Plus/></i><span><b>{ui.manageApps}</b><small>{ui.manageAppsHelp}</small></span><ChevronRight/></button>
@@ -3506,7 +3551,6 @@ export default function Home() {
 
               <footer className="nexus-command-privacy"><ShieldCheck/><span>{ui.privateLauncher}</span></footer>
             </section>
-          )}
           {active === "Settings" && (
             <>
               <header className="settings-page-head">
@@ -3755,6 +3799,8 @@ export default function Home() {
                     <i><CircleUserRound /></i>
                     <div><h3>Contacts</h3><p>Choose individual phone contacts. On supported Android browsers the system contact picker opens directly.</p><small>Fallback: import a .vcf contact file.</small></div>
                     <button onClick={() => void importPhoneContacts()}>Select contacts</button>
+                    <WorkerContactHelp language={language}/>
+                    <button type="button" onClick={() => document.getElementById("nosmo-contact-file")?.click()}>{language === "pl" ? "Mam plik kontaktow" : "I have a contacts file"}</button>
                     <input id="nosmo-contact-file" hidden type="file" accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => { void importFiles("Contacts", event.target.files); event.target.value = ""; }} />
                   </article>
                   <article>
@@ -3764,7 +3810,7 @@ export default function Home() {
                   </article>
                 </section>
               </details>
-              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} defaultOpen={importRecords.length > 0}>
+              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} open={importRecords.length > 0}>
                 <summary>
                   <div><small>PRIVATE INBOX</small><h2>Imported items</h2><p>{importRecords.length} item{importRecords.length === 1 ? "" : "s"} saved on this device</p></div>
                   <span>{importRecords.length || "Empty"}<ChevronDown/></span>
@@ -3785,11 +3831,11 @@ export default function Home() {
         </div>
       </section>
       <nav className="bottom-nav worker-bottom-nav">
-        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><CircleUserRound/>{ui.workerCard}</button>
-        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><FileText/>{ui.documents}</button>
-        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><BriefcaseBusiness/>{ui.jobs}</button>
-        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><Smartphone/>{ui.appsTitle}</button>
-        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><Settings/>{ui.settingsTitle}</button>
+        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM7 9h3v3H7zM6 16h5M14 9h4M14 13h4M14 16h3"/></svg>{ui.workerCard}</button>
+        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h8"/></svg>{ui.documents}</button>
+        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3zM8 7V3h8v4M3 12h18M10 12v3h4v-3"/></svg>{ui.jobs}</button>
+        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>{ui.appsTitle}</button>
+        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4m4 0h10M3 12h10m4 0h4M3 18h4m4 0h10M7 3h4v6H7zM13 9h4v6h-4zM7 15h4v6H7z"/></svg>{ui.settingsTitle}</button>
       </nav>
       {contactEditor && (
         <div className="backdrop" onMouseDown={() => setContactEditor(null)}>
@@ -3917,7 +3963,7 @@ export default function Home() {
             <div className="unified-search-box"><Search/><input autoFocus disabled={globalSearchStatus === "running"} value={query} onChange={(e) => { setQuery(e.target.value); resetLiveSearchSession(); }} onKeyDown={(e) => { if (e.key === "Enter") runGlobalSearch(); }} placeholder={globalSearchKind === "Tools & materials" ? "e.g. impact driver, OSB boards, 5x80 screws" : "What do you need?"}/><button disabled={globalSearchStatus === "running"} onClick={() => runGlobalSearch()}>{globalSearchStatus === "running" ? "Searching..." : "Search"}</button></div>
             {query.trim() && <div className="nexus-modal-results">
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={(job) => { setSelected(job); setAskNexusModal(false); }}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, false)}</small></div>}
