@@ -13,11 +13,13 @@ export type RequestIdentity = {
 type AvailabilityStatus = "available" | "busy" | "ready_on_date";
 
 class WorkerHttpError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-  ) {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string) {
     super(code);
+    this.status = status;
+    this.code = code;
   }
 }
 

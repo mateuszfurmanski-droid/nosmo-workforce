@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const appActions = await readFile(new URL("../app/worker-app-actions.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/apps-command.css", import.meta.url), "utf8");
 
 test("V1.0102 keeps the Apps screen as a NOSMO Work command deck", () => {
@@ -19,39 +20,41 @@ test("CSCS mark stays inside its icon column and privacy copy describes chosen i
   assert.doesNotMatch(page, /NOSMO does not scan your installed apps/);
 });
 
-test("command deck puts four work tools first and folds connected services", () => {
+test("command deck puts the twelve chat-first apps before the four work tools", () => {
+  const apps = page.indexOf("<SignedInAppActions");
   const tools = page.indexOf("{ui.workTools}");
-  const connected = page.indexOf("nexus-command-disclosure", tools);
-  const manage = page.indexOf("nexus-command-manage", connected);
-  assert.ok(tools > -1 && connected > tools && manage > connected);
+  const manage = page.indexOf("nexus-command-manage", tools);
+  assert.ok(apps > -1 && tools > apps && manage > tools);
   assert.match(page, /aria-label="Work tools"/);
-  assert.match(page, /aria-label="Connected work apps"/);
-  assert.match(page, /<details className="nexus-command-disclosure">/);
+  assert.match(appActions, /aria-label="Connected work apps"/);
+  assert.equal((appActions.match(/\{ name: /g) || []).length, 12);
+  assert.doesNotMatch(appActions, /nexus-command-disclosure/);
   assert.match(page, /aria-label="App and import settings"/);
   assert.doesNotMatch(page, /aria-label="NOSMO core apps"/);
 });
 
 test("all required modules retain their real destinations", () => {
+  const source = `${page}\n${appActions}`;
   for (const label of [
     "Drawings", "Nexus Upload", "Work Camera", "Private Vault", "Manage apps & imports",
     "Gmail", "WhatsApp", "Call", "Messages", "Indeed",
     "LinkedIn", "Reed", "Totaljobs", "CV-Library", "Drive", "Calendar", "CSCS / CITB",
-  ]) assert.match(page, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  ]) assert.match(source, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 
   assert.match(page, /setActive\("Drawings"\)/);
   assert.match(page, /setWorkCameraModal\(true\)/);
   assert.match(page, /setDocumentCategory\("ID \/ Right to Work"\);setActive\("Documents"\)/);
   assert.match(page, /onClick=\{openIntegrations\}/);
   assert.match(page, /analyseNexusFiles\(files\)/);
-  assert.match(page, /https:\/\/mail\.google\.com\//);
-  assert.match(page, /https:\/\/uk\.indeed\.com\//);
-  assert.match(page, /https:\/\/www\.linkedin\.com\/jobs\//);
-  assert.match(page, /https:\/\/www\.reed\.co\.uk\/jobs/);
-  assert.match(page, /https:\/\/www\.totaljobs\.com\//);
-  assert.match(page, /https:\/\/www\.cv-library\.co\.uk\//);
-  assert.match(page, /https:\/\/drive\.google\.com\//);
-  assert.match(page, /https:\/\/calendar\.google\.com\//);
-  assert.match(page, /https:\/\/www\.cscs\.uk\.com\//);
+  assert.match(source, /https:\/\/mail\.google\.com\//);
+  assert.match(source, /https:\/\/uk\.indeed\.com\//);
+  assert.match(source, /https:\/\/www\.linkedin\.com\/jobs\//);
+  assert.match(source, /https:\/\/www\.reed\.co\.uk\/jobs/);
+  assert.match(source, /https:\/\/www\.totaljobs\.com\//);
+  assert.match(source, /https:\/\/www\.cv-library\.co\.uk\//);
+  assert.match(source, /https:\/\/drive\.google\.com\//);
+  assert.match(source, /https:\/\/calendar\.google\.com\//);
+  assert.match(source, /https:\/\/www\.cscs\.uk\.com\//);
 });
 
 test("mobile command deck is angular, readable and two-column without decorative gradients", () => {

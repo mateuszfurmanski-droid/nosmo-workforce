@@ -31,12 +31,13 @@ type BackgroundTask = { responseId: string; laneId: string };
 type CompletedLane = { lane: SearchLane; result: Record<string, unknown> };
 
 class SearchUpstreamError extends Error {
-  constructor(
-    message: string,
-    readonly code: string,
-    readonly status: number,
-  ) {
+  readonly code: string;
+  readonly status: number;
+
+  constructor(message: string, code: string, status: number) {
     super(message);
+    this.code = code;
+    this.status = status;
   }
 }
 
