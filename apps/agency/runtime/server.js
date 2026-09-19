@@ -6,11 +6,12 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import pg from "pg";
 import * as oidc from "openid-client";
+import {usesClerk,clerkLoginPage,verifyClerkLogin,readValidatedSession,revokeClerkSession} from "./clerk-auth.js";
 
 const {Pool}=pg;
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express();
-const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:undefined});
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:true}:undefined});
 const SESSION_COOKIE="sid";
 const SESSION_TTL_MS=7*24*60*60*1000;
 const OIDC_COOKIE_TTL_MS=10*60*1000;
@@ -44,12 +45,38 @@ function bool(value){return value===true||String(value).toLowerCase()==="true"}
 function safeInt(value,fallback=1,max=10000){const n=Number.parseInt(String(value??""),10);return Number.isFinite(n)&&n>0?Math.min(n,max):fallback}
 function safeNumber(value){if(value===null||value===undefined||value==="")return null;const n=Number(value);return Number.isFinite(n)&&n>=0?n:null}
 
+function createInviteToken(secret,{inviteId,agency,agencyId,trade,location,createdAt,expiresAt}){
+  const payload={
+    schema:"nexus-person-onboarding-invite/v1",
+    inviteId:String(inviteId),
+    agency:String(agency),
+    agencyId:String(agencyId),
+    issuedAt:new Date(createdAt).getTime(),
+    expiresAt:new Date(expiresAt).getTime(),
+  };
+  if(trade)payload.trade=String(trade);
+  if(location)payload.location=String(location);
+  const body=Buffer.from(JSON.stringify(payload),"utf8").toString("base64url");
+  const signature=crypto.createHmac("sha256",secret).update(body).digest("base64url");
+  return `${body}.${signature}`;
+}
+function inviteDigest(token){return crypto.createHash("sha256").update(token,"utf8").digest("hex")}
+function equalDigest(a,b){
+  try{const left=Buffer.from(String(a),"hex"),right=Buffer.from(String(b),"hex");return left.length===right.length&&crypto.timingSafeEqual(left,right)}catch{return false}
+}
+function configuredWorkAppUrl(res){
+  const value=process.env.WORK_APP_BASE_URL?.trim();
+  if(!value){res.status(503).json({error:"WORK_APP_BASE_URL_REQUIRED"});return null}
+  try{const url=new URL(value);url.username="";url.password="";url.search="";url.hash="";return url}
+  catch{res.status(503).json({error:"WORK_APP_BASE_URL_INVALID"});return null}
+}
+
 function getOrigin(req){
   const proto=String(req.headers["x-forwarded-proto"]||req.protocol||"https").split(",")[0].trim();
   const host=String(req.headers["x-forwarded-host"]||req.headers.host||"localhost").split(",")[0].trim();
   return `${proto}://${host}`;
 }
-function safeReturnTo(value){return typeof value==="string"&&value.startsWith("/")&&!value.startsWith("//")?value:"/"}
+function safeReturnTo(value){return typeof value==="string"&&value.startsWith("/")&&!value.startsWith("//")&&!/[\\\r\n]/.test(value)?value:"/"}
 function setCookie(res,name,value,maxAge){res.cookie(name,value,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge})}
 function sameOrigin(req){
   const expected=getOrigin(req);
@@ -82,6 +109,11 @@ function sessionId(req){const auth=req.headers.authorization;return auth?.starts
 async function authMiddleware(req,res,next){
   req.user=null;
   req.isAuthenticated=()=>Boolean(req.user?.id);
+  if(usesClerk()){
+    const session=await readValidatedSession(req,pool);
+    req.user=session?.user||null;
+    next();return;
+  }
   const sid=sessionId(req);
   if(!sid){next();return}
   let session=await getSession(sid);
@@ -110,8 +142,23 @@ async function upsertUser(claims){
   return result.rows[0];
 }
 
+app.post("/api/auth/clerk-session",async(req,res)=>{
+  if(!usesClerk()){res.status(404).end();return}
+  if(!sameOrigin(req)){res.status(403).json({error:"NOSMO_CSRF_ORIGIN_DENIED"});return}
+  if(typeof req.body?.token!=="string"||req.body.token.length>16384){res.status(400).json({error:"NOSMO_CLERK_TOKEN_REQUIRED"});return}
+  let identity;
+  try{identity=await verifyClerkLogin(req.body.token)}
+  catch{res.status(401).json({error:"NOSMO_CLERK_AUTH_REQUIRED"});return}
+  const user=await upsertUser({sub:identity.subject,first_name:"NOSMO user"});
+  const sid=await createSession({...identity,user});
+  await deleteSession(req.cookies?.[SESSION_COOKIE]);
+  setCookie(res,SESSION_COOKIE,sid,Math.min(SESSION_TTL_MS,identity.expiresAt-Date.now()));
+  res.json({ok:true});
+});
 app.get("/api/auth/user",(req,res)=>res.json({user:req.isAuthenticated()?req.user:null}));
+app.get("/login",(req,res)=>res.redirect(307,`/api/login?returnTo=${encodeURIComponent(safeReturnTo(req.query.returnTo))}`));
 app.get("/api/login",async(req,res)=>{
+  if(usesClerk()){clerkLoginPage(res,safeReturnTo(req.query.returnTo));return}
   try{
     const config=await getOidc();
     const callbackUrl=`${getOrigin(req)}/api/callback`;
@@ -126,6 +173,7 @@ app.get("/api/login",async(req,res)=>{
   }catch(error){console.error("Agency login init failed",error);res.status(503).send("NOSMO Agency sign-in is not configured.")}
 });
 app.get("/api/callback",async(req,res)=>{
+  if(usesClerk()){res.redirect("/api/login");return}
   const verifier=req.cookies?.agency_code_verifier,nonce=req.cookies?.agency_nonce,expectedState=req.cookies?.agency_state;
   if(!verifier||!expectedState){res.redirect("/api/login");return}
   try{
@@ -145,6 +193,13 @@ app.get("/api/callback",async(req,res)=>{
 });
 app.post("/api/logout",async(req,res)=>{
   if(!sameOrigin(req)){res.status(403).json({error:"FORBIDDEN"});return}
+  if(usesClerk()){
+    const session=await readValidatedSession(req,pool);
+    await deleteSession(req.cookies?.[SESSION_COOKIE]);
+    res.clearCookie(SESSION_COOKIE,{path:"/"});
+    await revokeClerkSession(session);
+    res.json({redirectUrl:"/"});return;
+  }
   const sid=sessionId(req);await deleteSession(sid);res.clearCookie(SESSION_COOKIE,{path:"/"});
   try{const config=await getOidc();const redirect=oidc.buildEndSessionUrl(config,{client_id:OIDC_CLIENT_ID,post_logout_redirect_uri:getOrigin(req)});res.json({redirectUrl:redirect.href})}
   catch{res.json({redirectUrl:"/"})}
@@ -341,40 +396,56 @@ app.get("/api/person-card/agency/v1/invites/_health",async(req,res)=>{
   const agency=await requireAgency(req,res);if(!agency)return;
   res.json({schema:"nosmo-agency-invite-health/v1",inviteSigningConfigured:Boolean(process.env.NEXUS_ONBOARDING_INVITE_SECRET?.trim()),workAppBaseConfigured:Boolean(process.env.WORK_APP_BASE_URL?.trim()),consentGrantedByInvite:false});
 });
-app.post("/api/person-card/agency/v1/invites",async(req,res)=>{
+async function createAgencyInvite(req,res){
   const agency=await requireAgency(req,res);if(!agency)return;
   const secret=process.env.NEXUS_ONBOARDING_INVITE_SECRET?.trim();
   if(!secret||secret.length<32){res.status(503).json({error:"NEXUS_ONBOARDING_INVITE_SECRET_NOT_CONFIGURED"});return}
-  const workBase=process.env.WORK_APP_BASE_URL?.trim();
-  if(!workBase){res.status(503).json({error:"WORK_APP_BASE_URL_REQUIRED"});return}
-  let onboardingUrl;
-  try{onboardingUrl=new URL(workBase)}catch{res.status(503).json({error:"WORK_APP_BASE_URL_INVALID"});return}
+  const onboardingUrl=configuredWorkAppUrl(res);if(!onboardingUrl)return;
   const expiresInDays=Math.max(1,Math.min(14,safeInt(req.body?.expiresInDays,7,14)));
   const rosterWorkerId=clean(req.body?.rosterWorkerId,180)||null;
-  let trade=clean(req.body?.trade,120)||null,location=clean(req.body?.location,120)||null;
+  let trade=clean(req.body?.trade||req.body?.suggestedTrade,160)||null,location=clean(req.body?.location||req.body?.suggestedLocation,180)||null;
   if(rosterWorkerId){
     const roster=(await query(`select roster_worker_id as "rosterWorkerId",display_name as "displayName",record_json->>'trade' as trade,record_json->>'location' as location from nexus_person_agency_roster_workers where agency_id=$1 and roster_worker_id=$2 and status='ACTIVE' limit 1`,[agency.agencyId,rosterWorkerId])).rows[0];
     if(!roster){res.status(404).json({error:"NEXUS_AGENCY_ROSTER_WORKER_NOT_FOUND"});return}
     trade=trade||roster.trade||null;location=location||roster.location||null;
   }
-  const recruiter=(await query(`select display_name as "displayName",job_title as "jobTitle" from nexus_person_agency_recruiter_profiles where auth_user_id=$1 and agency_id=$2 limit 1`,[req.user.id,agency.agencyId])).rows[0]||{};
-  const issuedAt=Date.now(),expiresAt=issuedAt+expiresInDays*24*60*60*1000,inviteId=uuid("agency-invite");
-  const payload={schema:"nexus-person-onboarding-invite/v1",inviteId,agency:agency.name,agencyId:agency.agencyId,recruiterName:recruiter.displayName||req.user.email||"Recruiter",recruiterTitle:recruiter.jobTitle||undefined,trade:trade||undefined,location:location||undefined,message:clean(req.body?.message,240),issuedAt,expiresAt};
-  const body=Buffer.from(JSON.stringify(payload),"utf8").toString("base64url");
-  const signature=crypto.createHmac("sha256",secret).update(body).digest("base64url");
-  const token=`${body}.${signature}`;
-  const digest=crypto.createHash("sha256").update(token,"utf8").digest("hex");
+  const createdAt=new Date(),expiresAt=new Date(createdAt.getTime()+expiresInDays*24*60*60*1000),inviteId=uuid("agency-invite");
+  const token=createInviteToken(secret,{inviteId,agency:agency.name,agencyId:agency.agencyId,trade,location,createdAt,expiresAt});
+  const digest=inviteDigest(token);
   const client=await pool.connect();
   try{
     await client.query("begin");
-    await client.query(`insert into nexus_person_onboarding_invites (invite_id,token_digest,agency,agency_id,created_by_user_id,suggested_trade,suggested_location,message,status,expires_at,created_at,roster_worker_id) values ($1,$2,$3,$4,$5,$6,$7,$8,'ACTIVE',$9,now(),$10)`,[inviteId,digest,agency.name,agency.agencyId,req.user.id,trade,location,clean(req.body?.message,240)||null,new Date(expiresAt),rosterWorkerId]);
-    if(rosterWorkerId){await client.query(`update nexus_person_agency_roster_workers set connection_status='INVITED',invitation_sent_at=now(),invitation_expires_at=$3,updated_by_user_id=$4,updated_at=now() where agency_id=$1 and roster_worker_id=$2`,[agency.agencyId,rosterWorkerId,new Date(expiresAt),req.user.id])}
+    await client.query(`insert into nexus_person_onboarding_invites (invite_id,token_digest,agency,agency_id,created_by_user_id,suggested_trade,suggested_location,message,status,expires_at,created_at,roster_worker_id) values ($1,$2,$3,$4,$5,$6,$7,$8,'ACTIVE',$9,$10,$11)`,[inviteId,digest,agency.name,agency.agencyId,req.user.id,trade,location,clean(req.body?.message,240)||null,expiresAt,createdAt,rosterWorkerId]);
+    if(rosterWorkerId){await client.query(`update nexus_person_agency_roster_workers set connection_status='INVITED',invitation_sent_at=$3,invitation_expires_at=$4,updated_by_user_id=$5,updated_at=now() where agency_id=$1 and roster_worker_id=$2`,[agency.agencyId,rosterWorkerId,createdAt,expiresAt,req.user.id])}
     await client.query("commit");
   }catch(error){await client.query("rollback");console.error("Agency invite persistence failed",error);res.status(503).json({error:"NEXUS_AGENCY_INVITE_PERSIST_FAILED"});return}finally{client.release()}
-  onboardingUrl.searchParams.set("inviteToken",token);onboardingUrl.searchParams.set("inviteId",inviteId);onboardingUrl.searchParams.set("agency",agency.name);
-  if(trade)onboardingUrl.searchParams.set("trade",trade);if(location)onboardingUrl.searchParams.set("location",location);
-  res.status(201).json({schema:"nexus-person-onboarding-invite-created/v1",inviteId,expiresAt:new Date(expiresAt).toISOString(),onboardingUrl:onboardingUrl.toString(),invitePersisted:true,tenantScoped:true,consentGranted:false,recruiterSafeAccessGranted:false,privateWorkerFieldsIncluded:false});
-});
+  onboardingUrl.hash=`invite=${encodeURIComponent(inviteId)}`;
+  const compat=req.path.startsWith("/api/agency/");
+  res.status(201).json({schema:compat?"nosmo-agency-invite-compat/v2":"nexus-person-onboarding-invite-created/v2",inviteId,expiresInDays,expiresAt:expiresAt.toISOString(),agency:{agencyId:agency.agencyId,name:agency.name},connectUrl:onboardingUrl.toString(),onboardingUrl:onboardingUrl.toString(),invitePersisted:true,tenantScoped:true,credentialInUrl:false,deliveryRequiresAuthenticatedPost:true,consentGranted:false,recruiterSafeAccessGranted:false,privateWorkerFieldsIncluded:false});
+}
+
+async function deliverAgencyInvite(req,res){
+  const agency=await requireAgency(req,res);if(!agency)return;
+  const secret=process.env.NEXUS_ONBOARDING_INVITE_SECRET?.trim();
+  if(!secret||secret.length<32){res.status(503).json({error:"NEXUS_ONBOARDING_INVITE_SECRET_NOT_CONFIGURED"});return}
+  const workAppUrl=configuredWorkAppUrl(res);if(!workAppUrl)return;
+  const inviteId=clean(req.params.inviteId,180);
+  const result=await query(`select invite_id as "inviteId",token_digest as "tokenDigest",agency,agency_id as "agencyId",suggested_trade as trade,suggested_location as location,status,created_at as "createdAt",expires_at as "expiresAt" from nexus_person_onboarding_invites where agency_id=$1 and invite_id=$2 limit 1`,[agency.agencyId,inviteId]);
+  const invite=result.rows[0];
+  if(!invite){res.status(404).json({error:"NEXUS_AGENCY_INVITE_NOT_FOUND"});return}
+  if(invite.status!=="ACTIVE"){res.status(409).json({error:"NEXUS_AGENCY_INVITE_NOT_ACTIVE"});return}
+  if(new Date(invite.expiresAt).getTime()<=Date.now()){res.status(410).json({error:"NEXUS_AGENCY_INVITE_EXPIRED"});return}
+  const inviteCode=createInviteToken(secret,invite);
+  if(!equalDigest(inviteDigest(inviteCode),invite.tokenDigest)){res.status(503).json({error:"NEXUS_AGENCY_INVITE_INTEGRITY_FAILED"});return}
+  res.json({schema:"nosmo-agency-invite-delivery/v1",inviteId,agency:{agencyId:agency.agencyId,name:agency.name},workAppUrl:workAppUrl.toString(),inviteCode,expiresAt:new Date(invite.expiresAt).toISOString(),credentialInUrl:false,cacheable:false});
+}
+
+app.post("/api/person-card/agency/v1/invites",createAgencyInvite);
+app.post("/api/person-card/agency/v1/invites/:inviteId/delivery",deliverAgencyInvite);
+// These routes intentionally precede the compatibility installer. The legacy
+// invite implementation remains disabled there so it cannot emit URL tokens.
+app.post("/api/agency/invites",createAgencyInvite);
+app.post("/api/agency/invites/:inviteId/delivery",deliverAgencyInvite);
 
 installAgencyCompat(app,{pool,query,clean,record,array,uuid,norm,safeInt,safeNumber,requireAgency,connectedRows,safeCandidate});
 const acceptedSitesRoot=path.join(__dirname,"public");
@@ -383,6 +454,6 @@ app.get(["/","/index.html"],(_req,res)=>res.sendFile(path.join(acceptedSitesRoot
 app.use((err,_req,res,_next)=>{console.error("NOSMO Agency error",err);res.status(500).json({error:"NOSMO_AGENCY_INTERNAL_ERROR"})});
 
 if(process.env.VERCEL!=="1"&&process.env.NODE_ENV!=="production"){
-  const port=Number(process.env.PORT||4178);app.listen(port,"0.0.0.0",()=>console.log(`NOSMO Agency V1.0025 listening on :${port}`));
+  const port=Number(process.env.PORT||4178);app.listen(port,"0.0.0.0",()=>console.log(`NOSMO Agency V1.0026 listening on :${port}`));
 }
 export default app;

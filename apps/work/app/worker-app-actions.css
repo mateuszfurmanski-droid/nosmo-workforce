@@ -1,0 +1,42 @@
+.nexus-command-page[hidden]{display:none!important}
+.worker-app-workspace[hidden],.worker-app-workspace [hidden]{display:none!important}
+.worker-app-preparation{padding:18px;margin-bottom:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink);overflow-wrap:anywhere}
+.worker-app-preparation>small{display:block;margin-top:14px;color:var(--muted)}
+.worker-app-preparation h2{font-size:24px;margin:8px 0}
+.worker-app-preparation p,.worker-app-handoff-note{font-size:14px;line-height:1.5}
+.worker-app-preparation label{display:grid;gap:7px;margin:16px 0;font-size:14px;font-weight:700}
+.worker-app-preparation input,.worker-app-preparation select,.worker-app-preparation textarea{width:100%;min-width:0;min-height:46px;padding:10px;background:var(--field,var(--surface));color:var(--ink);border:1px solid var(--line);font:inherit;border-radius:0}
+.worker-app-preparation textarea{resize:vertical}
+.worker-app-preparation button{min-height:46px;padding:10px 14px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;border-radius:0}
+.worker-app-preparation button:disabled{opacity:.45;cursor:not-allowed}
+.worker-app-preparation-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.worker-app-handoff-note{padding:12px;border-left:2px solid var(--accent);background:var(--surface-soft)}
+@media(max-width:560px){.worker-app-preparation{padding:14px}.worker-app-preparation-actions{display:grid;grid-template-columns:1fr}}
+
+.nexus-chat-welcome{font-size:20px!important;line-height:1.4;margin:12px 0}
+.nexus-chat-log{display:grid;gap:12px;max-height:42dvh;overflow:auto;overscroll-behavior:contain}
+.nexus-chat-message{padding:12px 14px;border-left:2px solid var(--accent);background:var(--surface-soft)}
+.nexus-chat-message--user{margin-left:8%;background:var(--accent-soft)}
+.nexus-chat-message p,.nexus-chat-draft{white-space:pre-wrap;margin:6px 0}
+.nexus-chat-composer{display:grid;gap:10px;margin:16px 0}
+.nexus-chat-composer label{margin:0;font-weight:600}
+.nexus-chat-composer textarea{min-height:112px;font-size:17px;line-height:1.5}
+.nexus-chat-composer button{justify-self:end;min-width:150px}
+.nexus-chat-context,.nexus-manual-details{border-top:1px solid var(--line);padding:12px 0}
+.nexus-chat-context summary,.nexus-manual-details summary{cursor:pointer;padding:8px 0;font-size:14px;font-weight:600}
+.nexus-chat-context p{color:var(--muted)}
+.nexus-chat-plan,.nexus-active-draft{padding:16px;margin:16px 0;border:1px solid var(--accent);background:var(--surface-soft)}
+.worker-app-preparation{width:100%;max-width:none}
+@media(min-width:700px){.worker-app-preparation{padding:24px}.nexus-chat-composer textarea{min-height:132px;font-size:18px}.nexus-chat-message p{font-size:16px}}
+/* Keep the conversation above the fold in tablet browser sheets. */
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head{margin-bottom:8px;padding-bottom:0}
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head .nexus-command-identity,.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head p,.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head .nexus-command-security{display:none}
+.nexus-command-page:has(.worker-app-preparation)>.nexus-command-head h1{font-size:18px;margin:0}
+.nexus-prompt-suggestions{min-width:0}
+.nexus-prompt-suggestions>small{display:block;margin-bottom:8px;color:var(--muted)}
+.nexus-prompt-list{display:flex;flex-wrap:wrap;gap:8px;max-height:160px;overflow:auto}
+.nexus-prompt-list button{max-width:100%;min-width:0;text-align:left;font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.nexus-prompt-control{margin-top:8px;font-size:13px!important}
+.nexus-prompt-suggestions details{margin-top:8px;font-size:12px}
+.nexus-prompt-suggestions summary{cursor:pointer;padding:6px 0;color:var(--muted)}
+@media(max-width:560px){.nexus-prompt-list{flex-wrap:nowrap;max-height:90px;overflow-x:auto}.nexus-prompt-list button{flex:0 0 78%;max-height:82px;overflow:auto}}

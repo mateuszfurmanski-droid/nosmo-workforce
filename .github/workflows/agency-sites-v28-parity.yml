@@ -1,0 +1,54 @@
+name: NOSMO Agency Sites v28 parity
+
+on:
+  push:
+    paths:
+      - 'apps/agency/sites/v28/**'
+      - 'apps/agency/runtime/public/**'
+      - 'apps/agency/runtime/security-core.js'
+      - 'apps/agency/runtime/vercel.json'
+      - 'apps/agency/sites/current-baseline.json'
+      - 'apps/agency/sites/verify-current-baseline.mjs'
+      - '.github/workflows/agency-sites-v28-parity.yml'
+  pull_request:
+    paths:
+      - 'apps/agency/sites/v28/**'
+      - 'apps/agency/runtime/public/**'
+      - 'apps/agency/runtime/security-core.js'
+      - 'apps/agency/runtime/vercel.json'
+      - 'apps/agency/sites/current-baseline.json'
+      - 'apps/agency/sites/verify-current-baseline.mjs'
+      - '.github/workflows/agency-sites-v28-parity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  byte-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact captured bytes and dependency closure
+        run: node apps/agency/sites/v28/verify-byte-parity.mjs
+      - name: Verify accepted current Agency baseline identity
+        run: node apps/agency/sites/verify-current-baseline.mjs
+      - name: Verify static paths resolve
+        shell: bash
+        run: |
+          python3 -m http.server 4182 --bind 127.0.0.1 --directory apps/agency/sites/v28/public >/tmp/agency-sites-v28.log 2>&1 &
+          for i in {1..15}; do curl -fsS http://127.0.0.1:4182/ >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4182/ | grep -F 'NOSMO Agency V1.0026'
+          curl -fsS http://127.0.0.1:4182/assets/index-Dge3vaTv.css >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/page-D2Ki4EL9.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/webpack-bi8rgwGR.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/src-Cux5XbTP.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/lib-CX2z2z0g.js >/dev/null
+          curl -fsS http://127.0.0.1:4182/assets/pdf.worker-BDW0vFpl.js >/dev/null
+      - name: Protect Emergency Button boundary
+        shell: bash
+        run: |
+          test "$(sha256sum apps/agency/sites/v28/public/assets/emergency-core-or_Gp-rY.js | cut -d' ' -f1)" = "a37aa9723b318b861090d55ebbb0b9fb2a4897c655ef41c53e074acd06fc3d33"
+          cmp apps/agency/sites/v28/public/assets/emergency-core-or_Gp-rY.js apps/agency/runtime/public/assets/emergency-core-or_Gp-rY.js

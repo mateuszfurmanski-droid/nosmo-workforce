@@ -31,12 +31,13 @@ type BackgroundTask = { responseId: string; laneId: string };
 type CompletedLane = { lane: SearchLane; result: Record<string, unknown> };
 
 class SearchUpstreamError extends Error {
-  constructor(
-    message: string,
-    readonly code: string,
-    readonly status: number,
-  ) {
+  readonly code: string;
+  readonly status: number;
+
+  constructor(message: string, code: string, status: number) {
     super(message);
+    this.code = code;
+    this.status = status;
   }
 }
 
@@ -551,7 +552,7 @@ export async function POST(request: Request) {
   const user = await getChatGPTUser();
   if (!user) {
     return NextResponse.json({
-      error: "Sign in with ChatGPT to use the live AI search. The public demo stays viewable without sign-in.",
+      error: "Sign in to use the live AI search. The public demo stays viewable without sign-in.",
       code: "sign_in_required",
     }, { status: 401 });
   }
@@ -559,7 +560,7 @@ export async function POST(request: Request) {
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
-  if (allowedEmails.length && !allowedEmails.includes(user.email.toLowerCase())) {
+  if (allowedEmails.length && (!user.email || !allowedEmails.includes(user.email.toLowerCase()))) {
     return NextResponse.json({ error: "Live AI search is not enabled for this account.", code: "search_not_enabled" }, { status: 403 });
   }
   const apiKey = process.env.OPENAI_API_KEY;

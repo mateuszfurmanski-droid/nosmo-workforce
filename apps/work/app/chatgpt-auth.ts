@@ -1,10 +1,14 @@
+import { auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { sitesIdentityAllowed } from "./sites-identity-policy.mjs";
 
 export type ChatGPTUser = {
   displayName: string;
-  email: string;
+  email: string | null;
   fullName: string | null;
+  provider: "chatgpt-email-v1" | "clerk-v1";
+  subject: string;
 };
 
 const USER_EMAIL_HEADER = "oai-authenticated-user-email";
@@ -17,8 +21,26 @@ const SIGN_OUT_PATH = "/signout-with-chatgpt";
 const CALLBACK_PATH = "/callback";
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
+  if (!sitesIdentityAllowed()) {
+    try {
+      const { userId, sessionClaims } = await auth();
+      if (!userId) return null;
+      const claims = sessionClaims as Record<string, unknown>;
+      const fullName = cleanClaim(claims.name ?? claims.full_name, 160);
+      return {
+        displayName: fullName ?? "NOSMO Worker",
+        email: null,
+        fullName,
+        provider: "clerk-v1",
+        subject: JSON.stringify([sessionClaims.iss, userId]),
+      };
+    } catch {
+      return null;
+    }
+  }
+
   const requestHeaders = await headers();
-  const email = requestHeaders.get(USER_EMAIL_HEADER);
+  const email = requestHeaders.get(USER_EMAIL_HEADER)?.trim().toLowerCase();
   if (!email) return null;
 
   const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
@@ -32,6 +54,8 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     displayName: fullName ?? email,
     email,
     fullName,
+    provider: "chatgpt-email-v1",
+    subject: email,
   };
 }
 
@@ -46,6 +70,9 @@ export async function requireChatGPTUser(
 
 export function chatGPTSignInPath(returnTo: string): string {
   const safeReturnTo = safeRelativeReturnPath(returnTo);
+  if (!sitesIdentityAllowed()) {
+    return `/auth/sign-in?return_to=${encodeURIComponent(safeReturnTo)}`;
+  }
   return `${SIGN_IN_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
 }
 
@@ -83,4 +110,10 @@ function safeDecodeURIComponent(value: string): string | null {
   } catch {
     return null;
   }
+}
+
+function cleanClaim(value: unknown, max: number): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, max) : null;
 }

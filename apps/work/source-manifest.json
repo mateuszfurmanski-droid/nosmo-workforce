@@ -11,6 +11,26 @@
       "truthful browser install guidance"
     ]
   },
+  "acceptedLiveBaseline": {
+    "acceptedOn": "2026-09-13",
+    "provider": "ChatGPT Sites",
+    "projectId": "appgprj_6a93f57013108191a7a78c97da0b378c",
+    "versionNumber": 95,
+    "commitSha": "f6027c9ff045aa3dbd201d02a6089a3b11a3b774",
+    "gitTree": "09e5dd42c2e3affbee26cd9ce43e9f48a2736643",
+    "displayedVersion": "V1.0102",
+    "publicUrl": "https://mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site",
+    "emergencyIntegrationReverted": true,
+    "sourceRepositoryVerified": true,
+    "sha256": {
+      "app/page.tsx": "16880555e431ca44d29edfb527075d459ccd4463e0827312e4ee40b587ceaf78",
+      "app/compact-theme.css": "458c528dff477da5ed6f1bba887dec2d4528d8964e31dbfddc436401e1aecb1c",
+      "app/layout.tsx": "ff825aa3eb2b957706615898d64830df1a5a6e1d83eb58cdc6f5dba6b4df9072",
+      "app/manifest.ts": "ff4db8bd3d36742c0cd3c6155978285f8f53d59263d91aa5e337fc07dba76309",
+      "public/sw.js": "b37c56d3aee2d236167176577199c8d056a7fb89e939bc02a2b4aa426dfcfbc4",
+      "package-lock.json": "0bd75b7ffe5d6fe7c6c1ea62ba73d3faa76a6373b8d3d5e77a7a5d0a73ebf4a6"
+    }
+  },
   "recoveryBaseline": {
     "provider": "ChatGPT Sites",
     "projectId": "appgprj_6a93f57013108191a7a78c97da0b378c",

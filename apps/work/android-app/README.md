@@ -55,8 +55,9 @@ documented retention policy. The default remains local processing.
 
 ## Privacy and permissions
 
-- Do not scan WhatsApp, messages, contacts, gallery or installed apps in the
-  background.
+- Do not scan WhatsApp, messages, gallery or installed apps in the background.
+- Contact sync is opt-in through Android `READ_CONTACTS`; after the user allows
+  it, the active app refreshes contacts automatically and merges them locally.
 - Ask only for the specific shared file/image URI supplied by Android.
 - Do not require full address-book permission for app-owned contacts.
 - Keep NOSMO Work contacts separate from the phone address book unless the user
@@ -87,6 +88,9 @@ Implementation is present in this repository:
   original image is not retained;
 - confirmed items are queued privately until the NOSMO Work web layer stores
   them;
+- after explicit Android contact permission, the active app syncs the phone
+  address book automatically into the Work contact register and skips an
+  unchanged sync;
 - the web layer checks contact duplicates by normalized phone first and email
   second, and job duplicates by direct link or employer plus role;
 - a duplicate always offers `Update existing`, `Save separately` or `Discard`.
@@ -95,7 +99,8 @@ The Android module now includes a Gradle 8.9 wrapper and passes a clean Android
 SDK build. `testDebugUnitTest` passes all four parser tests and `assembleDebug`
 produces a valid v2-signed debug APK for `tech.nosmo.work` version `1.0101`.
 Manifest inspection confirms the text, vCard and image Share Target filters and
-no broad contacts, gallery or installed-app permissions.
+the Android companion's single `READ_CONTACTS` permission; it has no gallery or
+installed-app permission.
 
 Real-device testing is still required before the APK can be called
 release-ready. The public Sites URL alone cannot appear in Android's system

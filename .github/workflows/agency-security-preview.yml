@@ -1,0 +1,128 @@
+name: NOSMO Agency security preview
+
+on:
+  push:
+    branches:
+      - security/nosmo-security-gate
+    paths:
+      - .github/workflows/agency-security-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/agency/runtime
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_xYGLaQSQvOQxxs3S5O6cfkQR
+      VERCEL_PROJECT_ID: prj_PuaPLBCXCfzno0U0FB1QTE3IteDT
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/nosmo-security-gate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require existing Vercel CI credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::VERCEL_TOKEN repository secret is not configured; no deployment was attempted."
+            exit 2
+          fi
+      - name: Pin exact existing Vercel project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_xYGLaQSQvOQxxs3S5O6cfkQR","projectId":"prj_PuaPLBCXCfzno0U0FB1QTE3IteDT"}' > .vercel/project.json
+      - name: Import existing Agency OIDC client into Preview only
+        shell: bash
+        env:
+          AGENCY_OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID || secrets.REPL_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AGENCY_OIDC_CLIENT_ID:-}" ]; then
+            echo "::notice::No repository OIDC_CLIENT_ID or REPL_ID secret is available; Vercel Preview was not changed."
+            exit 0
+          fi
+
+          if npx --yes vercel@latest env ls preview --no-color --token "$VERCEL_TOKEN" | grep -Eq '(^|[[:space:]])OIDC_CLIENT_ID([[:space:]]|$)'; then
+            echo "OIDC_CLIENT_ID is already configured for Vercel Preview."
+            exit 0
+          fi
+
+          printf '%s' "$AGENCY_OIDC_CLIENT_ID" \
+            | npx --yes vercel@latest env add OIDC_CLIENT_ID preview --sensitive --yes --token "$VERCEL_TOKEN"
+          echo "OIDC_CLIENT_ID was added to Vercel Preview only."
+      - name: Pull preview environment without printing values
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@latest pull --yes --environment=preview --token "$VERCEL_TOKEN"
+          node <<'NODE'
+          const fs=require('fs');
+          const file='.vercel/.env.preview.local';
+          if(!fs.existsSync(file)) throw new Error('Vercel preview environment file was not created');
+          const keys=new Set(fs.readFileSync(file,'utf8').split(/\r?\n/).map(line=>line.match(/^([A-Za-z_][A-Za-z0-9_]*)=/)?.[1]).filter(Boolean));
+          const required=['DATABASE_URL','NEXUS_ONBOARDING_INVITE_SECRET','WORK_APP_BASE_URL'];
+          const oidc=keys.has('OIDC_CLIENT_ID')||keys.has('REPL_ID');
+          const missing=required.filter(key=>!keys.has(key));
+          if(!oidc) missing.push('OIDC_CLIENT_ID_OR_REPL_ID');
+          console.log(JSON.stringify({previewEnvironmentConfigured:missing.length===0,requiredKeysPresent:[...required.filter(k=>keys.has(k)),...(oidc?['OIDC_CLIENT_ID_OR_REPL_ID']:[])],missingKeys:missing},null,2));
+          if(missing.length) process.exit(3);
+          NODE
+      - name: Verify exact hardened source before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run check
+          npm audit --omit=dev --audit-level=high
+      - name: Build exact preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@latest build --token "$VERCEL_TOKEN"
+      - name: Deploy preview only
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(npx --yes vercel@latest deploy --prebuilt --token "$VERCEL_TOKEN")"
+          case "$url" in
+            https://*.vercel.app) ;;
+            *) echo "::error::Unexpected deployment URL"; exit 4;;
+          esac
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview deployed: $url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke-test hardened preview
+        shell: bash
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base=process.env.PREVIEW_URL;
+          const checks=[
+            ['root','/'],
+            ['health','/api/person-card/agency/v1/_health'],
+            ['unauth','/api/agency/pipeline'],
+          ];
+          for(const [name,path] of checks){
+            const res=await fetch(base+path,{redirect:'manual'});
+            const csp=res.headers.get('content-security-policy');
+            const nosniff=res.headers.get('x-content-type-options');
+            console.log(JSON.stringify({name,path,status:res.status,csp:Boolean(csp),nosniff},null,2));
+            if(!csp||nosniff!=='nosniff') process.exitCode=5;
+            if(name==='root'&&res.status!==200) process.exitCode=5;
+            if(name==='unauth'&&res.status!==401) process.exitCode=5;
+          }
+          NODE

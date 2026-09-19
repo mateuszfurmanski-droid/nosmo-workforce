@@ -11,6 +11,12 @@ import "./camera.css";
 import "./dark.css";
 import "./compact-theme.css";
 import "./apps-command.css";
+import WorkerAuthControls from "./worker-auth-controls";
+import WorkerFirstLogin from "./worker-first-login";
+import WorkerContactHelp from "./worker-contact-help";
+import ContactImportReview from "./contact-import-review";
+import { CONTACT_FILE_ACCEPT, CONTACT_MAX_BYTES, parseContactFile, parseVCard, type ImportedContact } from "./contact-intake";
+import WorkerAppActions, { SignedInAppActions } from "./worker-app-actions";
 import {
   Bell,
   Bot,
@@ -47,6 +53,8 @@ import {
   X,
 } from "lucide-react";
 type Status = "New" | "To apply" | "Applied" | "Reply" | "Interview" | "Offer" | "Rejected" | "Closed";
+const SIGN_IN_HREF = "/auth/sign-in?return_to=%2F";
+const AUTH_UI_MODE = process.env.NEXT_PUBLIC_NOSMO_AUTH_MODE === "clerk" ? "clerk" : "link";
 type Job = {
   id: number;
   company: string;
@@ -379,7 +387,7 @@ type WorkContact = {
   category: WorkContactCategory;
   trade: string;
   region: string;
-  source: "Phone" | "VCF" | "Android Share";
+  source: "Phone" | "VCF" | "CSV" | "Android Share";
   importedAt: string;
 };
 type NativeSharePayload = {
@@ -409,7 +417,8 @@ type NativeShareConflict = {
 declare global {
   interface Window {
     __NOSMO_RECEIVE_NATIVE_SHARE__?: (payload: NativeSharePayload) => void;
-    NosmoAndroid?: { ackShare: (id: string) => void };
+    __NOSMO_RECEIVE_NATIVE_CONTACTS__?: (contacts: RawPhoneContact[]) => void;
+    NosmoAndroid?: { ackShare: (id: string) => void; requestContactSync: () => void };
   }
 }
 type AgencyPackItemKey = "references" | "right_to_work" | "address" | "cscs" | "certificates" | "id";
@@ -422,7 +431,7 @@ type AgencyPackDetails = {
   extraCertificates: string;
 };
 type AgencyReplyState = "idle" | "analysing" | "review" | "error";
-type RawPhoneContact = { name?: string[]; tel?: string[]; email?: string[] };
+type RawPhoneContact = ImportedContact;
 type ContactPickerNavigator = Navigator & {
   contacts?: {
     select: (
@@ -615,36 +624,28 @@ function makeWorkContacts(contacts: RawPhoneContact[], source: WorkContact["sour
     const name = contact.name?.find(Boolean)?.trim() || `Unnamed contact ${index + 1}`;
     const phones = [...new Set((contact.tel || []).map(normaliseContactPhone).filter(Boolean))];
     const emails = [...new Set((contact.email || []).map((email) => email.trim().toLowerCase()).filter(Boolean))];
-    const trade = inferContactTrade(name);
+    const context = [name, contact.company, contact.role, contact.note, contact.labels].filter(Boolean).join(" ");
+    const trade = inferContactTrade(context);
     const identity = phones[0] || emails[0] || name.toLowerCase();
     return {
       id: `contact-${identity.replace(/[^a-z0-9]+/gi, "-")}-${index}`,
       name,
       phones,
       emails,
-      category: inferContactCategory(name, trade),
+      category: inferContactCategory(context, trade),
       trade,
-      region: inferContactRegion(name),
+      company: contact.company,
+      role: contact.role,
+      note: [contact.note, contact.labels].filter(Boolean).join("\n"),
+      region: inferContactRegion(context),
       source,
       importedAt,
     };
   });
 }
 function parseVCardContacts(text: string) {
-  const unfolded = text.replace(/\r?\n[ \t]/g, "");
-  const cards = unfolded.match(/BEGIN:VCARD[\s\S]*?END:VCARD/gi) || [];
-  const rawContacts = cards.map((card): RawPhoneContact => {
-    const lines = card.split(/\r?\n/);
-    const field = (prefix: string) => lines
-      .filter((line) => line.toUpperCase().split(/[;:]/, 1)[0] === prefix)
-      .map((line) => line.slice(line.indexOf(":") + 1).trim())
-      .filter(Boolean);
-    const formattedName = field("FN")[0];
-    const parts = field("N")[0]?.split(";") || [];
-    const fallbackName = [parts[1], parts[2], parts[0], parts[3]].filter(Boolean).join(" ");
-    return { name: [formattedName || fallbackName || "Unnamed contact"], tel: field("TEL"), email: field("EMAIL") };
-  });
-  return makeWorkContacts(rawContacts, "VCF");
+  try { return makeWorkContacts(parseVCard(text), "VCF"); }
+  catch { return []; } // Legacy inbox recovery may contain non-contact records.
 }
 function contactIdentity(contact: WorkContact) {
   return contact.phones[0] || contact.emails[0] || contact.name.trim().toLowerCase();
@@ -1066,7 +1067,7 @@ const UI_TEXT = {
     dataHelp: "Storage, backup and original demo data",
     allSettings: "All settings",
     appsTitle: "Apps",
-    appsIntro: "Work tools first. Connected services stay folded until you need them.",
+    appsIntro: "Choose an app. Tell Nexus what you want to do.",
     workTools: "WORK TOOLS",
     connectedApps: "CONNECTED APPS",
     connectedAppsHelp: "Email, messages, job boards and site services",
@@ -1113,7 +1114,7 @@ const UI_TEXT = {
     dataHelp: "Pamięć, kopia zapasowa i początkowe dane demonstracyjne",
     allSettings: "Wszystkie ustawienia",
     appsTitle: "Aplikacje",
-    appsIntro: "Najpierw narzędzia pracy. Połączone usługi są schowane, dopóki ich nie potrzebujesz.",
+    appsIntro: "Wybierz apke. Napisz Nexusowi, co chcesz zrobic.",
     workTools: "NARZĘDZIA PRACY",
     connectedApps: "POŁĄCZONE APLIKACJE",
     connectedAppsHelp: "E-mail, wiadomości, portale pracy i usługi budowlane",
@@ -1365,6 +1366,7 @@ export default function Home() {
     [importNotice, setImportNotice] = useState(""),
     [workContacts, setWorkContacts] = useState<WorkContact[]>([]),
     [contactsReady, setContactsReady] = useState(false),
+    [contactImportCandidates, setContactImportCandidates] = useState<WorkContact[] | null>(null),
     [contactQuery, setContactQuery] = useState(""),
     [contactCategory, setContactCategory] = useState<"All" | WorkContactCategory>("All"),
     [contactTrade, setContactTrade] = useState("All"),
@@ -1373,6 +1375,7 @@ export default function Home() {
     [nativeShareConflict, setNativeShareConflict] = useState<NativeShareConflict | null>(null),
     [availabilitySyncState, setAvailabilitySyncState] = useState<AvailabilitySyncState>("loading"),
     [connectedAgencies, setConnectedAgencies] = useState<ConnectedAgency[]>([]),
+    [revokingAgency, setRevokingAgency] = useState<string | null>(null),
     [availabilitySyncedAt, setAvailabilitySyncedAt] = useState(""),
     [connectionInvite, setConnectionInvite] = useState<WorkerConnectionInvite | null>(null),
     [pendingConnectionToken, setPendingConnectionToken] = useState(""),
@@ -1435,6 +1438,19 @@ export default function Home() {
       delete document.documentElement.dataset.nativeHost;
     };
   }, [ready, contactsReady, nativeShareConflict, processNativeShare]);
+  useEffect(() => {
+    if (!ready || !contactsReady || !window.NosmoAndroid) return;
+    const receiveNativeContacts = (contacts: RawPhoneContact[]) => {
+      if (!Array.isArray(contacts) || !contacts.length) return;
+      void saveAutomaticContacts(contacts);
+    };
+    window.__NOSMO_RECEIVE_NATIVE_CONTACTS__ = receiveNativeContacts;
+    document.documentElement.dataset.nativeHost = "android";
+    window.NosmoAndroid.requestContactSync();
+    return () => {
+      if (window.__NOSMO_RECEIVE_NATIVE_CONTACTS__ === receiveNativeContacts) delete window.__NOSMO_RECEIVE_NATIVE_CONTACTS__;
+    };
+  }, [ready, contactsReady]);
   useEffect(() => {
     const savedTheme: ThemeBase = localStorage.getItem("mateusz-theme") === "dark" ? "dark" : "light";
     const storedPreset = localStorage.getItem("nosmo-theme-preset");
@@ -1611,6 +1627,12 @@ export default function Home() {
   function openIntegrations() {
     setActive("Integrations");
   }
+  function requireRequiredSetup(action: string) {
+    if (requiredSetupComplete) return false;
+    setActive("Integrations");
+    setImportNotice(`Finish required setup before ${action}: add ${requiredSetupMissing.join(" and ")}.`);
+    return true;
+  }
   function finishIntegrationGuide() {
     localStorage.setItem("nosmo-integrations-guide-seen", "yes");
     setIntegrationGuideOpen(false);
@@ -1619,13 +1641,6 @@ export default function Home() {
     setImportRecords((current) => {
       const next = [...nextRecords, ...current].slice(0, 100);
       localStorage.setItem("nosmo-import-inbox", JSON.stringify(next));
-      return next;
-    });
-  }
-  function rememberWorkContacts(nextContacts: WorkContact[]) {
-    setWorkContacts((current) => {
-      const next = mergeWorkContacts(current, nextContacts).slice(0, 2000);
-      localStorage.setItem(WORK_CONTACTS_KEY, JSON.stringify(next));
       return next;
     });
   }
@@ -1929,38 +1944,48 @@ export default function Home() {
   }
   async function importFiles(source: IntegrationSource, files: FileList | null) {
     if (!files?.length) return;
+    if (source === "Contacts") {
+      if (!contactsReady) { setImportNotice("Contacts are still loading. Try again in a moment."); return; }
+      try {
+        if (files.length > 5) throw new Error("Choose up to 5 contacts files at a time.");
+        const candidates: WorkContact[] = [];
+        for (const file of Array.from(files)) {
+          if (!file.size || file.size > CONTACT_MAX_BYTES) throw new Error("Choose a non-empty contacts file smaller than 5 MB.");
+          candidates.push(...makeWorkContacts(parseContactFile(await file.text(), file.name), /\.csv$/i.test(file.name) ? "CSV" : "VCF"));
+        }
+        setContactImportCandidates(mergeWorkContacts([], candidates));
+        setImportNotice(language === "pl" ? "Sprawdz kontakty przed importem." : "Review contacts before importing.");
+      } catch (error) {
+        setImportNotice(error instanceof Error ? error.message : "Contacts could not be read. Try a VCF or CSV export.");
+      }
+      return;
+    }
     const records: ImportRecord[] = [];
-    const importedContacts: WorkContact[] = [];
     for (const [index, file] of Array.from(files).entries()) {
       const id = `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
       const readable = file.type.startsWith("text/") || /\.(txt|csv|json|vcf)$/i.test(file.name);
       const text = readable ? await file.text().catch(() => "") : "";
       const phones = uniquePhones(text);
       const emails = uniqueEmails(text);
-      const vCards = source === "Contacts" ? (text.match(/BEGIN:VCARD/gi) || []).length : 0;
-      const contactRows = source === "Contacts" ? parseVCardContacts(text) : [];
-      importedContacts.push(...contactRows);
       await saveLocalFile(`nosmo-import-${id}`, file);
       const detail = source === "Screenshots"
         ? "Saved locally. Number reading will activate in the Android OCR step."
-        : source === "Contacts" && vCards
-          ? `${vCards} contact${vCards === 1 ? "" : "s"} found in the contact file.`
-          : `${phones.length} phone number${phones.length === 1 ? "" : "s"} and ${emails.length} email${emails.length === 1 ? "" : "s"} detected.`;
+        : `${phones.length} phone number${phones.length === 1 ? "" : "s"} and ${emails.length} email${emails.length === 1 ? "" : "s"} detected.`;
       records.push({
         id,
         source,
         title: file.name,
         detail,
         importedAt: new Date().toISOString(),
-        phoneCount: phones.length || vCards,
+        phoneCount: phones.length,
         emailCount: emails.length,
       });
     }
     rememberImports(records);
-    if (importedContacts.length) rememberWorkContacts(importedContacts);
     setImportNotice(`${records.length} item${records.length === 1 ? "" : "s"} added to your private Import Inbox.`);
   }
   async function importPhoneContacts() {
+    if (!contactsReady) { setImportNotice("Contacts are still loading. Try again in a moment."); return; }
     const contactPicker = (navigator as ContactPickerNavigator).contacts;
     if (!contactPicker?.select) {
       document.getElementById("nosmo-contact-file")?.click();
@@ -1971,28 +1996,89 @@ export default function Home() {
       if (!contacts.length) return;
       const importedAt = new Date().toISOString();
       const contactRows = makeWorkContacts(contacts, "Phone", importedAt);
-      const phones = [...new Set(contacts.flatMap((contact) => contact.tel || []))];
-      const emails = [...new Set(contacts.flatMap((contact) => contact.email || []))];
-      const id = `${Date.now()}-contacts`;
-      await saveLocalFile(
-        `nosmo-import-${id}`,
-        new Blob([JSON.stringify(contacts)], { type: "application/json" }),
-      );
-      rememberImports([{
-        id,
-        source: "Contacts",
-        title: `${contacts.length} selected phone contact${contacts.length === 1 ? "" : "s"}`,
-        detail: `${phones.length} phone number${phones.length === 1 ? "" : "s"} and ${emails.length} email${emails.length === 1 ? "" : "s"} imported locally.`,
-        importedAt,
-        phoneCount: phones.length,
-        emailCount: emails.length,
-      }]);
-      rememberWorkContacts(contactRows);
-      setImportNotice(`${contacts.length} contact${contacts.length === 1 ? "" : "s"} added to Work Contacts and your private Import Inbox.`);
+      setContactImportCandidates(mergeWorkContacts([], contactRows));
     } catch (error) {
-      if ((error as Error).name !== "AbortError") {
-        setImportNotice("Contacts were not imported. Try a .vcf contact file instead.");
-      }
+      setImportNotice((error as Error).name === "AbortError"
+        ? (language === "pl" ? "Anulowano. Nic nie zapisano." : "Cancelled. Nothing was saved.")
+        : "Contacts were not imported. Try a VCF or CSV contacts file.");
+    }
+  }
+  async function saveReviewedContacts(ids: string[]) {
+    const selectedIds = new Set(ids);
+    const selected = (contactImportCandidates || []).filter(contact => selectedIds.has(contact.id));
+    if (!selected.length) return;
+    const merged = mergeWorkContacts(workContacts, selected);
+    if (merged.length > 2000) {
+      setImportNotice("The register supports 2,000 contacts. Select fewer contacts; nothing was discarded.");
+      throw new Error("Contact capacity exceeded");
+    }
+    const id = `${Date.now()}-reviewed-contacts`;
+    const raw: RawPhoneContact[] = selected.map(c => ({name: [c.name], tel: c.phones, email: c.emails, company: c.company, role: c.role, note: c.note}));
+    const record: ImportRecord = {
+      id, source: "Contacts", title: `${selected.length} selected work contacts`,
+      detail: "Reviewed and saved privately in NOSMO. Unselected contacts were not retained.",
+      importedAt: new Date().toISOString(), phoneCount: selected.filter(c => c.phones.length).length,
+      emailCount: selected.filter(c => c.emails.length).length,
+    };
+    const nextRecords = [record, ...importRecords].slice(0, 100);
+    const previousContacts = localStorage.getItem(WORK_CONTACTS_KEY);
+    const previousInbox = localStorage.getItem("nosmo-import-inbox");
+    const previousSignature = localStorage.getItem("nosmo-android-contact-sync-signature");
+    await saveLocalFile(`nosmo-import-${id}`, new Blob([JSON.stringify(raw)], {type: "application/json"}));
+    try {
+      localStorage.setItem(WORK_CONTACTS_KEY, JSON.stringify(merged));
+      localStorage.setItem("nosmo-import-inbox", JSON.stringify(nextRecords));
+    } catch (error) {
+      await deleteLocalFile(`nosmo-import-${id}`).catch(() => {});
+      if (previousContacts === null) localStorage.removeItem(WORK_CONTACTS_KEY); else localStorage.setItem(WORK_CONTACTS_KEY, previousContacts);
+      if (previousInbox === null) localStorage.removeItem("nosmo-import-inbox"); else localStorage.setItem("nosmo-import-inbox", previousInbox);
+      if (previousSignature === null) localStorage.removeItem("nosmo-android-contact-sync-signature"); else localStorage.setItem("nosmo-android-contact-sync-signature", previousSignature);
+      throw error;
+    }
+    setWorkContacts(merged);
+    setImportRecords(nextRecords);
+    setContactImportCandidates(null);
+    setActive("Integrations");
+    setImportNotice(language === "pl"
+      ? `Zapisano wybor: ${selected.length}. Nowe kontakty: ${merged.length - workContacts.length}. Razem: ${merged.length}.`
+      : `Saved selection: ${selected.length}. New contacts: ${merged.length - workContacts.length}. Total: ${merged.length}.`);
+  }
+  async function saveAutomaticContacts(rawContacts: RawPhoneContact[]) {
+    const syncSignature = rawContacts.map(contact => JSON.stringify(contact)).sort().join("\n").slice(0, 250_000);
+    if (localStorage.getItem("nosmo-android-contact-sync-signature") === syncSignature) return;
+    const incoming = makeWorkContacts(rawContacts.slice(0, 5000), "Phone");
+    if (!incoming.length) return;
+    const merged = mergeWorkContacts(workContacts, incoming).slice(0, 2000);
+    const importedAt = new Date().toISOString();
+    const id = `${Date.now()}-android-contact-sync`;
+    const record: ImportRecord = {
+      id,
+      source: "Contacts",
+      title: `${incoming.length} contacts synced automatically`,
+      detail: "Imported from Android Contacts after permission. New and changed details are merged locally.",
+      importedAt,
+      phoneCount: incoming.filter(contact => contact.phones.length > 0).length,
+      emailCount: incoming.filter(contact => contact.emails.length > 0).length,
+    };
+    const nextRecords = [record, ...importRecords].slice(0, 100);
+    const previousContacts = localStorage.getItem(WORK_CONTACTS_KEY);
+    const previousInbox = localStorage.getItem("nosmo-import-inbox");
+    try {
+      await saveLocalFile(`nosmo-import-${id}`, new Blob([JSON.stringify(rawContacts)], {type: "application/json"}));
+      localStorage.setItem(WORK_CONTACTS_KEY, JSON.stringify(merged));
+      localStorage.setItem("nosmo-import-inbox", JSON.stringify(nextRecords));
+      localStorage.setItem("nosmo-android-contact-sync-signature", syncSignature);
+      setWorkContacts(merged);
+      setImportRecords(nextRecords);
+      setActive("Integrations");
+      setImportNotice(language === "pl"
+        ? `Automatycznie zsynchronizowano ${incoming.length} kontaktow. Nowe lub uzupelnione dane zostaly polaczone.`
+        : `Automatically synced ${incoming.length} contacts. New and updated details were merged.`);
+    } catch {
+      if (previousContacts === null) localStorage.removeItem(WORK_CONTACTS_KEY); else localStorage.setItem(WORK_CONTACTS_KEY, previousContacts);
+      if (previousInbox === null) localStorage.removeItem("nosmo-import-inbox"); else localStorage.setItem("nosmo-import-inbox", previousInbox);
+      await deleteLocalFile(`nosmo-import-${id}`).catch(() => {});
+      setImportNotice(language === "pl" ? "Synchronizacja kontaktow nie udala sie na tym urzadzeniu." : "Contact sync could not be saved on this device.");
     }
   }
   function clearImportInbox() {
@@ -2100,6 +2186,21 @@ export default function Home() {
       }).catch(() => {});
   }, []);
   useEffect(() => {
+    if (!ready || !contactsReady) return;
+    if (sessionStorage.getItem("nosmo-required-import-setup-routed") === "yes") return;
+    if (active !== "Worker Card" && active !== "Overview") return;
+    const missingContacts = workContacts.length === 0;
+    const missingImportedFiles = smartDocuments.length === 0 && dynamicCvs.length === 0;
+    if (!missingContacts && !missingImportedFiles) return;
+    sessionStorage.setItem("nosmo-required-import-setup-routed", "yes");
+    setActive("Integrations");
+    setImportNotice(missingContacts && missingImportedFiles
+      ? "Required setup: import phone contacts, then add CV, cards or certificates."
+      : missingContacts
+        ? "Required setup: import phone contacts before using the work register."
+        : "Required setup: add CV, cards or certificates before sending packs.");
+  }, [active, contactsReady, dynamicCvs.length, ready, smartDocuments.length, workContacts.length]);
+  useEffect(() => {
     let cancelled = false;
     readLocalFile(PROFILE_PHOTO_KEY)
       .then((file) => {
@@ -2158,15 +2259,8 @@ export default function Home() {
   }, []);
   useEffect(() => {
     void loadWorkerStatus();
-    const token = new URLSearchParams(window.location.search).get("connect")?.trim() || "";
-    if (token) {
-      queueMicrotask(() => {
-        setPendingConnectionToken(token);
-        setActive("Worker Card");
-        void loadConnectionInvite(token);
-      });
-    }
-    // Initial identity and invite resolution only.
+    // Initial server-side identity resolution only. Invitation authority is
+    // deliberately entered in-page and never recovered from a browser URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -2342,6 +2436,7 @@ export default function Home() {
     window.setTimeout(() => document.getElementById(requestedKind === "Work" ? "jobs-live-search" : "work-search-results")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   }
   async function shareWorkCard() {
+    if (requireRequiredSetup("sharing your Work Card")) return;
     const text = `${profile.name}\nAvailability: ${availability === "red" ? "Busy" : availability === "yellow" ? `Ready on ${displayDate}` : "Available"}\nRoles: Site joiner, working foreman, sales, painter, delivery driver\nLocation: Leeds, West Yorkshire\nWork preferences: ${profile.preferredWork}\nTravel: ${profile.travel}`;
     if (navigator.share) await navigator.share({ title: `${profile.name} - NOSMO Work Card`, text });
     else await navigator.clipboard.writeText(text);
@@ -2432,6 +2527,12 @@ export default function Home() {
     }
   }
   async function loadConnectionInvite(token: string) {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
+      setConnectionNotice("Paste the invitation code before reviewing the agency.");
+      return;
+    }
+    setPendingConnectionToken(normalizedToken);
     setConnectionNotice("Checking secure agency invitation...");
     try {
       const result = await workerApi<{
@@ -2439,14 +2540,31 @@ export default function Home() {
         suggestedTrade: string | null;
         suggestedLocation: string | null;
         expiresAt: string;
-      }>(`/connection?token=${encodeURIComponent(token)}`);
-      setConnectionInvite({ token, ...result });
+      }>("/connection/preview", {
+        method: "POST",
+        body: JSON.stringify({ token: normalizedToken }),
+      });
+      setConnectionInvite({ token: normalizedToken, ...result });
       setConnectionNotice("");
     } catch (error) {
       const status = (error as Error & { status?: number }).status;
       setConnectionNotice(status === 401
         ? "Sign in with ChatGPT to review this agency connection."
         : "This agency connection link is unavailable or has expired.");
+    }
+  }
+  async function stopAgencySharing(agency: ConnectedAgency) {
+    if (!window.confirm(`Stop sharing your live Worker profile with ${agency.name}? Their own recruitment records will remain. Reconnecting will require a new invitation.`)) return;
+    setRevokingAgency(agency.agencyId);
+    try {
+      await workerApi("/connection", { method: "DELETE", body: JSON.stringify({ agencyId: agency.agencyId }) });
+      setConnectedAgencies((current) => current.filter((item) => item.agencyId !== agency.agencyId));
+      setConnectionNotice(`Sharing with ${agency.name} has stopped.`);
+      await loadWorkerStatus();
+    } catch {
+      setConnectionNotice("Could not confirm that sharing stopped. Please try again.");
+    } finally {
+      setRevokingAgency(null);
     }
   }
   async function acceptAgencyConnection() {
@@ -2472,7 +2590,6 @@ export default function Home() {
       setConnectionNotice(`${connectionInvite.agency.name} is connected. Future status changes update automatically.`);
       setConnectionInvite(null);
       setPendingConnectionToken("");
-      window.history.replaceState({}, "", window.location.pathname);
       await loadWorkerStatus();
     } catch {
       setConnectionNotice("The agency could not be connected. Ask them for a new secure link.");
@@ -2565,6 +2682,7 @@ export default function Home() {
     }
   }
   async function copyAgencyPackDraft() {
+    if (requireRequiredSetup("preparing an agency document pack")) return;
     const missing = agencyPackMissingDetails();
     if (missing.length) {
       setAgencyPackNotice(`Complete ${missing.join(" and ")} before copying.`);
@@ -2579,6 +2697,7 @@ export default function Home() {
     }
   }
   function openAgencyPackWhatsApp() {
+    if (requireRequiredSetup("opening an agency WhatsApp draft")) return;
     const missing = agencyPackMissingDetails();
     if (missing.length) {
       setAgencyPackNotice(`Complete ${missing.join(" and ")} before opening WhatsApp.`);
@@ -2591,6 +2710,7 @@ export default function Home() {
       : "WhatsApp opened with the draft. Choose the intended agency, check attachments and press Send yourself.");
   }
   async function shareAgencyPackFiles() {
+    if (requireRequiredSetup("sharing agency files")) return;
     if (!agencyPackDocuments.length) {
       setAgencyPackNotice("No matching saved file is available. Open Documents and attach the requested file manually.");
       return;
@@ -2676,6 +2796,11 @@ export default function Home() {
     setSearchStep("found");
   }
   async function runAutopilot() {
+    if (requireRequiredSetup("running AI job search")) {
+      setAutopilotModal(false);
+      setAutopilotStep("ready");
+      return;
+    }
     setAutopilotStep("running");
     setAutopilotError("");
     try {
@@ -2929,6 +3054,12 @@ export default function Home() {
   const localFolder = `${profile.name || "Worker"} - Work`;
   const smartDocumentIds = new Set(smartDocuments.map((document) => document.id));
   const standaloneCvs = dynamicCvs.filter((cv) => !smartDocumentIds.has(cv.id));
+  const importedDocumentCount = smartDocuments.length + standaloneCvs.length;
+  const requiredSetupMissing = [
+    workContacts.length === 0 ? "phone contacts" : "",
+    importedDocumentCount === 0 ? "documents or certificates" : "",
+  ].filter(Boolean);
+  const requiredSetupComplete = requiredSetupMissing.length === 0;
   const documentCounts: Record<DocumentCategory, number> = {
     All: smartDocuments.length + standaloneCvs.length + 4,
     CVs: dynamicCvs.length,
@@ -2980,14 +3111,22 @@ export default function Home() {
     </div>;
   }
   return (
-    <main className="shell">
+    <main id="worker-app" className="shell">
       <section className="work">
         <div className="worker-nexus-bar">
           <button aria-label="Open Ask Nexus" aria-expanded={askNexusModal} onClick={() => setAskNexusModal(true)}>
-            <img src="/nexus-logo-ui-mark-n.png" alt="NEXUS"/>
+            <span className="nexus-theme-mark" role="img" aria-label="NEXUS" />
             <span><small>ASK NEXUS</small><b>{ui.askPrompt}</b></span>
             <ChevronDown />
           </button>
+          {AUTH_UI_MODE === "clerk" ? <WorkerAuthControls /> : (
+            <div className="worker-auth-controls" aria-label="Account">
+              <a className="worker-auth-sign-in" href={SIGN_IN_HREF} target="_top">Sign in</a>
+            </div>
+          )}
+          <a className="worker-emergency-shortcut" href="https://nosmo-emergency-button.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Open NOSMO Emergency" title="NOSMO Emergency">
+            <strong aria-hidden="true">!</strong>
+          </a>
         </div>
         <header>
           <b className="mobile-title">NOSMO Work</b>
@@ -2997,6 +3136,18 @@ export default function Home() {
           </button>
         </header>
         <div className="content">
+          {AUTH_UI_MODE === "clerk" && (
+            <WorkerFirstLogin
+              language={language}
+              showResume={active === "Settings"}
+              onContacts={importPhoneContacts}
+              onContactFile={(files) => importFiles("Contacts", files)}
+              onDocuments={async (files) => { setActive("Documents"); await analyseNexusFiles(files); }}
+              onFinish={() => setActive("Worker Card")}
+              contactNotice={importNotice}
+              documentNotice={nexusImportNotice}
+            />
+          )}
           {active === "Overview" && (
             <section className="home-person">
               <button className="home-avatar" onClick={() => setActive("Worker Card")} aria-label="View Worker Card">{profile.name.split(" ").map((part) => part[0]).join("").slice(0,2)}</button>
@@ -3018,7 +3169,7 @@ export default function Home() {
             <section id="work-search-results" className="home-search-results">
               <div className="home-results-head"><div><small>SEARCH RESULTS</small><h2>{globalSearchKind}</h2></div><span>{globalSearchKind === "Work" ? `${liveSearchJobs?.length ?? 0} saved in this search` : "Search options"}</span></div>
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Ask Nexus is searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently. Progress is checked automatically.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={setSelected}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, true)}</small></div>}
@@ -3073,7 +3224,7 @@ export default function Home() {
                   </details>
                   <p className="jobs-search-promise"><Check/><span>Up to 20 verified direct vacancies per batch. New results are saved here automatically; duplicates are skipped.</span></p>
                   {globalSearchStatus === "running" && <div className="search-live-state"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+                  {globalSearchStatus === "error" && <div className="search-live-error"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
                   {searchMeta && globalSearchStatus === "idle" && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} new {searchMeta.returned === 1 ? "job" : "jobs"} saved in Jobs</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 </section>
               )}
@@ -3345,6 +3496,38 @@ export default function Home() {
                   </div>
                 </div>
                 {profilePhotoNotice && <div className="profile-photo-notice" role="status"><Check />{profilePhotoNotice}</div>}
+                {!requiredSetupComplete && (
+                  <section className="worker-required-setup" aria-labelledby="worker-required-setup-title">
+                    <ShieldCheck/>
+                    <div>
+                      <small>REQUIRED SETUP</small>
+                      <h3 id="worker-required-setup-title">Finish imports before work mode</h3>
+                      <p>Missing: {requiredSetupMissing.join(" and ")}. Nexus needs these to find agencies, prepare document packs and avoid manual typing.</p>
+                      <span><b>{workContacts.length ? `${workContacts.length} contacts` : "Contacts required"}</b><b>{importedDocumentCount ? `${importedDocumentCount} files` : "Documents required"}</b></span>
+                    </div>
+                    <button type="button" onClick={openIntegrations}>Finish setup</button>
+                  </section>
+                )}
+                {!connectionInvite && (
+                  <form className="worker-invite-code" onSubmit={(event) => { event.preventDefault(); void loadConnectionInvite(pendingConnectionToken); }}>
+                    <ShieldCheck />
+                    <div>
+                      <small>SECURE AGENCY CONNECTION</small>
+                      <h3>Review an agency invitation</h3>
+                      <p>Paste the one-time code from the recruiter. The code stays in this page only and is never placed in the browser address.</p>
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-label="Agency invitation code"
+                        value={pendingConnectionToken}
+                        onChange={(event) => { setPendingConnectionToken(event.target.value); setConnectionNotice(""); }}
+                        placeholder="Paste invitation code"
+                      />
+                    </div>
+                    <button type="submit" disabled={!pendingConnectionToken.trim()}>Review</button>
+                  </form>
+                )}
                 {connectionInvite && (
                   <section className="worker-connection-invite" aria-labelledby="worker-connection-title">
                     <ShieldCheck />
@@ -3360,8 +3543,8 @@ export default function Home() {
                 {!connectionInvite && pendingConnectionToken && availabilitySyncState === "sign-in-required" && (
                   <section className="worker-connection-invite needs-sign-in">
                     <ShieldCheck />
-                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this link</h3><p>The invitation stays pending until you explicitly approve it.</p></div>
-                    <a href={`/signin-with-chatgpt?return_to=${encodeURIComponent(`/?connect=${pendingConnectionToken}`)}`} target="_top">Sign in</a>
+                    <div><small>SECURE AGENCY CONNECTION</small><h3>Sign in to review this invitation</h3><p>After sign-in, paste the code again. Nothing is shared until you explicitly approve it.</p></div>
+                    <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                   </section>
                 )}
                 <section className="availability-command" aria-labelledby="availability-command-title">
@@ -3405,11 +3588,19 @@ export default function Home() {
                               : "No message is sent."}</small>
                     </span>
                     {availabilitySyncState === "sign-in-required"
-                      ? <a href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
+                      ? <a href={SIGN_IN_HREF} target="_top">Sign in</a>
                       : availabilitySyncState === "error"
                         ? <button type="button" onClick={() => void syncAvailability(availability, profile.availableFrom)}>Retry</button>
                         : null}
                   </div>
+                  {connectedAgencies.length > 0 && <div className="worker-sharing-controls" aria-label="Agency sharing permissions">
+                    {connectedAgencies.map((agency) => <div key={agency.agencyId}>
+                      <span>{agency.name}</span>
+                      <button type="button" disabled={revokingAgency !== null} onClick={() => void stopAgencySharing(agency)}>
+                        {revokingAgency === agency.agencyId ? "Stopping..." : "Stop sharing"}
+                      </button>
+                    </div>)}
+                  </div>}
                   {connectionNotice && <small className="worker-connection-notice"><Check />{connectionNotice}</small>}
                 </section>
                 <details className="worker-card-details">
@@ -3437,8 +3628,7 @@ export default function Home() {
               </section>
             </>
           )}
-          {active === "Apps" && (
-            <section className="nexus-command-page" aria-labelledby="apps-command-title">
+            <section hidden={active !== "Apps"} className="nexus-command-page" aria-labelledby="apps-command-title">
               <header className="nexus-command-head">
                 <div>
                   <span className="nexus-command-identity"><small>NOSMO WORK</small><em>Powered by NEXUS</em></span>
@@ -3447,6 +3637,12 @@ export default function Home() {
                 </div>
                 <span className="nexus-command-security" title="Private launcher"><ShieldCheck/></span>
               </header>
+
+              {AUTH_UI_MODE === "clerk" ? (
+                <SignedInAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />
+              ) : (
+                <WorkerAppActions language={language} contacts={workContacts} context={{ contacts: workContacts.slice(0, 50).map(c => ({ id: c.id, name: c.name.slice(0,160), company: c.company?.slice(0,160), phones: c.phones.slice(0,5), emails: c.emails.slice(0,5) })), documents: smartDocuments.slice(0,50).map(d => ({ id: d.id, title: d.title.slice(0,200), documentType: d.documentType, status: d.status })), agencyReply: agencyReplyAnalysis }} onOpen={openExternal} visible={active === "Apps"} />
+              )}
 
               <div className="nexus-command-section-title"><small>{ui.workTools}</small><span/></div>
               <section className="nexus-command-grid" aria-label="Work tools">
@@ -3475,29 +3671,7 @@ export default function Home() {
                 <button type="button" className="nexus-command-module" onClick={()=>{setDocumentCategory("ID / Right to Work");setActive("Documents")}}><i className="nexus-command-icon"><ShieldCheck/></i><span>{ui.privateVault}</span><em className="nexus-command-signal is-core" aria-hidden="true"/></button>
               </section>
 
-              <details className="nexus-command-disclosure">
-                <summary>
-                  <span><small>{ui.connectedApps}</small><b>{ui.connectedAppsHelp}</b></span>
-                  <em>{ui.appsCount}</em>
-                  <ChevronDown/>
-                </summary>
-                <section className="nexus-command-grid nexus-command-grid--external" aria-label="Connected work apps">
-                  {[
-                    {name:"Gmail",src:"/app-icons/gmail.svg",glyph:"",icon:null,url:"https://mail.google.com/",tone:"gmail"},
-                    {name:"WhatsApp",src:"/app-icons/whatsapp.svg",glyph:"",icon:null,url:whatsappUrl(),tone:"whatsapp"},
-                    {name:"Call",src:"",glyph:"",icon:Phone,url:"tel:",tone:"call"},
-                    {name:"Messages",src:"",glyph:"",icon:Send,url:"sms:",tone:"messages"},
-                    {name:"Indeed",src:"/app-icons/indeed.svg",glyph:"",icon:null,url:"https://uk.indeed.com/",tone:"indeed"},
-                    {name:"LinkedIn",src:"",glyph:"in",icon:null,url:"https://www.linkedin.com/jobs/",tone:"linkedin"},
-                    {name:"Reed",src:"",glyph:"R•••",icon:null,url:"https://www.reed.co.uk/jobs",tone:"reed"},
-                    {name:"Totaljobs",src:"",glyph:"tj",icon:null,url:"https://www.totaljobs.com/",tone:"totaljobs"},
-                    {name:"CV-Library",src:"",glyph:"CV",icon:null,url:"https://www.cv-library.co.uk/",tone:"cvlib"},
-                    {name:"Drive",src:"/app-icons/drive.svg",glyph:"",icon:null,url:"https://drive.google.com/",tone:"drive"},
-                    {name:"Calendar",src:"",glyph:"",icon:CalendarDays,url:"https://calendar.google.com/",tone:"calendar"},
-                    {name:"CSCS / CITB",src:"",glyph:"CSCS",icon:null,url:"https://www.cscs.uk.com/",tone:"cscs"},
-                  ].map((app)=>{const Icon=app.icon;return <button type="button" className={`nexus-command-module nexus-command-module--external tone-${app.tone}`} key={app.name} onClick={()=>openExternal(app.url)}><i className="nexus-command-icon">{app.src ? <img src={app.src} alt=""/> : Icon ? <Icon/> : <b className={`nexus-command-glyph glyph-${app.tone}`}>{app.glyph}</b>}</i><span>{app.name}</span><ExternalLink className="nexus-command-action" aria-hidden="true"/></button>})}
-                </section>
-              </details>
+
 
               <section className="nexus-command-manage" aria-label="App and import settings">
                 <button type="button" onClick={openIntegrations}><i><Plus/></i><span><b>{ui.manageApps}</b><small>{ui.manageAppsHelp}</small></span><ChevronRight/></button>
@@ -3506,7 +3680,6 @@ export default function Home() {
 
               <footer className="nexus-command-privacy"><ShieldCheck/><span>{ui.privateLauncher}</span></footer>
             </section>
-          )}
           {active === "Settings" && (
             <>
               <header className="settings-page-head">
@@ -3672,10 +3845,63 @@ export default function Home() {
             <>
               <header className="integrations-page-head">
                 <button className="integrations-back" onClick={() => setActive("Settings")}><ChevronRight/>Settings</button>
-                <div><small>PRIVATE WORKSPACE</small><h1>Imports & contacts</h1><p>Bring in work information only when you choose it.</p></div>
+                <div><small>PRIVATE WORKSPACE</small><h1>Imports & contacts</h1><p>Android contact setup starts automatically after one Allow. Files and screenshots stay review-first.</p></div>
                 <button className="integrations-help" onClick={() => setIntegrationGuideOpen(true)}>How it works</button>
               </header>
-              <div className="integration-trust-line"><ShieldCheck/><span><b>You stay in control</b><small>NOSMO never silently reads your phone. Every contact, chat or image is selected by you.</small></span></div>
+              <div className="integration-trust-line"><ShieldCheck/><span><b>One setup, then automatic</b><small>Android asks once for Contacts. NOSMO builds the work register locally; chats, files and images still open a review before saving.</small></span></div>
+              <section className="required-import-setup panel" aria-labelledby="required-import-setup-title">
+                <header>
+                  <ShieldCheck/>
+                  <span><small>REQUIRED FIRST SETUP</small><h2 id="required-import-setup-title">Let Nexus find the work stuff</h2><p>Contacts start automatically in the Android app. Documents and screenshots still need a user-selected file because Android protects private storage.</p></span>
+                </header>
+                <div className="required-import-steps">
+                  <button type="button" onClick={() => window.NosmoAndroid ? window.NosmoAndroid.requestContactSync() : void importPhoneContacts()}>
+                    <CircleUserRound/><span><b>Import phone contacts</b><small>Agencies, managers, companies and site people.</small></span><em>{workContacts.length ? `${workContacts.length} saved` : "Required"}</em>
+                  </button>
+                  <label>
+                    <FileText/><span><b>Import documents and certificates</b><small>CV, CSCS/ECS, training, ID, right to work and references.</small></span><em>{importedDocumentCount ? `${importedDocumentCount} saved` : "Required"}</em>
+                    <input
+                      type="file"
+                      multiple
+                      accept={NEXUS_DOCUMENT_ACCEPT}
+                      onChange={(event) => {
+                        setDocumentCategory("All");
+                        setActive("Documents");
+                        void analyseNexusFiles(event.target.files);
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                  <label>
+                    <Camera/><span><b>Read agency screenshots</b><small>Offer details, requested docs and contact info from screenshots.</small></span><em>{importRecords.filter((record) => record.source === "Screenshots").length || "Optional"}</em>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { void analyseAgencyReplyScreenshot(event.target.files); event.currentTarget.value = ""; }} />
+                  </label>
+                </div>
+                <div className="required-document-checklist" aria-label="Required document checklist">
+                  {[
+                    ["CV", "CVs", "PDF, DOCX or old CV"],
+                    ["CSCS / ECS", "Cards & licences", "card or licence photo"],
+                    ["Certificates", "Certificates & training", "training and tickets"],
+                    ["ID / RTW", "ID / Right to Work", "passport, ID or RTW"],
+                    ["References", "Other", "reference evidence"],
+                  ].map(([label, category, help]) => (
+                    <label key={label}>
+                      <FileText/>
+                      <span><b>{label}</b><small>{help}</small></span>
+                      <input
+                        type="file"
+                        accept={NEXUS_DOCUMENT_ACCEPT}
+                        onChange={(event) => {
+                          setDocumentCategory(category as DocumentCategory);
+                          setActive("Documents");
+                          void analyseNexusFiles(event.target.files);
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
               {importNotice && <div className="integration-notice"><Check />{importNotice}</div>}
               <section className="work-contact-register panel" aria-labelledby="work-contacts-title">
                 <header>
@@ -3706,7 +3932,7 @@ export default function Home() {
                   </select>
                 </div>
                 {!workContacts.length ? (
-                  <div className="contact-register-empty"><CircleUserRound/><b>No work contacts yet</b><small>Select phone contacts below or import a VCF file. Each person will become a separate row.</small></div>
+                  <div className="contact-register-empty"><CircleUserRound/><b>No work contacts yet</b><small>In the Android app this fills itself after Contacts access. Browser users can still select contacts or import VCF / CSV.</small></div>
                 ) : !visibleWorkContacts.length ? (
                   <div className="contact-register-empty"><Search/><b>No matching contacts</b><small>Change the search or one of the filters.</small></div>
                 ) : (
@@ -3753,9 +3979,11 @@ export default function Home() {
                   </article>
                   <article>
                     <i><CircleUserRound /></i>
-                    <div><h3>Contacts</h3><p>Choose individual phone contacts. On supported Android browsers the system contact picker opens directly.</p><small>Fallback: import a .vcf contact file.</small></div>
+                    <div><h3>Contacts</h3><p>Android app imports phone contacts automatically after the user taps Allow.</p><small>Browser fallback: select contacts or import VCF / CSV. Keywords still help clean the list after import.</small></div>
                     <button onClick={() => void importPhoneContacts()}>Select contacts</button>
-                    <input id="nosmo-contact-file" hidden type="file" accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => { void importFiles("Contacts", event.target.files); event.target.value = ""; }} />
+                    <WorkerContactHelp language={language}/>
+                    <button type="button" onClick={() => document.getElementById("nosmo-contact-file")?.click()}>{language === "pl" ? "Mam plik kontaktow" : "I have a contacts file"}</button>
+                    <input id="nosmo-contact-file" hidden type="file" accept={CONTACT_FILE_ACCEPT} onChange={(event) => { void importFiles("Contacts", event.target.files); event.target.value = ""; }} />
                   </article>
                   <article>
                     <i><Camera /></i>
@@ -3764,7 +3992,7 @@ export default function Home() {
                   </article>
                 </section>
               </details>
-              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} defaultOpen={importRecords.length > 0}>
+              <details className="import-inbox integration-inbox-disclosure panel" key={importRecords.length ? "items" : "empty"} open={importRecords.length > 0}>
                 <summary>
                   <div><small>PRIVATE INBOX</small><h2>Imported items</h2><p>{importRecords.length} item{importRecords.length === 1 ? "" : "s"} saved on this device</p></div>
                   <span>{importRecords.length || "Empty"}<ChevronDown/></span>
@@ -3785,12 +4013,16 @@ export default function Home() {
         </div>
       </section>
       <nav className="bottom-nav worker-bottom-nav">
-        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><CircleUserRound/>{ui.workerCard}</button>
-        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><FileText/>{ui.documents}</button>
-        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><BriefcaseBusiness/>{ui.jobs}</button>
-        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><Smartphone/>{ui.appsTitle}</button>
-        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><Settings/>{ui.settingsTitle}</button>
+        <button className={active === "Worker Card" ? "on" : ""} onClick={() => setActive("Worker Card")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM7 9h3v3H7zM6 16h5M14 9h4M14 13h4M14 16h3"/></svg>{ui.workerCard}</button>
+        <button className={active === "Documents" ? "on" : ""} onClick={() => setActive("Documents")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h8"/></svg>{ui.documents}</button>
+        <button className={active === "Applications" || active === "Employers" ? "on" : ""} onClick={() => setActive("Applications")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3zM8 7V3h8v4M3 12h18M10 12v3h4v-3"/></svg>{ui.jobs}</button>
+        <button className={active === "Apps" ? "on" : ""} onClick={() => setActive("Apps")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>{ui.appsTitle}</button>
+        <button className={active === "Settings" || active === "Integrations" ? "on" : ""} onClick={() => setActive("Settings")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4m4 0h10M3 12h10m4 0h4M3 18h4m4 0h10M7 3h4v6H7zM13 9h4v6h-4zM7 15h4v6H7z"/></svg>{ui.settingsTitle}</button>
       </nav>
+      {contactImportCandidates && <ContactImportReview
+        language={language} contacts={contactImportCandidates} onSave={saveReviewedContacts}
+        onCancel={() => { setContactImportCandidates(null); setImportNotice(language === "pl" ? "Anulowano. Nic nie zapisano." : "Cancelled. Nothing was saved."); }}
+      />}
       {contactEditor && (
         <div className="backdrop" onMouseDown={() => setContactEditor(null)}>
           <form className="modal contact-tag-editor" onSubmit={saveContactTags} onMouseDown={(event) => event.stopPropagation()}>
@@ -3917,7 +4149,7 @@ export default function Home() {
             <div className="unified-search-box"><Search/><input autoFocus disabled={globalSearchStatus === "running"} value={query} onChange={(e) => { setQuery(e.target.value); resetLiveSearchSession(); }} onKeyDown={(e) => { if (e.key === "Enter") runGlobalSearch(); }} placeholder={globalSearchKind === "Tools & materials" ? "e.g. impact driver, OSB boards, 5x80 screws" : "What do you need?"}/><button disabled={globalSearchStatus === "running"} onClick={() => runGlobalSearch()}>{globalSearchStatus === "running" ? "Searching..." : "Search"}</button></div>
             {query.trim() && <div className="nexus-modal-results">
               {globalSearchKind === "Work" && globalSearchStatus === "running" && <div className="search-live-state panel"><i/><b>Searching 4 source groups for batch {searchBatch || 1}...</b><small>Job boards, agencies, employers and local sources run independently.</small></div>}
-              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in with ChatGPT</a>}</div>}
+              {globalSearchKind === "Work" && globalSearchStatus === "error" && <div className="search-live-error panel"><b>Live search did not complete</b><small>{globalSearchError}</small>{searchNeedsSignIn && <a className="search-signin" href={SIGN_IN_HREF} target="_top">Sign in</a>}</div>}
               {globalSearchKind === "Work" && liveSearchJobs && <>
                 {searchMeta && <div className="search-batch-summary"><Check/><span><b>Batch {searchMeta.batch}: {searchMeta.returned} current direct {searchMeta.returned === 1 ? "vacancy" : "vacancies"}</b><small>{searchBatchDetail(searchMeta)}</small></span></div>}
                 {liveSearchJobs.length ? <div className="panel"><Table jobs={liveSearchJobs} open={(job) => { setSelected(job); setAskNexusModal(false); }}/></div> : <div className="search-empty panel"><Search/><b>No current direct vacancies in this batch</b><small>{searchEmptyDetail(searchMeta, false)}</small></div>}
