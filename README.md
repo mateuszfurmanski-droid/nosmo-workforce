@@ -14,6 +14,8 @@ Shared code belongs only in:
 
 Documentation and recovery baselines belong in `docs`.
 
+Strategic hardware exploration is retained separately in `docs/NOSMO_CONSTRUCTION_HARDWARE_MASTER.md`; it is not canonical application source and does not change the Work / Agency product boundaries.
+
 ## Product boundaries
 
 NOSMO Work and NOSMO Agency are separate applications and must remain separately deployable.
