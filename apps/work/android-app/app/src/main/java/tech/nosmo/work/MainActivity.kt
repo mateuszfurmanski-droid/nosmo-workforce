@@ -1,11 +1,15 @@
 package tech.nosmo.work
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
+import android.provider.Settings
 import android.text.Html
 import android.view.Gravity
 import android.view.View
@@ -37,6 +41,8 @@ import androidx.webkit.WebViewFeature
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
@@ -44,6 +50,17 @@ class MainActivity : ComponentActivity() {
     private var pendingFiles: ValueCallback<Array<Uri>>? = null
     private var awaitingAckId: String? = null
     private var showingWeb = false
+    private var showingContactIntro = false
+    private val contactSyncPreferences by lazy { getSharedPreferences("nosmo-contact-sync", MODE_PRIVATE) }
+
+    private val contactsPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        contactSyncPreferences.edit().putBoolean(KEY_PERMISSION_ASKED, true).apply()
+        if (granted) {
+            syncContactsToWeb()
+        } else {
+            showContactPermissionSettingsPrompt()
+        }
+    }
 
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val callback = pendingFiles ?: return@registerForActivityResult
@@ -93,7 +110,9 @@ class MainActivity : ComponentActivity() {
                 }
 
                 override fun onPageFinished(view: WebView, url: String) {
-                    if (Uri.parse(url).host == APP_HOST) flushPendingShares()
+                    if (Uri.parse(url).host == APP_HOST) {
+                        flushPendingShares()
+                    }
                 }
             }
             webChromeClient = object : WebChromeClient() {
@@ -343,6 +362,168 @@ class MainActivity : ComponentActivity() {
         if (webView.url == null) webView.loadUrl(APP_URL) else flushPendingShares()
     }
 
+    private fun hasContactsPermission() =
+        checkSelfPermission(android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestAutomaticContactSync() {
+        if (hasContactsPermission()) {
+            syncContactsToWeb()
+            return
+        }
+        if (contactSyncPreferences.getBoolean(KEY_PERMISSION_ASKED, false)) {
+            showContactPermissionSettingsPrompt()
+            return
+        }
+        if (showingContactIntro) return
+        showContactSyncIntro()
+    }
+
+    private fun showContactSyncIntro() {
+        showingContactIntro = true
+        AlertDialog.Builder(this)
+            .setTitle("Set up work contacts")
+            .setMessage(
+                "NOSMO Work needs Contacts access so agencies, managers and companies are ready without typing.\n\n" +
+                    "Tap Allow on the Android prompt. NOSMO imports the list into your private work register, but does not edit phone contacts, send messages or upload anything."
+            )
+            .setPositiveButton("Open Android prompt") { _, _ ->
+                showingContactIntro = false
+                contactsPermission.launch(android.Manifest.permission.READ_CONTACTS)
+            }
+            .setNegativeButton("Later") { _, _ ->
+                showingContactIntro = false
+                Toast.makeText(this, "Contact setup will ask again next time NOSMO Work opens.", Toast.LENGTH_LONG).show()
+            }
+            .setOnCancelListener {
+                showingContactIntro = false
+                Toast.makeText(this, "Contact setup will ask again next time NOSMO Work opens.", Toast.LENGTH_LONG).show()
+            }
+            .show()
+    }
+
+    private fun showContactPermissionSettingsPrompt() {
+        if (showingContactIntro) return
+        showingContactIntro = true
+        AlertDialog.Builder(this)
+            .setTitle("Contacts access is still needed")
+            .setMessage(
+                "NOSMO Work cannot finish setup until Contacts is allowed.\n\n" +
+                    "Open Android settings, choose Permissions, then turn Contacts on. Come back to NOSMO and the import will continue automatically."
+            )
+            .setPositiveButton("Open app settings") { _, _ ->
+                showingContactIntro = false
+                openAppSettings()
+            }
+            .setNegativeButton("Later") { _, _ ->
+                showingContactIntro = false
+                Toast.makeText(this, "Contact setup is still required before sharing or job search.", Toast.LENGTH_LONG).show()
+            }
+            .setOnCancelListener {
+                showingContactIntro = false
+            }
+            .show()
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        runCatching { startActivity(intent) }.onFailure {
+            Toast.makeText(this, "Open Android Settings → Apps → NOSMO Work → Permissions → Contacts.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun postDelayedContactSync() {
+        webView.postDelayed({ if (showingWeb) syncContactsToWeb() }, 450)
+    }
+
+    private fun syncContactsToWeb() {
+        if (!showingWeb || !hasContactsPermission()) return
+        val contacts = linkedMapOf<String, NativeContactDraft>()
+        contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ),
+            null,
+            null,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " COLLATE LOCALIZED ASC",
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val phoneIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            while (cursor.moveToNext() && contacts.size <= MAX_AUTOMATIC_CONTACTS) {
+                val id = cursor.getString(idIndex).orEmpty()
+                val draft = contacts.getOrPut(id) { NativeContactDraft(cursor.getString(nameIndex).orEmpty()) }
+                cursor.getString(phoneIndex)?.trim()?.takeIf(String::isNotBlank)?.let { phone ->
+                    if (phone !in draft.phones) draft.phones += phone
+                }
+            }
+        }
+        contentResolver.query(
+            ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Email.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Email.ADDRESS,
+            ),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
+            val emailIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS)
+            while (cursor.moveToNext()) {
+                val draft = contacts[cursor.getString(idIndex)] ?: continue
+                cursor.getString(emailIndex)?.trim()?.takeIf(String::isNotBlank)?.let { email ->
+                    if (email !in draft.emails) draft.emails += email
+                }
+            }
+        }
+        contentResolver.query(
+            ContactsContract.Data.CONTENT_URI,
+            arrayOf(
+                ContactsContract.Data.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Organization.COMPANY,
+                ContactsContract.CommonDataKinds.Organization.TITLE,
+            ),
+            ContactsContract.Data.MIMETYPE + "=?",
+            arrayOf(ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE),
+            null,
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
+            val companyIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.COMPANY)
+            val titleIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE)
+            while (cursor.moveToNext()) {
+                val draft = contacts[cursor.getString(idIndex)] ?: continue
+                draft.company = cursor.getString(companyIndex)?.trim().orEmpty()
+                draft.role = cursor.getString(titleIndex)?.trim().orEmpty()
+            }
+        }
+        val payload = JSONArray()
+        contacts.values.take(MAX_AUTOMATIC_CONTACTS).forEach { contact ->
+            if (contact.name.isBlank() && contact.phones.isEmpty() && contact.emails.isEmpty()) return@forEach
+            payload.put(JSONObject().apply {
+                put("name", JSONArray().put(contact.name))
+                put("tel", JSONArray(contact.phones))
+                put("email", JSONArray(contact.emails))
+                put("company", contact.company)
+                put("role", contact.role)
+            })
+        }
+        val script = """
+            (function (contacts) {
+              if (typeof window.__NOSMO_RECEIVE_NATIVE_CONTACTS__ !== "function") return "waiting";
+              window.__NOSMO_RECEIVE_NATIVE_CONTACTS__(contacts);
+              return "sent";
+            })(${payload});
+        """.trimIndent()
+        webView.evaluateJavascript(script) { result ->
+            if (result == "\"waiting\"") postDelayedContactSync()
+        }
+    }
+
     private fun withSystemBarInsets(content: View): FrameLayout {
         return FrameLayout(this).apply {
             setBackgroundColor(Color.BLACK)
@@ -442,6 +623,11 @@ class MainActivity : ComponentActivity() {
 
     inner class AndroidBridge {
         @JavascriptInterface
+        fun requestContactSync() {
+            runOnUiThread { requestAutomaticContactSync() }
+        }
+
+        @JavascriptInterface
         fun ackShare(id: String) {
             runOnUiThread {
                 shareQueue.acknowledge(id)
@@ -462,9 +648,19 @@ class MainActivity : ComponentActivity() {
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
+    private data class NativeContactDraft(
+        val name: String,
+        val phones: MutableList<String> = mutableListOf(),
+        val emails: MutableList<String> = mutableListOf(),
+        var company: String = "",
+        var role: String = "",
+    )
+
     companion object {
-        private const val APP_HOST = "mateusz-furmanski-job-hub.mateusz-furmanski.chatgpt.site"
+        private const val APP_HOST = "nosmo-worker-v95-preview.vercel.app"
         private const val APP_URL = "https://$APP_HOST"
         private const val MAX_SHARED_TEXT = 24_000
+        private const val MAX_AUTOMATIC_CONTACTS = 5_000
+        private const val KEY_PERMISSION_ASKED = "read-contacts-asked"
     }
 }

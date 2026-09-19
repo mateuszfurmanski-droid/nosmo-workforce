@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import WorkerContactHelp from "./worker-contact-help";
+import { CONTACT_FILE_ACCEPT } from "./contact-intake";
 
 type Props = {
   language: string;
@@ -82,7 +83,7 @@ export default function WorkerFirstLogin(props: Props) {
         {t("Choose work contacts", "Wybierz kontakty do pracy")}
       </button> : null}      <WorkerContactHelp language={props.language}/>
       <details><summary>{t("I have a contacts file", "Mam plik kontaktow")}</summary>
-        <label>{t("Choose contacts file", "Wybierz plik kontaktow")}<input type="file" disabled={busy} accept=".vcf,text/vcard,text/x-vcard" onChange={(event) => {
+        <label>{t("Choose contacts file", "Wybierz plik kontaktow")}<input type="file" disabled={busy} accept={CONTACT_FILE_ACCEPT} onChange={(event) => {
           const files = event.currentTarget.files;
           if (files?.length) void run(() => props.onContactFile(files));
           event.currentTarget.value = "";
