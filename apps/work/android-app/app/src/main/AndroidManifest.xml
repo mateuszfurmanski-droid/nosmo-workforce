@@ -4,7 +4,9 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/nexus_brain_launcher"
         android:label="NOSMO Work"
+        android:roundIcon="@drawable/nexus_brain_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.NOSMOWork"
         android:usesCleartextTraffic="false">
