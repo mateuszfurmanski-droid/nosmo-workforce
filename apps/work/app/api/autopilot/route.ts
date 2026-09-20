@@ -89,7 +89,7 @@ function safeJobSearchCriteria(value: unknown) {
   return {
     location: safeString(criteria.location, 80) || "Leeds",
     radiusMiles: [5, 15, 30, 50].includes(radius) ? radius : 15,
-    postedWithinDays: [7, 14, 30].includes(freshness) ? freshness : FRESH_VACANCY_DAYS,
+    postedWithinDays: [0, 1, 3, 7, 14, 30].includes(freshness) ? freshness : FRESH_VACANCY_DAYS,
     workPattern: ["Any", "Contract", "Permanent", "Temporary"].includes(workPattern) ? workPattern : "Any",
   };
 }
