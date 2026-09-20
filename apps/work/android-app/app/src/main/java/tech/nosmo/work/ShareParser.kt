@@ -93,7 +93,7 @@ object ShareParser {
         sourceLabel: String = "Android Share",
     ): ParsedShare {
         val raw = input.replace("\u0000", "").trim().take(MAX_TEXT_LENGTH)
-        val unfolded = raw.replace(Regex("\\r?\\n[ \\t]"), "")
+        val unfolded = raw.replace(Regex("\\r?\\n[ \\t]"), " ")
         val fields = unfolded.lineSequence()
             .mapNotNull { line ->
                 val separator = line.indexOf(':')

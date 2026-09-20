@@ -11,8 +11,8 @@ android {
         applicationId = "tech.nosmo.work"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10101
-        versionName = "1.0101"
+        versionCode = 10104
+        versionName = "1.0104"
     }
 
     buildTypes {

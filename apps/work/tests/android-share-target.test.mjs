@@ -7,12 +7,14 @@ const activity = await readFile(new URL("../android-app/app/src/main/java/tech/n
 const parser = await readFile(new URL("../android-app/app/src/main/java/tech/nosmo/work/ShareParser.kt", import.meta.url), "utf8");
 const queue = await readFile(new URL("../android-app/app/src/main/java/tech/nosmo/work/NativeShareQueue.kt", import.meta.url), "utf8");
 const build = await readFile(new URL("../android-app/app/build.gradle.kts", import.meta.url), "utf8");
+const styles = await readFile(new URL("../android-app/app/src/main/res/values/styles.xml", import.meta.url), "utf8");
+const brainIcon = await readFile(new URL("../android-app/app/src/main/res/drawable-nodpi/nexus_brain_launcher.png", import.meta.url));
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/compact-theme.css", import.meta.url), "utf8");
 
 test("Android registers one deliberate Share Target without broad private-data permissions", () => {
   assert.match(manifest, /android\.intent\.action\.SEND/);
-  for (const mime of ["text/plain", "text/html", "text/vcard", "text/x-vcard", "application/vcard", "application/x-vcard", "image/\*"]) {
+  for (const mime of ["text/plain", "text/html", "text/vcard", "text/x-vcard", "application/vcard", "application/x-vcard", "image\/\*"]) {
     assert.match(manifest, new RegExp(mime.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(manifest, /android:allowBackup="false"/);
@@ -20,9 +22,17 @@ test("Android registers one deliberate Share Target without broad private-data p
 });
 
 test("the Android package follows the public NOSMO Work V1 version line", () => {
-  assert.match(build, /versionCode\s*=\s*10101/);
-  assert.match(build, /versionName\s*=\s*"1\.0101"/);
+  assert.match(build, /versionCode\s*=\s*10104/);
+  assert.match(build, /versionName\s*=\s*"1\.0104"/);
   assert.doesNotMatch(build, /versionName\s*=\s*"0\.2\.0"/);
+});
+
+test("Android uses the Nexus brain for its launcher and startup screen", () => {
+  assert.match(manifest, /android:icon="@drawable\/nexus_brain_launcher"/);
+  assert.match(manifest, /android:roundIcon="@drawable\/nexus_brain_launcher"/);
+  assert.match(styles, /android:windowSplashScreenAnimatedIcon">@drawable\/nexus_brain_launcher/);
+  assert.match(styles, /android:windowSplashScreenBackground">#090A0C/);
+  assert.ok(brainIcon.length > 100000);
 });
 
 test("Android keeps the WebView clear of status, navigation and display cutout areas", () => {

@@ -89,13 +89,13 @@ Implementation is present in this repository:
   them;
 - the web layer checks contact duplicates by normalized phone first and email
   second, and job duplicates by direct link or employer plus role;
-- a duplicate always offers `Update existing`, `Save separately` or `Discard`.
+- a duplicate always offers `Update existing`, `Save separately` or `Discard`;
+- Android 12+ startup and the launcher use the official Nexus brain mark;
+- GitHub Actions builds and stores a debug APK for each Android change.
 
-The Android module now includes a Gradle 8.9 wrapper and passes a clean Android
-SDK build. `testDebugUnitTest` passes all four parser tests and `assembleDebug`
-produces a valid v2-signed debug APK for `tech.nosmo.work` version `1.0101`.
-Manifest inspection confirms the text, vCard and image Share Target filters and
-no broad contacts, gallery or installed-app permissions.
+The Android module includes a Gradle 8.9 wrapper. The build workflow runs the
+native source checks, `testDebugUnitTest` and `assembleDebug`, then publishes
+a v2-signed debug APK for `tech.nosmo.work` version `1.0104`.
 
 Real-device testing is still required before the APK can be called
 release-ready. The public Sites URL alone cannot appear in Android's system
