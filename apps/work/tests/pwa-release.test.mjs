@@ -11,7 +11,7 @@ async function pngSize(path) {
   return [data.readUInt32BE(16), data.readUInt32BE(20)];
 }
 
-test("V1.0102 exposes a complete install manifest and app icons", async () => {
+test("V1.0105 exposes a complete install manifest and app icons", async () => {
   const manifest = await readText("app/manifest.ts");
   const layout = await readText("app/layout.tsx");
 
@@ -28,7 +28,7 @@ test("V1.0102 exposes a complete install manifest and app icons", async () => {
   assert.deepEqual(await pngSize("public/pwa-maskable-512.png"), [512, 512]);
 });
 
-test("V1.0102 registers an offline shell without caching private API traffic", async () => {
+test("V1.0105 registers an offline shell without caching private API traffic", async () => {
   const page = await readText("app/page.tsx");
   const serviceWorker = await readText("public/sw.js");
 
@@ -36,7 +36,7 @@ test("V1.0102 registers an offline shell without caching private API traffic", a
   assert.match(page, /appinstalled/);
   assert.match(page, /register\("\/sw\.js", \{ scope: "\/" \}\)/);
   assert.match(page, /id="worker-pwa-install"/);
-  assert.match(serviceWorker, /nosmo-work-v10102/);
+  assert.match(serviceWorker, /nosmo-work-v10105/);
   assert.match(serviceWorker, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(serviceWorker, /pathname\.startsWith\("\/signin-with-chatgpt"\)/);
   assert.match(serviceWorker, /self\.addEventListener\("install"/);
