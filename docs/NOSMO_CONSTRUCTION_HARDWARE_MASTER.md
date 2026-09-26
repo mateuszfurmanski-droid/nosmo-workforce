@@ -414,12 +414,19 @@ Indicative Phase 1:
 Current main target:
 **HORIZON-CL4-2027-01-MAT-PROD-61 — Fast Track to Research and Innovation for breakthroughs in industrial technologies (RIA).**
 
+Operational note (26 Sep 2026):
+- Work Programme lists 22 Sep 2026 as the planned opening date.
+- Polish NCP material indicates the final 2027 industrial-technology calls are planned to open 13 Oct 2026.
+- Treat the call as **forthcoming until the Funding & Tenders Portal submission system is live**.
+- Deadline remains 2 Feb 2027 unless formally changed.
+
 Why it is relevant:
-- RIA funding rate can be up to 100% of eligible costs;
+- RIA funding rate can be up to 100% of eligible project costs;
 - topic budget EUR 20m;
 - indicative EU contribution around EUR 2.5m per project;
 - maximum 6 consortium participants;
 - deadline 2 February 2027;
+- Horizon proposals must focus exclusively on civil applications; do not carry DeepTech Goes Dual military/dual-use framing into the Horizon proposal;
 - scope includes breakthrough industrial technology up to TRL 4;
 - Made in Europe SRIA expressly includes exoskeletons / physical worker augmentation.
 
@@ -441,3 +448,19 @@ Polish research-partner shortlist:
 
 NOSMO must have its own funded work package and formal deliverables. It must not enter the consortium only as the party that found the grant.
 
+
+
+### Horizon outreach progress — 26 September 2026
+
+Confirmed first technical targets:
+- Gdansk University of Technology, Laboratory of Biomechanics — Wiktoria Wojnicz, wiktoria.wojnicz@pg.edu.pl
+- AGH University of Krakow, Biomechatronic Systems Research Team — Marek Iwaniec, iwaniec@agh.edu.pl
+
+Confirmed Horizon support:
+- UK Cluster 4 Industry NCP: NCP-Industry@iuk.ukri.org
+- UK Horizon Europe Springboard Scheme for Cluster 4 Industry can provide up to GBP 5,000 proposal-development support, subject to eligibility and prior written NCP confirmation.
+
+Ready-to-send non-confidential messages are stored in:
+- `docs/EXO01_HORIZON_OUTREACH_PACK.md`
+
+Do not send internal Master / JV / equity / territorial-rights information to academic partners or NCP contacts.
