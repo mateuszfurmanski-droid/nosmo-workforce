@@ -16,10 +16,11 @@ Primary target:
 
 Current verified call facts:
 
-- Opening: 22 September 2026
+- Planned opening in the published Work Programme: 22 September 2026
+- Current operational planning: treat the call as **not yet safely open for submission** until the Funding & Tenders Portal submission system is live; Polish NCP materials indicate the final 2027 industry calls are planned to open **13 October 2026**
 - Deadline: 2 February 2027
 - Total topic budget: EUR 20 million
-- Indicative EU contribution per project: around EUR 2.5 million
+- Maximum / expected EU contribution per project: up to EUR 2.5 million
 - Type of action: Research and Innovation Action (RIA)
 - Standard RIA funding rate: up to 100% of eligible costs, subject to the topic and grant agreement conditions
 - Consortium: maximum 6 participants
@@ -27,6 +28,8 @@ Current verified call facts:
 - Relevant partnership route: **Made in Europe**
 
 Official scope explicitly covers open breakthrough industrial technologies that contribute to one or more partnership SRIAs.
+
+**Horizon eligibility rule:** the proposal must focus exclusively on **civil applications**. Do not use the dual-use / military framing developed for Polish DeepTech programmes inside this Horizon proposal.
 
 The Made in Europe SRIA specifically identifies:
 - physical augmentation of workers;
@@ -279,16 +282,17 @@ Poland is currently considered primarily as an R&D / funding / validation / manu
 
 ## 9. Immediate actions
 
-1. Confirm exact eligibility and proposal template on Funding & Tenders Portal.
-2. Validate the TRL framing with a Horizon specialist / NCP.
+1. Confirm live call status, exact eligibility and proposal template on the Funding & Tenders Portal when the submission system opens.
+2. Validate the TRL framing with the UK Cluster 4 Industry NCP (`NCP-Industry@iuk.ukri.org`) and, if useful, Polish KPK/NCBR before committing proposal resources.
 3. Confirm Andrea's company legal entity, PIC readiness and background-IP ownership.
 4. Produce a one-page technical diagram of the Phase 1 research architecture.
-5. Contact 2-3 Polish research partners with a short non-confidential concept.
+5. Contact Gdansk University of Technology and AGH with a short non-confidential concept; copy or involve their Horizon/project-support offices once there is technical interest.
 6. Identify one UK construction pilot/end-user partner.
 7. Build a first EUR 1.5-2.5m consortium budget around the research scope.
 8. Define NOSMO's own funded work package so NOSMO is an essential project beneficiary, not only an introducer.
 9. Draft Heads of Terms / MoU between NOSMO and Andrea's startup before disclosing full consortium/funding strategy to third parties.
 10. Prepare proposal timeline backward from 2 February 2027.
+11. Check eligibility for the UK Horizon Europe Springboard Scheme for Cluster 4 Industry themes (up to GBP 5,000 proposal-development support), which requires prior written confirmation from the UK Industry NCP.
 
 ---
 
