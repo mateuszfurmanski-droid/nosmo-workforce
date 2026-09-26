@@ -366,3 +366,78 @@ Public references currently used for internal assessment:
 - Zeta Industries: https://zetaindustries.tech/
 
 These sources are useful for preliminary assessment only. Formal grant evidence should come directly from the technology owner and any validating institution.
+
+
+---
+
+## 13. Update — 26 September 2026
+
+### Collaboration status with Andrea
+
+The collaboration discussion has materially progressed.
+
+Andrea has confirmed:
+- technical agreement with the Gen 1 direction: passive/mechanical full-body exoskeleton + mechanical heavy-tool support + tool power carried on the frame;
+- interest in a construction-specific full-body development;
+- a joint venture is likely the preferred structure once funding is clearer;
+- his existing startup and patents/background IP must remain protected;
+- a dedicated construction JV gives both parties freedom to target the correct niche.
+
+No equity split, licence territory, exclusivity or formal JV terms are agreed yet.
+
+### Current development budget
+
+Andrea's corrected full 12-month programme estimate:
+- team: ~EUR 750k;
+- workshop/equipment: ~EUR 400k;
+- prototypes / iterations / four final working samples: ~EUR 400k;
+- external testing: ~EUR 200k;
+- patent filing / software: ~EUR 200k;
+- contingency / consultants / regulatory / additional premises: ~EUR 500k.
+
+Indicative total: **~EUR 2.45m**.
+
+### Phase 1
+
+Andrea has defined a smaller first-demonstrator phase at approximately **EUR 500k**.
+
+Indicative Phase 1:
+- current team part-time supervision;
+- 2 additional full-time mechanical engineers;
+- 1 full-time assembly operator;
+- ~EUR 100k materials;
+- ~EUR 60k workshop and preliminary testing;
+- remaining budget for labour / supervision / execution.
+
+### Primary Horizon target
+
+Current main target:
+**HORIZON-CL4-2027-01-MAT-PROD-61 — Fast Track to Research and Innovation for breakthroughs in industrial technologies (RIA).**
+
+Why it is relevant:
+- RIA funding rate can be up to 100% of eligible costs;
+- topic budget EUR 20m;
+- indicative EU contribution around EUR 2.5m per project;
+- maximum 6 consortium participants;
+- deadline 2 February 2027;
+- scope includes breakthrough industrial technology up to TRL 4;
+- Made in Europe SRIA expressly includes exoskeletons / physical worker augmentation.
+
+Critical framing rule:
+The existing Morph platform remains background technology. The proposal must not artificially relabel a higher-TRL existing system as TRL<=4. The research object should be genuinely new construction-specific technology such as heavy-tool load transfer, tool-support arm architecture, vibration isolation, onboard tool-power integration and modular construction interfaces.
+
+Detailed internal concept:
+- `docs/HORIZON_MAT_PROD_61_EXO01_CONCEPT.md`
+
+Polish research-partner shortlist:
+- `docs/EXO01_HORIZON_POLAND_PARTNER_SHORTLIST.md`
+
+### Current preferred consortium logic
+
+- Andrea's Italian startup: exoskeleton technology / mechanical lead;
+- NOSMO Technology (UK): construction integration, use cases, UK validation and exploitation;
+- Polish research institution: biomechanics / human-robot interaction / independent validation;
+- optional construction end user and/or tool partner if required.
+
+NOSMO must have its own funded work package and formal deliverables. It must not enter the consortium only as the party that found the grant.
+
