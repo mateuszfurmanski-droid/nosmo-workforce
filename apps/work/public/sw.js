@@ -1,4 +1,4 @@
-const CACHE_PREFIX = "nosmo-work-v10102";
+const CACHE_PREFIX = "nosmo-work-v10105";
 const CACHE_NAME = `${CACHE_PREFIX}-shell-v1`;
 const CORE_URLS = [
   "/manifest.webmanifest",

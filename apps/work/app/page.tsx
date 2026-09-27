@@ -103,7 +103,7 @@ type GlobalSearchKind = "Work" | "Tools & materials";
 type JobSearchCriteria = {
   location: string;
   radiusMiles: 5 | 15 | 30 | 50;
-  postedWithinDays: 7 | 14 | 30;
+  postedWithinDays: 0 | 1 | 3 | 7 | 14 | 30;
   workPattern: "Any" | "Contract" | "Permanent" | "Temporary";
 };
 type ThemeBase = "light" | "dark";
@@ -147,6 +147,15 @@ type PendingLiveSearch = {
 const PENDING_LIVE_SEARCH_KEY = "nosmo-pending-live-search";
 const PENDING_LIVE_SEARCH_MAX_AGE_MS = 9 * 60 * 1000;
 const JOB_SEARCH_CRITERIA_KEY = "nosmo-job-search-criteria";
+const JOB_RADIUS_OPTIONS = [5, 15, 30, 50] as const;
+const JOB_FRESHNESS_OPTIONS = [
+  { value: 0, label: "New only" },
+  { value: 1, label: "1 day" },
+  { value: 3, label: "3 days" },
+  { value: 7, label: "7 days" },
+  { value: 14, label: "14 days" },
+  { value: 30, label: "30 days" },
+] as const;
 const DEFAULT_JOB_SEARCH_CRITERIA: JobSearchCriteria = {
   location: "Leeds",
   radiusMiles: 15,
@@ -162,9 +171,13 @@ function normalizeJobSearchCriteria(value: unknown): JobSearchCriteria {
   return {
     location: String(record.location || "").trim().slice(0, 80) || DEFAULT_JOB_SEARCH_CRITERIA.location,
     radiusMiles: ([5, 15, 30, 50].includes(radius) ? radius : DEFAULT_JOB_SEARCH_CRITERIA.radiusMiles) as JobSearchCriteria["radiusMiles"],
-    postedWithinDays: ([7, 14, 30].includes(freshness) ? freshness : DEFAULT_JOB_SEARCH_CRITERIA.postedWithinDays) as JobSearchCriteria["postedWithinDays"],
+    postedWithinDays: ([0, 1, 3, 7, 14, 30].includes(freshness) ? freshness : DEFAULT_JOB_SEARCH_CRITERIA.postedWithinDays) as JobSearchCriteria["postedWithinDays"],
     workPattern: (["Any", "Contract", "Permanent", "Temporary"].includes(pattern) ? pattern : DEFAULT_JOB_SEARCH_CRITERIA.workPattern) as JobSearchCriteria["workPattern"],
   };
+}
+
+function jobFreshnessLabel(days: JobSearchCriteria["postedWithinDays"]) {
+  return JOB_FRESHNESS_OPTIONS.find((option) => option.value === days)?.label || "30 days";
 }
 
 function liveSearchKey(query: string, criteria: JobSearchCriteria, jobTypes: string[]) {
@@ -1310,6 +1323,7 @@ export default function Home() {
     [query, setQuery] = useState(""),
     [jobsFilterQuery, setJobsFilterQuery] = useState(""),
     [jobSearchCriteria, setJobSearchCriteria] = useState<JobSearchCriteria>(DEFAULT_JOB_SEARCH_CRITERIA),
+    [jobSearchMenu, setJobSearchMenu] = useState<"freshness" | "work-pattern" | null>(null),
     [searchCriteriaReady, setSearchCriteriaReady] = useState(false),
     [liveSearchJobs, setLiveSearchJobs] = useState<Job[] | null>(null),
     [globalSearchStatus, setGlobalSearchStatus] = useState<"idle" | "running" | "error">("idle"),
@@ -2207,6 +2221,10 @@ export default function Home() {
     setJobSearchCriteria((current) => ({ ...current, [key]: value }));
     resetLiveSearchSession();
   }
+  function chooseJobSearchCriteria<K extends keyof JobSearchCriteria>(key: K, value: JobSearchCriteria[K]) {
+    updateJobSearchCriteria(key, value);
+    setJobSearchMenu(null);
+  }
   async function runGlobalSearch(requestedKind: GlobalSearchKind = globalSearchKind) {
     const value = query.trim();
     if (!value) return;
@@ -2988,6 +3006,7 @@ export default function Home() {
             <span><small>ASK NEXUS</small><b>{ui.askPrompt}</b></span>
             <ChevronDown />
           </button>
+          <a className="worker-account-signin" href="/signin-with-chatgpt?return_to=%2F" target="_top">Sign in</a>
         </div>
         <header>
           <b className="mobile-title">NOSMO Work</b>
@@ -3061,14 +3080,32 @@ export default function Home() {
                   </div>
                   <details className="jobs-search-preferences">
                     <summary>
-                      <span><b>Search preferences</b><small>{jobSearchCriteria.location || "Any location"} · {jobSearchCriteria.radiusMiles} miles · last {jobSearchCriteria.postedWithinDays} days · {jobSearchCriteria.workPattern}</small></span>
+                      <span><b>Search preferences</b><small>{jobSearchCriteria.location || "Any location"} · {jobSearchCriteria.radiusMiles} miles · {jobFreshnessLabel(jobSearchCriteria.postedWithinDays)} · {jobSearchCriteria.workPattern}</small></span>
                       <ChevronDown/>
                     </summary>
                     <div className="jobs-search-criteria" aria-label="Job search criteria">
                       <label><span>Location</span><input disabled={globalSearchStatus === "running"} value={jobSearchCriteria.location} onChange={(e) => updateJobSearchCriteria("location", e.target.value)} placeholder="Leeds"/></label>
-                      <label><span>Distance</span><select disabled={globalSearchStatus === "running"} value={jobSearchCriteria.radiusMiles} onChange={(e) => updateJobSearchCriteria("radiusMiles", Number(e.target.value) as JobSearchCriteria["radiusMiles"])}><option value="5">5 miles</option><option value="15">15 miles</option><option value="30">30 miles</option><option value="50">50 miles</option></select></label>
-                      <label><span>Posted within</span><select disabled={globalSearchStatus === "running"} value={jobSearchCriteria.postedWithinDays} onChange={(e) => updateJobSearchCriteria("postedWithinDays", Number(e.target.value) as JobSearchCriteria["postedWithinDays"])}><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label>
-                      <label><span>Work type</span><select disabled={globalSearchStatus === "running"} value={jobSearchCriteria.workPattern} onChange={(e) => updateJobSearchCriteria("workPattern", e.target.value as JobSearchCriteria["workPattern"])}><option>Any</option><option>Contract</option><option>Permanent</option><option>Temporary</option></select></label>
+                      <label className="jobs-radius-control">
+                        <span>Distance</span>
+                        <div>
+                          <input type="range" min="0" max={JOB_RADIUS_OPTIONS.length - 1} step="1" disabled={globalSearchStatus === "running"} value={JOB_RADIUS_OPTIONS.indexOf(jobSearchCriteria.radiusMiles)} onChange={(event) => updateJobSearchCriteria("radiusMiles", JOB_RADIUS_OPTIONS[Math.max(0, Math.min(JOB_RADIUS_OPTIONS.length - 1, Number(event.target.value)))] )} aria-label="Search radius" aria-valuetext={`${jobSearchCriteria.radiusMiles} miles`} />
+                          <output>{jobSearchCriteria.radiusMiles} miles</output>
+                        </div>
+                      </label>
+                      <div className="jobs-criteria-choice">
+                        <span>Posted within</span>
+                        <button type="button" className="jobs-criteria-trigger" disabled={globalSearchStatus === "running"} aria-haspopup="listbox" aria-expanded={jobSearchMenu === "freshness"} onClick={() => setJobSearchMenu((current) => current === "freshness" ? null : "freshness")}>{jobFreshnessLabel(jobSearchCriteria.postedWithinDays)}<ChevronDown/></button>
+                        {jobSearchMenu === "freshness" && <div className="jobs-criteria-menu" role="listbox" aria-label="Posted within">
+                          {JOB_FRESHNESS_OPTIONS.map((option) => <button key={option.value} type="button" role="option" aria-selected={jobSearchCriteria.postedWithinDays === option.value} className={jobSearchCriteria.postedWithinDays === option.value ? "on" : ""} onClick={() => chooseJobSearchCriteria("postedWithinDays", option.value)}>{option.label}</button>)}
+                        </div>}
+                      </div>
+                      <div className="jobs-criteria-choice">
+                        <span>Work type</span>
+                        <button type="button" className="jobs-criteria-trigger" disabled={globalSearchStatus === "running"} aria-haspopup="listbox" aria-expanded={jobSearchMenu === "work-pattern"} onClick={() => setJobSearchMenu((current) => current === "work-pattern" ? null : "work-pattern")}>{jobSearchCriteria.workPattern}<ChevronDown/></button>
+                        {jobSearchMenu === "work-pattern" && <div className="jobs-criteria-menu" role="listbox" aria-label="Work type">
+                          {(["Any", "Contract", "Permanent", "Temporary"] as const).map((option) => <button key={option} type="button" role="option" aria-selected={jobSearchCriteria.workPattern === option} className={jobSearchCriteria.workPattern === option ? "on" : ""} onClick={() => chooseJobSearchCriteria("workPattern", option)}>{option}</button>)}
+                        </div>}
+                      </div>
                     </div>
                   </details>
                   <p className="jobs-search-promise"><Check/><span>Up to 20 verified direct vacancies per batch. New results are saved here automatically; duplicates are skipped.</span></p>
@@ -3664,7 +3701,7 @@ export default function Home() {
                     </div>
                   </div>
                 </details>
-                <small className="settings-version">NOSMO WORK · V1.0102</small>
+                <small className="settings-version">NOSMO WORK · V1.0105</small>
               </section>
             </>
           )}

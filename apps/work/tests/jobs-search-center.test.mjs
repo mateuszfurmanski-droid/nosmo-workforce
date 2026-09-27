@@ -4,6 +4,7 @@ import test from "node:test";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const route = await readFile(new URL("../app/api/autopilot/route.ts", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/compact-theme.css", import.meta.url), "utf8");
 
 test("Jobs contains the permanent live search and stores new results visibly", () => {
   assert.match(page, /id="jobs-live-search"/);
@@ -36,4 +37,19 @@ test("Jobs keeps one compact command path", () => {
   assert.match(page, /Search preferences/);
   assert.doesNotMatch(page, /\[addMenu, setAddMenu\]/);
   assert.doesNotMatch(page, /className="mobile-add-job"/);
+});
+
+
+test("Jobs uses compact app-owned menus and a radius slider above the panel", () => {
+  assert.match(page, /className="worker-account-signin"/);
+  assert.match(page, /href="\/signin-with-chatgpt\?return_to=%2F"/);
+  assert.match(page, /className="jobs-criteria-menu"/);
+  assert.match(page, /type="range"/);
+  assert.match(page, /New only/);
+  assert.match(page, /1 day/);
+  assert.match(page, /3 days/);
+  assert.doesNotMatch(page, /<select[^>]*jobSearchCriteria/);
+  assert.match(route, /\[0, 1, 3, 7, 14, 30\]\.includes\(freshness\)/);
+  assert.match(css, /\.jobs-live-search, \.jobs-search-preferences\[open\] \{ overflow: visible; \}/);
+  assert.match(css, /\.jobs-criteria-menu \{ position: absolute;/);
 });
