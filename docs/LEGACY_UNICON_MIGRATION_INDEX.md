@@ -1,6 +1,6 @@
 # Legacy UNICON Migration Index
 
-**Status:** ACTIVE MIGRATION CONTROL  
+**Status:** MIGRATION COMPLETE — CANONICAL / MASTER DOCUMENTS RECOVERED  
 **Date:** 14 October 2026  
 **Destination repository:** `mateuszfurmanski-droid/nosmo-workforce`  
 **Legacy repository:** `mateuszfurmanski-droid/UNICON`
@@ -75,7 +75,7 @@ Indexed retained website material confirms the old concept included:
 - field-worker / helmet ecosystem concept;
 - roadmap from R&D prototype through spatial intelligence.
 
-These files are not treated as a substitute for the missing full OneDrive archive.
+These files are retained as supplementary evidence. The OneDrive archive has now also been recovered and inventoried.
 
 ---
 
@@ -110,7 +110,14 @@ Archive ZIPs confirmed:
 A full preserved copy of the consolidated OneDrive master-doc source has now been committed as:
 - `docs/legacy-unicon/ONEDRIVE__all_Master_Docs.txt`
 
-The archive is now considered **located and partially migrated**. Individual source files and binary archive contents still require staged ingestion before the migration can be marked complete.
+The archive is now considered **located and migrated for canonical/master documentation**.
+
+Migration evidence is recorded in:
+- `docs/legacy-unicon/LEGACY_UNICON_SOURCE_MANIFEST.md`
+- `docs/legacy-unicon/ONEDRIVE__all_Master_Docs.txt`
+- `docs/legacy-unicon/onedrive/`
+
+The large ZIP archives remain on OneDrive as cold-history backups rather than being duplicated into Git.
 
 ---
 
@@ -140,12 +147,17 @@ The archive is now considered **located and partially migrated**. Individual sou
 - construction evidence capture;
 - future EXO integration.
 
-### NEEDS SOURCE RECOVERY
-- old Master v1/v2/v3;
-- visor/display master;
-- wall scanner master;
-- archived hardware BOMs;
-- full OneDrive architecture / source-of-truth folders.
+### SOURCE RECOVERY RESULT
+- hardware Master v1.3: recovered;
+- system architecture v2.0 addendum: recovered;
+- HUD / visor source-of-truth: recovered;
+- main-screen interaction canon: recovered;
+- hardware canon: recovered;
+- Timespace canon: recovered;
+- Source of Truth and Kanon Index: recovered;
+- consolidated historical master bundle: recovered.
+
+No standalone completed Wall Scanner Master was found in the canonical master set. The recovered HUD/visor source itself records Wall Scanner and Sensor Fusion as future master documents with no data at that time. The concept is therefore preserved as an R&D track rather than reconstructed as if a historical specification existed.
 
 ---
 
@@ -153,15 +165,19 @@ The archive is now considered **located and partially migrated**. Individual sou
 
 Canonical current work:
 - `NOSMO_SMART_HELMET_MASTER.md`
-- `NOSMO_HUMAN_AUGMENTATION_MASTER.md`
-- `NOSMO_CONSTRUCTION_HARDWARE_MASTER.md`
-
-Future docs after archive recovery:
 - `NOSMO_SMART_HELMET_HARDWARE_ARCHITECTURE.md`
 - `NOSMO_SMART_HELMET_DISPLAY_AND_VISOR.md`
 - `NOSMO_FIELD_SPATIAL_SENSING_AND_WALL_SCANNER.md`
+- `NOSMO_HUMAN_AUGMENTATION_MASTER.md`
+- `NOSMO_CONSTRUCTION_HARDWARE_MASTER.md`
+
+Migration control:
+- `legacy-unicon/LEGACY_UNICON_SOURCE_MANIFEST.md`
+- `legacy-unicon/ONEDRIVE__all_Master_Docs.txt`
+- `legacy-unicon/INDEX.md`
+
+Possible future product document:
 - `NOSMO_SMART_HELMET_FABRICATION_INTEGRATION.md`
-- `LEGACY_UNICON_SOURCE_MANIFEST.md`
 
 ---
 
@@ -180,11 +196,10 @@ Relevant previous technical themes:
 - construction/fabrication handoff;
 - field evidence.
 
-Future helmet work should be proposed only after:
-- legacy UNICON recovery;
-- current helmet architecture is coherent;
-- previous FabStation conversation is reviewed;
-- a bounded PoC is defined.
+Legacy UNICON recovery is now complete at the canonical/master-document level. Before any FabStation helmet proposal is sent:
+- review the previous FabStation conversation;
+- define one bounded fabrication-to-field PoC;
+- keep FabStation described as a potential integration/collaboration path unless they explicitly agree otherwise.
 
 
 ---
@@ -202,3 +217,27 @@ These reinterpret legacy UNICON decisions for the current NOSMO architecture.
 Important rule:
 - old `LOCKED` labels remain historical;
 - current NOSMO engineering may supersede them where testing, safety, current technology or Nexus integration requires it.
+
+
+---
+
+## 9. Migration completion
+
+**Completed:** 14 October 2026
+
+The historical UNICON material is now split cleanly into two layers:
+
+1. **Historical evidence**
+   - original private `UNICON` repository;
+   - OneDrive archive and cold ZIP backups;
+   - preserved Git source copies / source records under `docs/legacy-unicon/`.
+
+2. **Current NOSMO engineering**
+   - Smart Helmet Master;
+   - Hardware Architecture;
+   - Display & Visor Architecture;
+   - Spatial Sensing / Wall Scanner R&D;
+   - Human Augmentation Master;
+   - Construction Hardware Master.
+
+No historical UNICON document has been deleted or overwritten in its original location.
