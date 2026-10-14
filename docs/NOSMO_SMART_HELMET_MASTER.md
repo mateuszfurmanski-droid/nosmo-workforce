@@ -411,3 +411,60 @@ Historical material should be copied or referenced, then classified as:
 9. Produce a spatial sensing / wall-scanner document.
 10. Map the FabStation fabrication workflow to one helmet PoC.
 11. Do not contact FabStation about helmet collaboration until the internal concept is coherent and the existing relationship is reviewed.
+
+
+---
+
+## 16. OneDrive archive recovery update — 14 October 2026
+
+The historical UNICON OneDrive archive has now been located and inspected.
+
+Recovered source confirms several important earlier engineering decisions:
+
+### Physical distribution
+- keep the helmet itself light;
+- camera, IMU, HUD and microphone on the head;
+- compute, battery, converters and heavier modules off-head;
+- this is now especially relevant because the EXO frame can potentially carry compute and power.
+
+### Sensor baseline
+Legacy V1 required:
+- IMU;
+- front camera;
+- LiDAR / ToF;
+- microphone.
+
+### Spatial stabilization
+UNICON used the working concept **SFOV**:
+- IMU for fast orientation;
+- LiDAR for range correction;
+- camera / visual positioning for world-relative stability;
+- later eye tracking as an optional extension.
+
+### HUD philosophy
+Recovered locked material confirms:
+- quiet / near-empty default screen;
+- central reticle;
+- minimal geometry;
+- information only when context requires it;
+- no decorative HUD;
+- world-anchored information should not obstruct the work point.
+
+### Compute
+Historical prototype:
+- Raspberry Pi;
+- Linux;
+- headless runtime;
+- REST / JSON / WebSocket;
+- Python / C++;
+- OpenCV / OpenGL.
+
+These are retained as prototype heritage, not as final production hardware commitments.
+
+### Current companion technical documents
+- `NOSMO_SMART_HELMET_HARDWARE_ARCHITECTURE.md`
+- `NOSMO_SMART_HELMET_DISPLAY_AND_VISOR.md`
+- `NOSMO_FIELD_SPATIAL_SENSING_AND_WALL_SCANNER.md`
+
+The full consolidated historical source is preserved at:
+- `legacy-unicon/ONEDRIVE__all_Master_Docs.txt`
