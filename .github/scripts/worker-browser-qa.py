@@ -117,7 +117,7 @@ try:
     cache_keys = driver.execute_async_script(
         "const done=arguments[0];caches.keys().then(done).catch(()=>done([]));"
     )
-    assert any(key.startswith("nosmo-work-v10102") for key in cache_keys), cache_keys
+    assert any(key.startswith("nosmo-work-v10105") for key in cache_keys), cache_keys
     manifest = driver.execute_async_script(
         "const done=arguments[0];fetch('/manifest.webmanifest').then(r=>r.json()).then(done).catch(e=>done({error:e.message}));"
     )
