@@ -1,0 +1,1874 @@
+# OneDrive legacy source: all Master Docs
+
+Source: `/UNICON/UNICON_ARCHIVE/06_REFERENCE/all Master Docs.txt`
+Retrieved: 14 October 2026
+Status: HISTORICAL SOURCE COPY
+
+This is a preserved copy of the legacy UNICON master-doc compilation recovered from OneDrive.
+Do not treat it as current NOSMO product specification without checking the current NOSMO master documents.
+
+---
+
+UNICON MASTERDOC
+MAIN SCREEN DISPLAY & INTERACTION
+VERSION: V1 – LOCKED
+
+===============================
+
+1. ZASADA NADRZĘDNA SYSTEMU
+   ===============================
+   UNICON nie wyświetla klasycznego interfejsu użytkownika.
+   UNICON wyświetla stan rzeczywistości, zadania i intencji operatora.
+
+Brak:
+
+* klasycznego UI
+* menu
+* ikon
+* przycisków
+* list tekstowych
+
+Interakcja odbywa się przez:
+
+* pozycję głowy (IMU)
+* dystans (LiDAR)
+* pozycję i orientację dłoni
+* punkt referencyjny na rękawiczce
+* czas i stabilność gestu
+
+===============================
+2. WARSTWY GŁÓWNE HUD (ZAWSZE AKTYWNE)
+======================================
+
+2.1 WORLD LAYER (WARSTWA PRZESTRZENI)
+
+* Obrysy obiektów, krawędzie, osie
+* Linie półprzezroczyste, laserowe
+* Brak pełnych brył – tylko informacja
+* Kolory neutralne (cyan / szarość)
+* Kolory ostrzegawcze wyłącznie kontekstowo
+
+Statusy obiektów:
+
+* aktywny do pracy
+* kolizja / konflikt
+* no-access zone
+* future / past (timeline)
+
+---
+
+2.2 CENTRALNY RETICLE
+
+* Mały punkt w centrum widzenia
+* Nie jest kursorem
+* Funkcja orientacyjna i referencyjna
+* Kotwica pomiarów i gestów
+* Zmienia kolor / puls tylko jako feedback
+
+---
+
+2.3 PERIPHERY HUD (OBRZEŻA WIDZENIA)
+
+Lewy dół:
+
+* tryb pracy (LIVE / PLAN / REVIEW)
+* skrót aktualnego zadania
+
+Prawy dół:
+
+* status baterii narzędzi (BVSS / BVSS+)
+* predykcja czasu pracy
+
+Góra:
+
+* poziomica (IMU)
+* dystans (LiDAR – tylko gdy potrzebny)
+
+===============================
+3. QUIET SCREEN RULE
+====================
+
+Jeżeli:
+
+* nie wykonujesz pomiaru
+* nie wchodzisz w strefę zagrożenia
+* nie wchodzisz w interakcję
+
+ekraan pozostaje niemal pusty.
+
+HUD pojawia się tylko wtedy, gdy jest potrzebny.
+
+===============================
+4. HAND ANCHOR POINT (PUNKT NA RĘKAWICZCE)
+==========================================
+
+4.1 DEFINICJA
+
+* Fizyczny punkt referencyjny na rękawiczce
+* Jedyny aktywny punkt dłoni
+* System nie śledzi całej dłoni
+
+Śledzone parametry:
+
+* pozycja punktu
+* orientacja dłoni
+* prędkość ruchu
+
+Efekt:
+
+* brak jitteru
+* precyzja narzędziowa
+* stabilna interakcja
+
+===============================
+5. DUAL WORLD MODEL (DWA ŚWIATY ROBOCZE)
+========================================
+
+5.1 LIVE JOB WORLD – PRAWY BRZEG
+
+* Aktualna praca
+* Rzeczywistość tu i teraz
+* Pomiary
+* Kolizje
+* BHP
+* Narzędzia fizyczne
+
+Aktywacja:
+
+* Punkt rękawiczki przesunięty w prawą krawędź widzenia
+* Wejście w żel przestrzeni LIVE
+
+---
+
+5.2 TIMELINE JOB WORLD – LEWY BRZEG
+
+* Przeszłość / przyszłość
+* Planowanie
+* Etapy pracy
+* No-access zones
+* Ghost tasks
+
+Aktywacja:
+
+* Punkt rękawiczki przesunięty w lewą krawędź widzenia
+* Wejście w żel czasu
+
+---
+
+5.3 PRZEJŚCIE MIĘDZY ŚWIATAMI
+
+* Brak przełączników
+* Brak trybów
+* Ciągłe spektrum
+
+Środek widzenia = neutralna rzeczywistość
+Brzegi = światy robocze
+
+===============================
+6. THEMES – SYSTEM NARZĘDZI
+===========================
+
+Themes są przełączane ręcznie.
+Theme definiuje sposób myślenia i interakcji.
+
+---
+
+6.1 THEME: INDUSTRIAL / PRECISION
+
+Narzędzie LIVE:
+
+* SLIM RULER ("SŁOMKA")
+
+Charakter:
+
+* sztywna
+* cienka
+* laserowa precyzja
+* brak lepkości
+
+Aktywacja narzędzia:
+
+* prawa dłoń
+* punkt rękawiczki w prawym brzegu
+* 2 sekundy stabilności
+* opuszek palca wskazującego
+* auto-snap do osi dłoni
+
+Use case:
+
+* montaż
+* realne pomiary
+* kontrola wykonania
+
+---
+
+6.2 THEME: GEL / ORGANIC
+
+Narzędzie:
+
+* GLUT
+
+Charakter:
+
+* miękki
+* półpłynny
+* reaguje na ruch ciągły
+* posiada masę i lepkość
+
+Use case:
+
+* planowanie
+* timeline
+* ghost objects
+* czucie przestrzeni
+
+===============================
+7. MANUAL THEME SWITCHING
+=========================
+
+Themes są przełączane ręcznie:
+
+* bez menu
+* bez ikon
+* wyłącznie gestem
+
+Propozycja logiki:
+
+* punkt rękawiczki w centrum
+* symetryczny gest obu nadgarstków
+* 1.5–2 sekundy stabilizacji
+
+Feedback:
+
+* krótki puls świata
+* zmiana charakteru animacji
+
+Zawsze aktywny jest jeden Theme.
+
+===============================
+8. STATUS SYSTEMOWY
+===================
+
+Wszystkie powyższe elementy są:
+
+* CORE INTERACTION
+* LOCKED FEATURE
+* Obowiązujące dla V1–V3
+
+Zmiany możliwe wyłącznie przez formalne aneksy.
+
+===============================
+9. ZDANIE KANONICZNE
+====================
+
+UNICON nie wyświetla interfejsu.
+UNICON wyświetla rzeczywistość, która wie, co robisz.
+
+
+
+TIMESPACE – MASTER DOCUMENT
+Version: v1.0
+Status: READY TO LOCK
+Scope: Core concept, principles, roles, interaction model, technology neutrality
+
+==================================================
+1. DEFINICJA
+==================================================
+
+TIMESPACE jest wspólną warstwą rzeczywistości operacyjnej, w której
+czas, przestrzeń, logistyka, decyzje i obserwator istnieją jednocześnie.
+
+Czas i przestrzeń nie są tłem.
+Są interfejsem.
+
+TIMESPACE nie jest:
+- harmonogramem
+- mapą 3D
+- timeline’em
+- VR grą
+
+TIMESPACE jest:
+- ramą decyzyjną
+- wspólną świadomością stanu projektu
+- żywym modelem rzeczywistości projektu
+
+
+==================================================
+2. WARSTWY TIMESPACE
+==================================================
+
+TIMESPACE składa się z równorzędnych warstw:
+
+1. Physical Layer
+   - realne obiekty
+   - fizyka
+   - ograniczenia materii
+
+2. Perceptual Layer
+   - to, co jest widziane i mierzone
+   - AR / HUD / VR
+   - sensory, modele, wizualizacja
+
+3. Intent Layer
+   - zamiary
+   - decyzje
+   - kierunki działań
+
+4. Narrative Layer
+   - sens
+   - kolejność zdarzeń
+   - spójność procesu
+
+Żadna warstwa nie jest nadrzędna.
+Znaczenie powstaje w ich przecięciu.
+
+
+==================================================
+3. CZAS
+==================================================
+
+TIMESPACE obsługuje wiele rodzajów czasu jednocześnie:
+
+- Chrono-Time (zegarowy)
+- Event-Time (zdarzeniowy)
+- Observer-Time (subiektywny)
+- System-Time (logika systemu)
+- Myth-Time (symboliczny / narracyjny)
+
+Nie istnieje jeden „prawdziwy” czas projektu.
+
+
+==================================================
+4. PRZESTRZEŃ
+==================================================
+
+Rodzaje przestrzeni:
+
+- Physical Space – realna
+- Mapped Space – odwzorowana
+- Augmented Space – rozszerzona
+- Conceptual Space – relacje i zależności
+- Mythic Space – znaczenie i symbol
+
+Przestrzeń w TIMESPACE jest aktywna
+i reaguje na użytkownika.
+
+
+==================================================
+5. OBSERWATOR
+==================================================
+
+Obserwator nigdy nie jest neutralny.
+
+Obserwatorem może być:
+- człowiek
+- zespół
+- system
+- AI
+
+Obecność obserwatora zmienia stan TIMESPACE.
+
+
+==================================================
+6. GEL ENVIRONMENT (ZASADA FUNDAMENTALNA)
+==================================================
+
+Całe środowisko TIMESPACE jest żelowe.
+
+Użytkownik nie porusza się w pustej przestrzeni,
+lecz pływa w reagującym medium informacyjnym.
+
+Żel oznacza:
+- brak ostrych granic
+- brak klików jako podstawy
+- opór zależny od kontekstu
+- płynne przejścia między stanami
+
+Im większe:
+- ryzyko
+- kolizja
+- koszt
+tym większy „opór” środowiska.
+
+TIMESPACE nie jest przestrzenią 3D.
+TIMESPACE jest medium.
+
+
+==================================================
+7. SCHEMATIC VIRTUAL REALITY
+==================================================
+
+TIMESPACE jest pełną wirtualną rzeczywistością operacyjną,
+ale zaprojektowaną jako:
+
+- schematyczna
+- lekka
+- płynna
+- pozbawiona zbędnej grafiki
+
+Priorytety:
+- zero lagów
+- natychmiastowa reakcja
+- stała płynność
+
+Forma:
+- linie
+- osie
+- bryły uproszczone
+- warstwy
+
+Jak poruszanie się w Blenderze,
+ale scena jest żywym projektem, a nie plikiem.
+
+
+==================================================
+8. WARSTWY (LAYERS)
+==================================================
+
+TIMESPACE składa się z wielu warstw, m.in.:
+
+- geometria
+- czas
+- logistyka
+- kolizje
+- zadania
+- ryzyko
+- koszty
+- status ekip
+- decyzje
+
+Każda warstwa:
+- może być włączona / wyłączona
+- nie obciąża systemu, gdy jest nieaktywna
+- nie zmienia prawdy projektu, tylko widok
+
+
+==================================================
+9. ROLE I UPRAWNIENIA
+==================================================
+
+Wszyscy użytkownicy widzą TEN SAM obraz TIMESPACE.
+Różnią się wyłącznie uprawnieniami.
+
+ARCHITECT MODE:
+- widzi pełny stan projektu
+- może sugerować rozwiązania systemowe
+- nie narzuca decyzji
+
+PROJECT MANAGER:
+- zatwierdza propozycje
+- podejmuje decyzje nadrzędne
+- system jest arbitrem, nie osoba
+
+Po akceptacji PM:
+- sugestia architekta staje się
+  nadrzędną sugestią systemową
+  widoczną dla wszystkich wykonawców
+
+
+==================================================
+10. LOGISTYKA I REAL STATE AWARENESS
+==================================================
+
+TIMESPACE daje inżynierom i architektom
+realne wyobrażenie stanu projektu,
+uwzględniające logistykę.
+
+Logistyka jest warstwą projektową, nie dodatkiem.
+
+System pozwala:
+- przewidywać kolizje
+- widzieć skutki decyzji wcześniej
+- projektować proces, nie tylko formę
+
+Projekt jest prawdziwy tylko wtedy,
+gdy może istnieć w danym TIMESPACE.
+
+
+==================================================
+11. SUPPLIER VIEW & OPÓŹNIENIA
+==================================================
+
+Supplier widzi:
+- aktualny i prognozowany stan projektu
+- wpływ opóźnienia na czas, koszt i kolizje
+
+System automatycznie liczy:
+- koszty bezpośrednie
+- koszty pośrednie
+- kolizje z innymi zadaniami
+
+Opóźnienie:
+- nie jest problemem
+- jest wejściem w nowy stan TIMESPACE
+
+
+==================================================
+12. SLOW EXECUTION / FAST PROJECT
+==================================================
+
+Dzięki TIMESPACE każde zadanie
+może być wykonywane wolniej,
+bez wydłużania całego projektu.
+
+Efekt:
+- wyższa jakość
+- brak stresu
+- mniej poprawek
+- niższy koszt całkowity
+
+Presja przeniesiona jest z człowieka
+na system decyzyjny.
+
+
+==================================================
+13. HARMONIA I WSPÓLNA RZECZYWISTOŚĆ
+==================================================
+
+System nie narzuca kontroli.
+Buduje harmonię i wzajemne zrozumienie.
+
+Wszyscy:
+- patrzą na to samo
+- rozumieją konsekwencje
+- podejmują świadome decyzje
+
+Technologia jest tylko nośnikiem.
+
+
+==================================================
+14. DEVICE-AGNOSTIC ACCESS
+==================================================
+
+TIMESPACE nie jest systemem kasków.
+
+Może być używany przez:
+- kaski AR
+- okularki / smart glasses
+- tablety / laptopy
+- VR / MR
+- centralne stoły / hologramy
+
+Urządzenie jest tylko oknem.
+TIMESPACE jest wspólną rzeczywistością.
+
+Brak vendor lock-in.
+Kompatybilność z dowolnym VR.
+
+
+==================================================
+15. ZASADY NADRZĘDNE (LOCKED)
+==================================================
+
+1. Czas i przestrzeń są interfejsem
+2. Obserwator zawsze wpływa
+3. Jedna rzeczywistość, różne role
+4. Żel jako model interakcji
+5. Schemat > grafika
+6. Wolniej lokalnie = szybciej globalnie
+7. System uspokaja projekt
+8. Urządzenie nigdy nie jest wymaganiem
+
+==================================================
+END OF DOCUMENT
+==================================================
+
+
+
+
+UNICON – MASTER DOC v2.0 (ADDENDUM)
+
+ZASADA NADRZĘDNA
+Wszystkie wcześniejsze Master Docs (v1, v1.x itd.) pozostają w pełni aktualne.
+Nowe wersje rozszerzają i doprecyzowują ustalenia, nie unieważniają wcześniejszych decyzji.
+
+CROSS-PLATFORM (WYMÓG KRYTYCZNY)
+System UNICON musi działać docelowo na:
+
+Windows
+
+macOS
+
+Android
+
+iOS (w przyszłości)
+
+Założenia:
+
+Brak uzależnienia od jednego systemu operacyjnego po stronie użytkownika.
+
+Każda funkcja dostępna przez standardowe interfejsy sieciowe.
+
+ROLA RASPBERRY PI
+Raspberry Pi pełni rolę headless core systemu UNICON.
+
+Odpowiada za:
+
+obsługę sensorów (IMU, LiDAR, GPIO, inne),
+
+obliczenia,
+
+logikę systemową.
+
+Ograniczenia:
+
+brak UI zależnego od OS,
+
+dostęp przez SSH wyłącznie do serwisu i developmentu.
+
+KOMUNIKACJA SYSTEMOWA
+Standardy komunikacji:
+
+JSON
+
+REST / HTTP
+
+WebSocket (real-time)
+
+opcjonalnie UDP / TCP
+
+Architektura:
+
+Raspberry Pi wystawia API,
+
+klient (Windows / macOS / Android) działa jako client API.
+
+APLIKACJA UŻYTKOWNIKA (TELEFON / DESKTOP)
+Aplikacja jest integralną częścią systemu UNICON.
+
+Służy do:
+
+konfiguracji systemu,
+
+ustawień HUD / wizjera,
+
+kalibracji użytkownika,
+
+zarządzania profilami użytkowników.
+
+Zasady:
+
+aplikacja nie steruje GPIO,
+
+aplikacja nie zawiera logiki hardware,
+
+aplikacja działa wyłącznie jako klient API.
+
+FILOZOFIA ROZWOJU
+
+Najpierw stabilny core systemu.
+
+Jedna logika systemowa obsługująca wiele klientów.
+
+Brak vendor-lock.
+
+Każda funkcja:
+
+testowana lokalnie,
+
+następnie udostępniana zdalnie przez API.
+
+STATUS DOKUMENTU
+
+Master Doc ma charakter narastający.
+
+v2.0 stanowi rozszerzenie istniejących dokumentów.
+
+Ustalenia v2.0 obowiązują wszystkie dalsze decyzje projektowe UNICON.
+
+UNICON – MASTERDOC (CONTINUOUS / LIVING DOCUMENT)
+wersja robocza v4.x
+stan: TERAZ
+===============================================
+
+ZASADA NADRZĘDNA
+---------------
+• Wszystkie poprzednie Master Docs (v1, v2, v3, v3.x itd.) pozostają WAŻNE
+• Ten dokument NICZEGO nie unieważnia
+• Jest to dokument ciągły – dopisywany w trakcie prac
+• Braki, sprzeczności i niedopowiedzenia są AKCEPTOWALNE
+• To nie jest dokument finalny, tylko dziennik architektury systemu
+
+
+CZYM JEST UNICON
+----------------
+UNICON to system pracy w przestrzeni, nie gadżet i nie „apka AR”.
+
+UNICON = połączenie:
+• wizjera / okularów / kasku (różne formy)
+• sensorów (IMU, LiDAR, kamera)
+• HUD wyświetlanego na szybce
+• logiki zadań, planów i orientacji w budynku
+• warstwy czasu (Timespace)
+
+UNICON nie ma być „efektowny”.
+Ma być:
+• lekki
+• schematyczny
+• precyzyjny
+• bez lagów
+• bez zbędnej grafiki
+• jak laser, nie jak ekran
+
+
+FILOZOFIA INTERFEJSU
+--------------------
+• brak klasycznych menu
+• brak klikania
+• brak „apki w kasku”
+
+Zamiast tego:
+• żelowa przestrzeń interakcji
+• linie, punkty, obrysy
+• HUD reaguje na:
+  – kierunek głowy
+  – kierunek wzroku (docelowo)
+  – dystans (LiDAR)
+  – obecność dłoni / gest (później)
+
+UI:
+• półprzezroczyste
+• wtórne wobec świata
+• nigdy nie zasłania realnego obiektu
+
+
+SPRZĘT – STAN OGÓLNY
+-------------------
+
+Jednostka obliczeniowa:
+• Raspberry Pi – prototyp, headless core
+• docelowo Jetson (Orin Nano / Orin NX)
+
+Sensory:
+• IMU 6–9 axis (orientacja, poziomica)
+• LiDAR:
+  – krótki dystans (precyzja HUD, pomiary bliskie)
+  – średni dystans (ściany, przejścia, orientacja)
+• kamera:
+  – wizja / IR / eye-tracking (etapami)
+
+HUD / Wizjer:
+• mikro-projektor (LCOS / PICO)
+• rzut na szybkę 2–6 cm od oka
+• minimalne kolory (biały, czerwony, zielony)
+• jasność adaptacyjna
+
+HUD nie zastępuje świata – tylko go uzupełnia
+
+
+STABILIZACJA OBRAZU (SFOV) – CORE SYSTEMU
+----------------------------------------
+Wyświetlane elementy (punkt, linia, obrys):
+• są stabilne względem świata
+• nie „pływają” przy ruchu głowy
+• są przypisane do punktu w przestrzeni
+
+SFOV = połączenie:
+• IMU
+• LiDAR
+• (docelowo) eye-tracking
+
+To jest rdzeń wartości UNICONA
+
+
+FUNKCJE ROBOCZE (LISTA OTWARTA)
+-------------------------------
+UNICON nie ma „apek” – ma nakładające się tryby:
+
+• pomiar odległości, wysokości, głębokości
+• poziomica / pion
+• wiercenie (punkt + głębokość)
+• orientacja w budynku (pokój / piętro)
+• checklisty TO-DO / DONE
+• podgląd planów (PDF / Excel → logika)
+• BHP – strefy, kolory, no-go
+• cleaning mode – obszary, pokrycie
+• wall-scanner (docelowo)
+
+Tryby się NAKŁADAJĄ, a nie brutalnie przełączają
+
+
+CZAS JAKO 4 WYMIAR (TIMESPACE)
+------------------------------
+UNICON obsługuje przestrzeń + czas.
+
+• zadania mają przypisany czas
+• przestrzeń zmienia się w czasie
+• manager widzi plan całości
+• worker widzi tylko „tu i teraz”
+
+Timespace:
+• to warstwa systemu
+• nie osobna aplikacja
+• działa na tej samej przestrzeni 3D
+
+
+KOMUNIKACJA SYSTEMU
+------------------
+• Raspberry / Jetson wystawia API
+• klienci:
+  – telefon
+  – tablet
+  – komputer
+  – inne okulary
+
+Standardy:
+• JSON
+• REST / WebSocket
+
+Brak uzależnienia od OS:
+• Windows
+• macOS
+• Android
+• iOS (później)
+
+
+MODUŁOWOŚĆ UŻYTKOWNIKÓW
+----------------------
+Ten sam core system, różne warstwy:
+
+• Worker – prosty, tani, funkcjonalny
+• Pro – inspektor, manager, architekt
+• Clean / Service – uproszczony
+
+Różnice w UI i funkcjach, NIE w rdzeniu
+
+
+PATENTY – ŚWIADOMOŚĆ (NA RAZIE)
+------------------------------
+Potencjalne obszary ochrony:
+• HUD + stabilizacja obrazu SFOV
+• integracja IMU + LiDAR + wzrok
+• wall-scanner z overlayem AR
+• floor detection bez dodatkowych czujników
+• generowanie zadań z planów
+
+Na tym etapie:
+• zapisujemy
+• nie filingujemy
+
+
+STATUS NA TERAZ
+---------------
+• dokument niekompletny – OK
+• część pomysłów się wywali – OK
+• część się uprości – OK
+• część okaże się kluczowa – OK
+
+To jest normalne
+
+
+ZASADA KOŃCOWA
+--------------
+• dokument żywy
+• nic nie jest ostateczne
+• wracamy, dopisujemy, wywalamy
+
+„Jak coś zgubimy – wrócimy.
+ Jak czegoś brakuje – dopiszemy.
+ Jak coś okaże się głupie – wywalimy.”
+
+
+
+UNICON – MASTER DOCUMENT v1.3 (FINAL)
+
+System narzędziowy do pracy na budowie: kask z HUD, analiza planów PDF, TO-DO/DONE, raportowanie, pełna modularność sprzętu i software.
+UNICON jest narzędziem pracy – nie gadżetem.
+
+FUNDAMENTALNE ZAŁOŻENIA
+
+UNICON to narzędzie pracy, nie gadżet.
+
+System musi działać:
+
+offline
+
+w metalowych budynkach
+
+bez GPS i Wi-Fi
+
+w kurzu, przy wibracjach i uderzeniach
+
+Na start używamy wyłącznie tego, co mamy – zero zbędnych zakupów.
+
+Gdy pojawi się budżet, dokładamy: mikroprojektor AAA, IMU, LiDAR, sensory oka.
+
+Hardware i software są w pełni modularne.
+
+BHP jest funkcją tła – nigdy nie blokuje core systemu.
+
+Interfejs głosowy: żeński, syntetyczny, styl Terran Command Center (wymienne voice-packi).
+
+CO SYSTEM ROBI (CORE)
+
+Czyta plany PDF / Excel.
+
+Rozpoznaje pomieszczenia, kontury, instalacje i trasy.
+
+Automatycznie generuje zadania TO-DO z planów.
+
+Pozwala oznaczać zadania jako DONE bezpośrednio na budowie.
+
+Wyświetla stabilny HUD dokładnie tam, gdzie patrzy użytkownik.
+
+Łączy dane z IMU, LiDAR i sensorów oka.
+
+Działa offline i synchronizuje się z managementem, gdy jest internet.
+
+HARDWARE – RDZEŃ SYSTEMU
+
+IMU:
+
+6-axis (np. MPU6050) – obowiązkowe.
+
+9-axis opcjonalnie.
+
+Automatyczne wyłączanie magnetometru w środowiskach zakłóconych.
+
+Zadanie: określenie yaw / pitch / roll = główny wektor patrzenia.
+
+LiDAR:
+
+Zasięg roboczy: 2–4 m.
+
+Pomiar odległości do ścian i płaszczyzn.
+
+Skalowanie HUD.
+
+Dopasowanie planu PDF do rzeczywistej geometrii budynku.
+
+Zasilanie:
+
+Baterie DeWalt.
+
+Step-down 20V → 5V / 12V.
+
+Moduł zasilania wymienny.
+
+Jednostka obliczeniowa:
+
+Start: Raspberry Pi / OrangePi / ekwiwalent.
+
+Produkt: własny SBC.
+
+Wymagania: niskie zużycie energii, stabilny system plików.
+
+Modułowość (wymóg twardy):
+
+IMU
+
+LiDAR
+
+projektor
+
+wizjer
+
+sensory oka
+
+płyta główna
+
+moduł zasilania
+
+HUD I PROJEKCJA
+
+HUD:
+
+Laserowy grid, linie, cyfry, strzałki.
+
+Styl: retro sci-fi / F-16.
+
+Minimalna liczba kolorów (2–3).
+
+HUD nie może pływać ani drgać.
+
+HUD musi być „doklejony” do ściany lub powierzchni.
+
+Projekcja:
+
+Mikroprojektor DLP (docelowo rozmiar AAA).
+
+Projekcja na wizjer z folią projekcyjną 10–20%.
+
+Wirtualna odległość projekcji: ok. 3–5 cm przed okiem.
+
+4.3 SENSORY OKA I KIERUNEK WZROKU
+
+Pomiar odległości oka:
+
+1–2 czujniki IR (ToF lub reflective).
+
+Zakres roboczy ok. 2–8 cm.
+
+Służy do:
+
+korekty skali HUD,
+
+korekty offsetu projekcji,
+
+stabilizacji obrazu przy ruchu głowy.
+
+Pomiar kierunku wzroku (lekki):
+
+Brak kamer eye-tracking.
+
+IMU dostarcza główny wektor patrzenia.
+
+Sensory oka dostarczają mikro-korekt (góra/dół/lewo/prawo).
+
+Sensory oka nigdy nie nadpisują IMU – tylko korygują.
+
+Efekt:
+HUD trafia dokładnie tam, gdzie patrzy użytkownik.
+
+FUZJA DANYCH
+
+IMU:
+
+Filtr komplementarny (gyro + accel).
+
+Magnetometr opcjonalny, auto-disable.
+
+LiDAR:
+
+Wygładzanie: moving average.
+
+Odrzucanie pojedynczych skoków.
+
+Sensory oka:
+
+Filtr low-pass.
+
+Analiza trendu, nie pojedynczych impulsów.
+
+Geometry Engine:
+
+Łączy IMU + oko → wektor patrzenia.
+
+LiDAR → odległość.
+
+Oblicza punkt przecięcia wektora z płaszczyzną.
+
+W tym punkcie rysuje HUD.
+
+SOFTWARE – WARSTWY
+
+Sensors Runtime
+
+IMU
+
+LiDAR
+
+sensory oka
+
+filtracja i sanity-check
+
+Geometry Engine
+
+skalowanie planów PDF
+
+dopasowanie do budynku
+
+obliczanie pozycji HUD
+
+HUD Engine
+
+grid
+
+linie instalacji
+
+TO-DO overlay
+
+Tasks Engine
+
+generowanie TO-DO
+
+statusy: TO-DO / IN PROGRESS / DONE
+
+obsługa offline
+
+Communication Layer
+
+raporty
+
+synchronizacja
+
+logi
+
+KALIBRACJA
+
+IMU:
+
+pozycja zerowa głowy
+
+zapis offsetów
+
+LiDAR:
+
+kalibracja offsetu do ściany
+
+Oko:
+
+pozycja neutralna
+
+mikro-korekty kierunku
+
+Plan PDF:
+
+2–3 punkty referencyjne
+
+skalowanie, obrót, przesunięcie
+
+ETAPY ROZWOJU
+
+Etap 1:
+
+core software
+
+HUD na zwykłym ekranie
+
+bez projekcji
+
+Etap 2:
+
+mikroprojektor
+
+wizjer
+
+folia projekcyjna
+
+Etap 3:
+
+testy w realnych budynkach
+
+pełna kalibracja
+
+Etap 4:
+
+miniaturyzacja
+
+własna płyta
+
+certyfikacja
+
+STATUS DOKUMENTU
+
+UNICON MASTER DOC v1.3
+STATUS: LOCKED
+
+Rozwój wyłącznie przez kolejne wersje (v1.4, v1.5, itd.).
+Ten dokument jest podstawą dla hardware, software i produktu końcowego.
+
+
+UNICON – MASTER DOC
+HUD / VISOR SYSTEM v1.0
+SOURCE OF TRUTH
+
+====================
+1. CEL SYSTEMU HUD
+====================
+HUD (Head-Up Display) w systemie UNICON jest kluczowym interfejsem pomiędzy
+pracownikiem a systemem cyfrowym. Dostarcza informacje dokładnie tam,
+gdzie użytkownik patrzy – bez używania rąk i bez odrywania uwagi od pracy.
+
+====================
+2. ZASADY NADRZĘDNE (LOCKED)
+====================
+- HUD nigdy nie zasłania punktu roboczego
+- Informacje pojawiają się tylko wtedy, gdy są potrzebne
+- Kolory mają stałe, niezmienne znaczenie
+- HUD reaguje na kierunek wzroku i kontekst pracy
+- Brak elementów dekoracyjnych – narzędzie pracy
+
+====================
+3. MODEL WARSTWOWY WIZJERA
+====================
+- Base Layer – świat rzeczywisty
+- Info Layer – wymiary, opisy, status
+- Task Layer – TO DO / DONE
+- Scan Layer – LiDAR / Wall Scanner
+- Alert Layer – BHP i kolizje
+
+====================
+4. TRYBY PRACY HUD
+====================
+- Normal Mode
+- LiDAR Mode
+- Wall Scanner Mode
+- Mount / Precision Mode
+- Alert Mode
+
+====================
+5. ELEMENTY UI
+====================
+- Centralny punkt celowania
+- Linie pomocnicze
+- Etykiety wymiarów
+- Ikony statusowe poza osią wzroku
+
+====================
+6. KOLORYSTYKA (SEMANTYKA)
+====================
+- Zielony – bezpieczne / poprawne
+- Czerwony – zagrożenie / zakaz
+- Żółty – element konstrukcyjny
+- Niebieski – instalacje wodne
+- Biały – informacje pomocnicze
+
+====================
+7. LOGIKA INFORMACJI
+====================
+HUD jest pusty w stanie spoczynku.
+Informacje narastają warstwowo zależnie od trybu i zagrożeń.
+
+====================
+8. GŁOS / ASR
+====================
+Głos steruje trybami i potwierdzeniami.
+Brak duplikacji informacji wizualnych.
+
+====================
+9. POWIĄZANIE Z SENSORAMI
+====================
+- IMU – kierunek wzroku
+- LiDAR – dystans i skan
+- Kamera – kontekst
+- Wall Scanner – fuzja danych
+
+====================
+10. GRANICE SYSTEMU
+====================
+HUD nie zastępuje szkolenia ani decyzji konstrukcyjnych.
+
+==================================================
+DO DOPISANIA – KOLEJNE MASTER DOC (Z TEJ ROZMOWY)
+==================================================
+
+1. MASTER DOC: Wall Scanner
+   brak danych
+
+2. MASTER DOC: Sensor Fusion (IMU + LiDAR + Vision)
+   brak danych
+
+3. MASTER DOC: Voice System (Terran-style)
+   brak danych
+
+4. UNICON MASTER DOC v1 (scalenie core + HUD)
+   brak danych
+
+UNICON SYSTEM – KANON TECHNICZNY (HARDWARE + SYSTEM)
+
+STATUS: KANON / LOCKED
+ZMIANY WYŁĄCZNIE PRZEZ ANEKS
+
+--------------------------------------------------
+
+1. JEDNOSTKA OBLICZENIOWA
+
+1.1 Jednostka główna – PROTOTYP
+Raspberry Pi 4 Model B
+Minimum 4 GB RAM
+Zalecane 8 GB RAM
+
+Raspberry Pi 5 dopuszczony jako upgrade (większa moc, większy pobór energii)
+
+1.2 Arduino / mikrokontrolery
+Arduino NIE JEST jednostką główną systemu
+Mikrokontrolery (ESP32 / Arduino) mogą być używane WYŁĄCZNIE jako:
+- sensory pomocnicze
+- obsługa przycisków
+- LED / wibracje
+- watchdog / safety layer
+
+1.3 Jednostka produkcyjna (przyszłość)
+XIAOML AI Kit (planowany 2025) jako potencjalny zamiennik Raspberry Pi
+Alternatywa: Compute Module CM4 / CM5 na własnej płycie
+
+--------------------------------------------------
+
+2. SYSTEM OPERACYJNY
+
+2.1 Prototyp
+Raspberry Pi OS 64-bit (Lite)
+Linux jako OBOWIĄZKOWA baza systemu
+
+2.2 Produkcja
+Ubuntu Core lub Yocto
+Brak środowiska desktopowego
+Firmware embedded
+
+--------------------------------------------------
+
+3. ARCHITEKTURA FIZYCZNA (WAGA)
+
+ZASADA NADRZĘDNA:
+HEŁM MUSI POZOSTAĆ MAKSYMALNIE LEKKI
+
+3.1 Elementy na hełmie (LEKKIE)
+- Kamera frontowa
+- IMU (żyroskop + akcelerometr)
+- HUD (OLED / microdisplay / projektor)
+- Mikrofon
+- Minimalna ilość przewodów
+
+3.2 Elementy poza hełmem (PAS / PLECY / KIESZEŃ)
+- Raspberry Pi
+- Akumulator narzędziowy 18 V (np. DeWalt)
+- Przetwornice napięcia
+- Moduły komunikacyjne
+- Dodatkowe sensory (LiDAR)
+
+--------------------------------------------------
+
+4. SENSORY I POZYCJONOWANIE
+
+4.1 Sensory obowiązkowe (V1)
+- IMU (6 lub 9 osi)
+- Kamera frontowa
+- LiDAR / ToF (pomiar odległości)
+- Audio (mikrofon)
+
+4.2 Pozycjonowanie
+- Fuzja danych:
+  IMU -> orientacja
+  Kamera -> wizualne pozycjonowanie (SLAM)
+  LiDAR -> korekta dystansu i stabilności
+- System utrzymuje pozycję elementów HUD w przestrzeni
+  niezależnie od ruchu głowy
+
+--------------------------------------------------
+
+5. WYŚWIETLANIE (HUD)
+
+Styl: HUD pilota / VR
+Kolorystyka: zielone linie, minimalna liczba kolorów
+
+Wyświetlane informacje:
+- poziomica
+- linie wymiarów
+- elementy instalacji (elektryka / hydraulika / stolarka)
+- opisy zadań
+
+Wersja V1: OLED / microdisplay
+Wersja przyszła: projekcja na wizjer (transparentna)
+
+--------------------------------------------------
+
+6. OPROGRAMOWANIE – ARCHITEKTURA
+
+6.1 Moduły systemowe
+- Sensor Engine
+- Fusion Engine
+- HUD Renderer
+- Task / Job Engine
+- Networking / Sync
+
+6.2 Technologie
+- Python + C++ (realtime)
+- OpenCV / OpenGL (prototyp)
+- ROS2 rozważany w późniejszym etapie
+
+--------------------------------------------------
+
+7. SKALOWANIE I PRODUKCJA
+
+7.1 Etapy
+1. Prototyp – Raspberry Pi + moduły
+2. Beta – Compute Module + carrier board
+3. Produkcja – własna płyta główna
+4. Integracja AI / NPU
+
+7.2 Produkcja elektroniki
+- Projekt PCB własny lub wspomagany AI
+- Dostawcy komponentów:
+  Farnell / element14 (UK, Leeds)
+  DigiKey / Mouser
+
+--------------------------------------------------
+
+8. ZASADY KANONICZNE (LOCKED)
+
+- Linux jako baza systemu – NIEZMIENNE
+- Lekki hełm – NIEZMIENNE
+- HUD w stylu pilota – NIEZMIENNE
+- System modułowy – NIEZMIENNE
+- Brak uzależnienia od jednego producenta hardware – NIEZMIENNE
+
+--------------------------------------------------
+
+
+UNICON – TRANSPARENT VISOR DISPLAY
+PODSUMOWANIE ISTOTNE (TXT)
+
+1. CEL SYSTEMU (WYMAGANIE BAZOWE)
+
+UNICON wymaga wizjera (visor), który:
+- jest krystalicznie przezroczysty (brak „ekranu” zasłaniającego wzrok),
+- wyświetla dane w postaci HUD (nakładka informacyjna),
+- jest lekki, modułowy i bezpieczny dla pracy na budowie,
+- działa w jasnym otoczeniu (daylight),
+- w wersji V1 używa tylko 3 kolorów (np. zielony, czerwony, niebieski).
+
+Ograniczenie do 3 kolorów jest ŚWIADOMĄ decyzją inżynieryjną – obniża koszt,
+zwiększa jasność i upraszcza elektronikę.
+
+
+2. KLUCZOWY WNIOSEK TECHNICZNY
+
+Apple Vision Pro / HoloLens NIE używają dużych transparentnych ekranów.
+
+Stosują:
+- mikro-wyświetlacze (micro-OLED / LCOS),
+- optykę projekcyjną,
+- waveguide lub combiner (szkło prowadzące światło).
+
+Dla UNICON V1:
+- duży transparentny ekran NIE jest realistyczny (koszt, dostępność, kruchość),
+- rozwiązania HUD / projekcyjne są właściwym kierunkiem.
+
+
+3. REALNE ROZMIARY I OGRANICZENIA WIZJERA
+
+Typowy wizjer:
+- szerokość ~22–24 cm (9–9.5”)
+- wysokość ~16–18 cm (6–7”)
+
+UWAGA:
+- nie wolno pokrywać całego wizjera wyświetlaczem,
+- obszar HUD powinien być mały i przesunięty względem osi wzroku.
+
+Realistyczny rozmiar wyświetlania HUD:
+- 1.5” – 3.5” (na jedno oko),
+- preferowane płaskie elementy (nie gięte ekrany).
+
+
+4. NAJLEPSZE ARCHITEKTURY (RANKING)
+
+OPCJA A – TRANSPARENTNY OLED + HUD FILM (REKOMENDOWANA – V1)
+- mały transparentny OLED (ok. 1.5–2.2”),
+- HUD reflective film naklejony na wizjer,
+- obraz „unosi się” w polu widzenia,
+- wizjer pozostaje w 100% przezroczysty,
+- tanie, odporne, łatwe w wymianie.
+
+OPCJA B – SYSTEM 3-KOLOROWY (LOW COST, INDUSTRIAL)
+- 1 transparentny OLED (główne info),
+- czerwone / zielone / niebieskie LED lub mikro-projekcje,
+- kolory pełnią funkcję semantyczną:
+  zielony = OK / status,
+  czerwony = zagrożenie,
+  niebieski = info / czas.
+- bardzo dobra widoczność w dzień.
+
+OPCJA C – WAVEGUIDE AR (PRZYSZŁOŚĆ, V2+)
+- waveguide + mikro-wyświetlacz,
+- najbliżej Apple / HoloLens,
+- droższe i bardziej złożone,
+- sensowne dopiero po funding / MVP.
+
+
+5. STRATEGIA KOLORÓW (LOCK)
+
+System UNICON V1:
+- używa maksymalnie 3 kolorów,
+- brak pełnego RGB.
+
+Korzyści:
+- wyższa jasność,
+- mniejsze zużycie energii,
+- prostsze sterowanie,
+- większa czytelność w terenie,
+- niższy koszt BOM.
+
+Proponowana semantyka:
+- ZIELONY – status, poziom, pomiar OK,
+- CZERWONY – ostrzeżenia, kolizje, zagrożenia,
+- NIEBIESKI – czas, komunikaty, info systemowe.
+
+
+6. REKOMENDACJA KOŃCOWA (UNICON V1 – LOCK)
+
+Dla wersji UNICON V1:
+- NIE stosować dużych transparentnych paneli,
+- NIE stosować giętych ekranów,
+- użyć: transparentny OLED + HUD film,
+- wizjer pozostaje czysty i przezroczysty,
+- HUD ma charakter informacyjny, nie imersyjny,
+- sterowanie: ESP32 lub Raspberry Pi,
+- architektura modułowa (łatwa wymiana elementów).
+
+To rozwiązanie jest:
+- realistyczne,
+- tanie,
+- przemysłowe,
+- skalowalne do V2 (waveguide AR).
+
+
+
+UNICON — PROJECT SUMMARY (KANON V1)
+
+1. CEL SYSTEMU
+UNICON to system AR / HUD dla budownictwa i prac technicznych.
+Celem jest zastąpienie taśm mierniczych, notatek, telefonów i chaosu
+jednym spójnym systemem widzenia, pomiaru i informacji na budowie.
+
+System ma dawać użytkownikowi:
+- orientację
+- precyzję
+- kontekst
+- jedno źródło prawdy
+
+
+2. CORE SYSTEM (LOCKED)
+Sercem systemu jest headless core oparty o Raspberry Pi.
+
+Raspberry Pi:
+- zbiera dane z czujników (kamera, LiDAR, IMU)
+- wykonuje obliczenia
+- wystawia dane przez API
+
+Brak ciężkiego UI na Raspberry.
+Brak zależności od systemu operacyjnego użytkownika.
+
+
+3. INTERFEJS (HUD)
+Interfejs działa w przeglądarce (telefon, tablet, wizjer).
+Nie wymaga instalacji aplikacji.
+
+HUD:
+- centralny krzyż / punkt odniesienia
+- miarki (linie, punkty, osie)
+- warstwy informacji
+
+Styl:
+- czysty
+- techniczny
+- bez zbędnej grafiki
+- brak „syfu UI”
+
+
+4. POMIAR — FUNDAMENT SYSTEMU
+Podstawą UNICON jest pomiar oparty o kamerę.
+
+Kalibracja:
+- linijka lub obiekt o znanym wymiarze
+- skala obrazu
+
+Obsługiwane pomiary (V1):
+- szerokość
+- wysokość
+- odległość w osi obrazu
+
+IMU i LiDAR są dodatkiem,
+ale kamera stanowi fundament całego systemu.
+
+
+5. KOMUNIKACJA SYSTEMOWA
+Cała komunikacja oparta jest o HTTP i JSON.
+
+Przykładowe endpointy:
+- /health
+- /hud
+- /imu
+- /stream
+
+Stream wideo realizowany jako MJPEG / HTTP stream.
+
+
+6. ARCHITEKTURA (CROSS-PLATFORM)
+UNICON jest projektowany jako system niezależny od platformy.
+
+Docelowe platformy klienckie:
+- Windows
+- macOS
+- Android
+- iOS (w późniejszym etapie)
+
+Raspberry Pi wystawia API.
+Każdy klient może się podłączyć przez sieć.
+
+
+7. KIERUNEK ROZWOJU
+V1:
+- kamera
+- HUD
+- miarki
+- stabilny pomiar
+
+V2:
+- LiDAR
+- IMU
+- poprawa precyzji i orientacji
+
+V3:
+- Timespace
+- oś czasu
+- zadania
+- zarządzanie pracą zespołów
+
+UNICON jest systemem pracy,
+a nie gadżetem i nie zabawką.
+
+
+8. JEDNOZDANIOWE PODSUMOWANIE (KANON)
+UNICON to „cyfrowy wzrok” dla budowy — widzisz, mierzysz i wiesz, bez zgadywania.
+
+
+
+
+UNICON V1 – SCOPE LOCK (KANON)
+VERSION: v1.4
+STATUS: LOCKED
+
+CEL V1
+UNICON V1 to system SNAG LIST do zarządzania poprawkami budowlanymi, w którym Manager tworzy snagi, a użytkownicy (Joiner / Electrician) realizują je, dodając statusy, adnotacje oraz zdjęcia BEFORE / IN_PROGRESS / AFTER.
+System działa jako web app (telefon / laptop) z backendem na Raspberry Pi.
+HUD, IMU, LiDAR, kamera live są modułami pobocznymi i nie mogą blokować SNAG LIST.
+
+ROLE (LOCKED)
+- MANAGER
+- JOINER
+- ELECTRICIAN
+
+JEDNOSTKA PRACY: SNAG
+Każdy snag zawiera:
+- id
+- title (krótki)
+- description (1–3 zdania)
+- location (tekstowa, np. “Flat 2, Bedroom 1, fire door hinge side”)
+- assigned_role (JOINER lub ELECTRICIAN)
+- priority (LOW / MED / HIGH)
+- status (TODO / IN_PROGRESS / DONE / BLOCKED)
+- timestamps (created / updated)
+
+STATUSY (LOCKED)
+- TODO
+- IN_PROGRESS
+- DONE
+- BLOCKED
+
+ZDJĘCIA (LOCKED)
+- typy zdjęć:
+  - BEFORE
+  - IN_PROGRESS
+  - AFTER
+- maksymalna liczba zdjęć:
+  - 12 zdjęć NA JEDEN SNAG (łącznie, wszystkie typy razem)
+- zdjęcia mogą być dodawane seryjnie (multi-select z telefonu)
+- zdjęcia numerowane automatycznie (step-01, step-02, …)
+- zdjęcia kompresowane po stronie klienta przed uploadem
+
+ADNOTACJE (LOCKED)
+- krótkie notatki tekstowe
+- max 280 znaków
+- opcjonalne przy każdej zmianie statusu
+
+WORKFLOW (KANON)
+1. Manager tworzy snag i przypisuje go do roli
+2. Joiner / Electrician widzi listę “My Snags”
+3. Worker:
+   - zmienia status
+   - dodaje adnotację
+   - dodaje zdjęcia BEFORE / IN_PROGRESS / AFTER
+4. Manager widzi w jednym miejscu:
+   - aktualny status
+   - historię zmian
+   - wszystkie zdjęcia
+
+WIDOKI (WEB CLIENT)
+MANAGER:
+- lista wszystkich snagów
+- filtrowanie po roli i statusie
+- podgląd zdjęć i notatek
+
+WORKER (JOINER / ELECTRICIAN):
+- lista “My Snags”
+- zmiana statusu
+- upload zdjęć
+- dodawanie adnotacji
+
+BACKEND (LOCKED)
+- Raspberry Pi (headless)
+- Python
+- API HTTP JSON (CRUD snagów)
+- upload zdjęć (multipart/form-data)
+- persistence:
+  - SQLite (snagi, statusy, notatki)
+  - pliki zdjęć na dysku
+
+STRUKTURA DANYCH ZDJĘĆ
+/data/photos/<snag_id>/before
+/data/photos/<snag_id>/in_progress
+/data/photos/<snag_id>/after
+
+CO NIE WCHODZI W V1 (KANON)
+- czat / rozmowy
+- voice
+- AI / rozpoznawanie obiektów
+- AR / SLAM / mapy
+- powiadomienia push
+- aplikacje native
+- multi-firma / multi-site
+- załączniki inne niż zdjęcia
+
+DEFINICJA “DZIAŁA” (EXIT)
+V1 jest skończone, gdy:
+- Manager może tworzyć snagi
+- Worker widzi swoje snagi
+- Worker zmienia status
+- Worker dodaje notatkę
+- Worker dodaje zdjęcia (do 12)
+- Manager widzi status, zdjęcia i notatki
+- dane przetrwają restart systemu
+
+STOP.
+Wszystko poza tym → NEXT STEP / PO FUNDINGU.
+
+
+
+
+UNICON SYSTEM – KANON TECHNICZNY (HARDWARE + SYSTEM)
+
+STATUS: KANON / LOCKED
+ZMIANY WYŁĄCZNIE PRZEZ ANEKS
+
+--------------------------------------------------
+
+1. JEDNOSTKA OBLICZENIOWA
+
+1.1 Jednostka główna – PROTOTYP
+Raspberry Pi 4 Model B
+Minimum 4 GB RAM
+Zalecane 8 GB RAM
+
+Raspberry Pi 5 dopuszczony jako upgrade (większa moc, większy pobór energii)
+
+1.2 Arduino / mikrokontrolery
+Arduino NIE JEST jednostką główną systemu
+Mikrokontrolery (ESP32 / Arduino) mogą być używane WYŁĄCZNIE jako:
+- sensory pomocnicze
+- obsługa przycisków
+- LED / wibracje
+- watchdog / safety layer
+
+1.3 Jednostka produkcyjna (przyszłość)
+XIAOML AI Kit (planowany 2025) jako potencjalny zamiennik Raspberry Pi
+Alternatywa: Compute Module CM4 / CM5 na własnej płycie
+
+--------------------------------------------------
+
+2. SYSTEM OPERACYJNY
+
+2.1 Prototyp
+Raspberry Pi OS 64-bit (Lite)
+Linux jako OBOWIĄZKOWA baza systemu
+
+2.2 Produkcja
+Ubuntu Core lub Yocto
+Brak środowiska desktopowego
+Firmware embedded
+
+--------------------------------------------------
+
+3. ARCHITEKTURA FIZYCZNA (WAGA)
+
+ZASADA NADRZĘDNA:
+HEŁM MUSI POZOSTAĆ MAKSYMALNIE LEKKI
+
+3.1 Elementy na hełmie (LEKKIE)
+- Kamera frontowa
+- IMU (żyroskop + akcelerometr)
+- HUD (OLED / microdisplay / projektor)
+- Mikrofon
+- Minimalna ilość przewodów
+
+3.2 Elementy poza hełmem (PAS / PLECY / KIESZEŃ)
+- Raspberry Pi
+- Akumulator narzędziowy 18 V (np. DeWalt)
+- Przetwornice napięcia
+- Moduły komunikacyjne
+- Dodatkowe sensory (LiDAR)
+
+--------------------------------------------------
+
+4. SENSORY I POZYCJONOWANIE
+
+4.1 Sensory obowiązkowe (V1)
+- IMU (6 lub 9 osi)
+- Kamera frontowa
+- LiDAR / ToF (pomiar odległości)
+- Audio (mikrofon)
+
+4.2 Pozycjonowanie
+- Fuzja danych:
+  IMU -> orientacja
+  Kamera -> wizualne pozycjonowanie (SLAM)
+  LiDAR -> korekta dystansu i stabilności
+- System utrzymuje pozycję elementów HUD w przestrzeni
+  niezależnie od ruchu głowy
+
+--------------------------------------------------
+
+5. WYŚWIETLANIE (HUD)
+
+Styl: HUD pilota / VR
+Kolorystyka: zielone linie, minimalna liczba kolorów
+
+Wyświetlane informacje:
+- poziomica
+- linie wymiarów
+- elementy instalacji (elektryka / hydraulika / stolarka)
+- opisy zadań
+
+Wersja V1: OLED / microdisplay
+Wersja przyszła: projekcja na wizjer (transparentna)
+
+--------------------------------------------------
+
+6. OPROGRAMOWANIE – ARCHITEKTURA
+
+6.1 Moduły systemowe
+- Sensor Engine
+- Fusion Engine
+- HUD Renderer
+- Task / Job Engine
+- Networking / Sync
+
+6.2 Technologie
+- Python + C++ (realtime)
+- OpenCV / OpenGL (prototyp)
+- ROS2 rozważany w późniejszym etapie
+
+--------------------------------------------------
+
+7. SKALOWANIE I PRODUKCJA
+
+7.1 Etapy
+1. Prototyp – Raspberry Pi + moduły
+2. Beta – Compute Module + carrier board
+3. Produkcja – własna płyta główna
+4. Integracja AI / NPU
+
+7.2 Produkcja elektroniki
+- Projekt PCB własny lub wspomagany AI
+- Dostawcy komponentów:
+  Farnell / element14 (UK, Leeds)
+  DigiKey / Mouser
+
+--------------------------------------------------
+
+8. ZASADY KANONICZNE (LOCKED)
+
+- Linux jako baza systemu – NIEZMIENNE
+- Lekki hełm – NIEZMIENNE
+- HUD w stylu pilota – NIEZMIENNE
+- System modułowy – NIEZMIENNE
+- Brak uzależnienia od jednego producenta hardware – NIEZMIENNE
+
+--------------------------------------------------
+
+
+
+
+
+
+
