@@ -464,3 +464,14 @@ Ready-to-send non-confidential messages are stored in:
 - `docs/EXO01_HORIZON_OUTREACH_PACK.md`
 
 Do not send internal Master / JV / equity / territorial-rights information to academic partners or NCP contacts.
+
+
+---
+
+## Strategic companion master
+
+Human augmentation / robotics positioning, long-term operating model, product-line expansion and the permanent strategic role of passive/manual augmentation are defined in:
+
+- `docs/NOSMO_HUMAN_AUGMENTATION_MASTER.md`
+
+This companion master does not replace the construction-hardware project record. It defines the wider NOSMO strategy around augmented workers versus robotics.
