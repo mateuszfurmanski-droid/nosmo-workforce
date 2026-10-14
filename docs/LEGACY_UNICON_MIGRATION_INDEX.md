@@ -79,26 +79,38 @@ These files are not treated as a substitute for the missing full OneDrive archiv
 
 ---
 
-## 4. OneDrive source archive still required
+## 4. OneDrive source archive — recovered
 
-User has identified historical OneDrive material including:
-- `UNICON_ARCHIVE`;
-- historical UNICON project archive;
-- old Master Docs;
-- hardware / visor / wall-scanner documentation.
+Live OneDrive access was connected and the historical UNICON archive was located.
 
-The complete archive has not yet been retrieved into the current tool-accessible source set.
+Confirmed archive locations include:
+- `/UNICON/UNICON_ARCHIVE`
+- `/UNICON/UNICON_ARCHIVE/01_KANON`
+- `/UNICON/UNICON_ARCHIVE/02_MASTER_DOCS`
+- `/UNICON/UNICON_ARCHIVE/02_MASTER_DOCS/HARDWARE_SYSTEM`
+- `/UNICON/UNICON_ARCHIVE/02_MASTER_DOCS/HUD_VISOR`
+- `/UNICON/UNICON_ARCHIVE/06_REFERENCE`
+- gold snapshot under `UNICON_ARCHIVE__SNAPSHOT_GOLD__20260206_2210`
 
-Likely historical structure to verify from source:
-- MASTER DOCS;
-- ARCHITECTURE;
-- HARDWARE SYSTEM;
-- HUD / VISOR;
-- KANON;
-- SOURCE OF TRUTH;
-- wall scanner / spatial sensing material.
+Confirmed files include:
+- `all Master Docs.txt`
+- `SOURCE_OF_TRUTH.md`
+- `KANON__TECHNICAL__HARDWARE_SYSTEM__LOCKED.md`
+- `KANON__MAIN_SCREEN_DISPLAY_INTERACTION__V1__LOCKED.md`
+- `KANON__TIMESPACE__v1.0__LOCKED.md`
+- `MASTERDOC__HUD_VISOR_SYSTEM__v1.0__SOURCE_OF_TRUTH.md`
+- `MASTERDOC__SYSTEM_ARCHITECTURE__v2.0__ADDENDUM.md`
+- `MASTERDOC__v1.3__FINAL__LOCKED.md`
+- `CODING_OPERATOR_MASTER_DOC_v1.0.md`
 
-Do not mark these as fully migrated until their actual OneDrive source files are inspected.
+Archive ZIPs confirmed:
+- `/UNICON/UNICON_ARCHIVE.zip`
+- `/UNICON/UNICON_PROJECT_v0.1_LOCKED_2025-12-20.zip`
+
+A full preserved copy of the consolidated OneDrive master-doc source has now been committed as:
+- `docs/legacy-unicon/ONEDRIVE__all_Master_Docs.txt`
+
+The archive is now considered **located and partially migrated**. Individual source files and binary archive contents still require staged ingestion before the migration can be marked complete.
 
 ---
 
@@ -173,3 +185,20 @@ Future helmet work should be proposed only after:
 - current helmet architecture is coherent;
 - previous FabStation conversation is reviewed;
 - a bounded PoC is defined.
+
+
+---
+
+## 8. Current OneDrive-derived NOSMO documents
+
+The following current documents were created from recovered legacy material:
+
+- `NOSMO_SMART_HELMET_HARDWARE_ARCHITECTURE.md`
+- `NOSMO_SMART_HELMET_DISPLAY_AND_VISOR.md`
+- `NOSMO_FIELD_SPATIAL_SENSING_AND_WALL_SCANNER.md`
+
+These reinterpret legacy UNICON decisions for the current NOSMO architecture.
+
+Important rule:
+- old `LOCKED` labels remain historical;
+- current NOSMO engineering may supersede them where testing, safety, current technology or Nexus integration requires it.
