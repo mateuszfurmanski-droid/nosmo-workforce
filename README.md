@@ -14,7 +14,7 @@ Shared code belongs only in:
 
 Documentation and recovery baselines belong in `docs`.
 
-Strategic hardware exploration is retained separately in `docs/NOSMO_CONSTRUCTION_HARDWARE_MASTER.md`; the wider robotics-vs-human-augmentation strategy is in `docs/NOSMO_HUMAN_AUGMENTATION_MASTER.md`. These documents are not canonical application source and do not change the Work / Agency product boundaries.
+Strategic hardware exploration is retained separately in `docs/NOSMO_CONSTRUCTION_HARDWARE_MASTER.md`; the wider robotics-vs-human-augmentation strategy is in `docs/NOSMO_HUMAN_AUGMENTATION_MASTER.md`; and the recovered UNICON helmet/HUD direction is controlled by `docs/NOSMO_SMART_HELMET_MASTER.md` plus `docs/LEGACY_UNICON_MIGRATION_INDEX.md`. These documents are not canonical application source and do not change the Work / Agency product boundaries.
 
 ## Product boundaries
 
