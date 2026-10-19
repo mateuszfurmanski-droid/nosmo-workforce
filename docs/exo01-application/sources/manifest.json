@@ -1,0 +1,34 @@
+[
+  {
+    "file": "work-programme.pdf",
+    "url": "https://ec.europa.eu/info/funding-tenders/opportunities/docs/2021-2027/horizon/wp-call/2026-2027/wp-7-digital-industry-and-space_horizon-2026-2027_en.pdf",
+    "retrieved_date": "2026-10-20 Europe/London",
+    "bytes": 2233691,
+    "sha256": "731430be0448261aa1fa0bd4e5b8d4978e51006733046cc4f5059528a3dbd50d",
+    "role": "reference only; not a completed or submission-workspace form"
+  },
+  {
+    "file": "general-annexes.pdf",
+    "url": "https://ec.europa.eu/info/funding-tenders/opportunities/docs/2021-2027/horizon/wp-call/2026-2027/wp-15-general-annexes_horizon-2026-2027_en.pdf",
+    "retrieved_date": "2026-10-20 Europe/London",
+    "bytes": 513836,
+    "sha256": "5c4337c4984629697d5a073f66862ead9fe291d64c561e003ea5f154df8de78f",
+    "role": "reference only; not a completed or submission-workspace form"
+  },
+  {
+    "file": "made-in-europe-sria.pdf",
+    "url": "https://www.effra.eu/wp-content/uploads/2020/05/made_in_europe-sria.pdf",
+    "retrieved_date": "2026-10-20 Europe/London",
+    "bytes": 3040567,
+    "sha256": "27dba46763924dd13138ad43714cc5f1849ba60abe6599e82710ccf876247711",
+    "role": "reference only; not a completed or submission-workspace form"
+  },
+  {
+    "file": "official-ria-ia-example.pdf",
+    "url": "https://ec.europa.eu/info/funding-tenders/opportunities/docs/2021-2027/horizon/temp-form/af/af_he-ria-ia_en.pdf",
+    "retrieved_date": "2026-10-20 Europe/London",
+    "bytes": 5757439,
+    "sha256": "3ca0d61a2fbc620e105be6ad3c0e8ede810fdf74aa8b1bbb2984a803360fa8c4",
+    "role": "reference only; not a completed or submission-workspace form"
+  }
+]

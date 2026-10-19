@@ -1,7 +1,7 @@
 # NOSMO EXO-01 — Horizon Europe MAT-PROD-61 Concept Note
 
 **Status:** INTERNAL WORKING DRAFT  
-**Date:** 2026-09-26  
+**Date:** 2026-09-26 (original); application update 2026-10-20
 **Target call:** HORIZON-CL4-2027-01-MAT-PROD-61  
 **Call type:** Horizon Europe Research and Innovation Action (RIA)  
 **Working project direction:** Construction Human Augmentation Platform / NOSMO EXO-01
@@ -14,11 +14,11 @@ Primary target:
 
 **HORIZON-CL4-2027-01-MAT-PROD-61 — Fast Track to Research and Innovation for breakthroughs in industrial technologies**
 
-Current verified call facts:
+Call facts (updated 20 October 2026; see linked evidence register):
 
-- Planned opening in the published Work Programme: 22 September 2026
-- Current operational planning: treat the call as **not yet safely open for submission** until the Funding & Tenders Portal submission system is live; Polish NCP materials indicate the final 2027 industry calls are planned to open **13 October 2026**
-- Deadline: 2 February 2027
+- Open-status evidence is now available from the official portal listing. Current Work Programme / HaDEA dates: **13 October 2026** opening, **2 February 2027, 17:00 Brussels** deadline. The indexed portal listing shows dates one day earlier; verify the exact deadline in the active submission system.
+- Parent call: **HORIZON-CL4-2027-06 / INDUSTRY-FTRI**; topic identifier unchanged.
+- Submission-specific forms have not yet been obtained; the downloaded public RIA/IA example is informational only.
 - Total topic budget: EUR 20 million
 - Maximum / expected EU contribution per project: up to EUR 2.5 million
 - Type of action: Research and Innovation Action (RIA)
@@ -282,13 +282,13 @@ Poland is currently considered primarily as an R&D / funding / validation / manu
 
 ## 9. Immediate actions
 
-1. Confirm live call status, exact eligibility and proposal template on the Funding & Tenders Portal when the submission system opens.
+1. Open-status evidence and official requirements have been reviewed; see the application pack. Reconcile the exact deadline and topic-specific forms in the active submission workspace before finalisation.
 2. Validate the TRL framing with the UK Cluster 4 Industry NCP (`NCP-Industry@iuk.ukri.org`) and, if useful, Polish KPK/NCBR before committing proposal resources.
 3. Confirm Andrea's company legal entity, PIC readiness and background-IP ownership.
 4. Produce a one-page technical diagram of the Phase 1 research architecture.
 5. Contact Gdansk University of Technology and AGH with a short non-confidential concept; copy or involve their Horizon/project-support offices once there is technical interest.
 6. Identify one UK construction pilot/end-user partner.
-7. Build a first EUR 1.5-2.5m consortium budget around the research scope.
+7. Build a bottom-up consortium budget around the agreed research scope; no total request or partner allocation is approved. The former EUR 1.5–2.5m planning range was not a commitment.
 8. Define NOSMO's own funded work package so NOSMO is an essential project beneficiary, not only an introducer.
 9. Draft Heads of Terms / MoU between NOSMO and Andrea's startup before disclosing full consortium/funding strategy to third parties.
 10. Prepare proposal timeline backward from 2 February 2027.
@@ -312,3 +312,11 @@ Poland is currently considered primarily as an R&D / funding / validation / manu
 
 - AGH — biomechatronic systems research team:
   https://oferta-badawcza.agh.edu.pl/research-teams/zespol-badania-i-projektowania-ukladow-biomechatronicznych-00397/
+
+---
+
+## 11. Application development update — 20 October 2026
+
+The [application pack](exo01-application/README.md) now contains requirements/evidence, Part A working data, Part B narrative, detailed WP1–WP7 and decision/meeting preparation. Original technical direction and IP principles remain; new tasks, timing and targets are proposals. The broader [14 October master](NOSMO_HUMAN_AUGMENTATION_MASTER.md) remains the commercial strategy; this application targets laboratory research up to TRL4 rather than promising its later field/commercial roadmap.
+
+The Phase 1 financial discussion above is retained as a historical record only, not an agreed grant allocation or staffing commitment. No consortium membership, JV percentage or budget has been agreed by this update. The user reports an accepted PG meeting on 21 October; this is not institutional participation. No formal application has been submitted.
