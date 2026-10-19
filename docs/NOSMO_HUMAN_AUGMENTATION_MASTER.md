@@ -335,3 +335,8 @@ NOSMO Construction Hardware should be built around a human-centred principle:
 > **The objective is not to remove the worker from every task. It is to remove unnecessary physical burden from the worker while preserving human judgement and control.**
 
 Robotics and human augmentation should therefore evolve in parallel as two connected parts of the NOSMO construction ecosystem.
+
+
+## Application preparation update — 20 October 2026
+
+See the [EXO-01 application working pack](exo01-application/README.md) for current call evidence, WP1–WP7 development and unconfirmed partner decisions. Historical outreach drafts/status above are retained and are not evidence that messages were sent. The user reports an accepted PG meeting on 21 October, not a commitment to join. Application research stops at laboratory TRL4; later field/commercial ambitions remain separate.

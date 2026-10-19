@@ -113,3 +113,8 @@ For the NCP message:
 - ask for fit/eligibility guidance only;
 - be explicit that existing background technology may be above TRL 4 but the proposed research components are genuinely new;
 - keep the project strictly civil for Horizon Europe.
+
+
+## Application preparation update — 20 October 2026
+
+See the [EXO-01 application working pack](exo01-application/README.md) for current call evidence, WP1–WP7 development and unconfirmed partner decisions. Historical outreach drafts/status above are retained and are not evidence that messages were sent. The user reports an accepted PG meeting on 21 October, not a commitment to join. Application research stops at laboratory TRL4; later field/commercial ambitions remain separate.

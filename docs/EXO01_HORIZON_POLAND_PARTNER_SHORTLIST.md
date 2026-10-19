@@ -147,3 +147,8 @@ Use the NCP for:
 3. If either is interested, immediately connect their university Horizon/project office.
 4. In parallel, ask the UK Industry NCP for a non-confidential topic-fit / TRL sanity check.
 5. Do not disclose JV percentages, reserved matters or internal negotiation limits in academic/NCP outreach.
+
+
+## Application preparation update — 20 October 2026
+
+See the [EXO-01 application working pack](exo01-application/README.md) for current call evidence, WP1–WP7 development and unconfirmed partner decisions. Historical outreach drafts/status above are retained and are not evidence that messages were sent. The user reports an accepted PG meeting on 21 October, not a commitment to join. Application research stops at laboratory TRL4; later field/commercial ambitions remain separate.
