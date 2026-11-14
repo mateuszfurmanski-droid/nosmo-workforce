@@ -16,6 +16,9 @@ class ArchiveSettings(context: Context) {
     var lastError: String
         get() = prefs.getString("lastError", "").orEmpty()
         set(value) { prefs.edit().putString("lastError", value).apply() }
+    var recordingError: String
+        get() = prefs.getString("recordingError", "").orEmpty()
+        set(value) { prefs.edit().putString("recordingError", value).apply() }
     fun allowed(packageName: String) = enabled && ArchiveSources.label(packageName) != null && prefs.getBoolean("source:$packageName", false)
     fun sourceEnabled(packageName: String) = prefs.getBoolean("source:$packageName", false)
     fun setSource(packageName: String, value: Boolean) {

@@ -2,7 +2,6 @@ package tech.nosmo.addons.communications
 
 import android.app.Notification
 import android.content.Context
-import android.os.UserHandle
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
@@ -18,7 +17,7 @@ import org.robolectric.annotation.Config
 class NotificationEventsTest {
     private val context: Context get() = RuntimeEnvironment.getApplication()
     private fun status(notification: Notification, packageName: String = "com.whatsapp") = StatusBarNotification(
-        packageName, packageName, 1, "thread", 1000, 0, notification, UserHandle.of(0), null, 5000,
+        packageName, packageName, 1, "thread", 1000, 0, 0, notification, android.os.Process.myUserHandle(), 5000,
     )
     @Test fun capturesSeparateMessagesAndSelfMessagesWithoutFlatteningLines() {
         val self = Person.Builder().setName("Me").setKey("self").build()

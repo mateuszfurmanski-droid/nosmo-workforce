@@ -1,12 +1,12 @@
 package tech.nosmo.addons.communications
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -37,10 +37,14 @@ object CommunicationsArchive {
         if (settings.enabled && settings.recordingsTree.isNotBlank()) {
             work.enqueueUniquePeriodicWork("nosmo-communications-recordings", ExistingPeriodicWorkPolicy.KEEP,
                 PeriodicWorkRequestBuilder<RecordingImportWorker>(15, TimeUnit.MINUTES).build())
-        } else work.cancelUniqueWork("nosmo-communications-recordings")
+        } else {
+            work.cancelUniqueWork("nosmo-communications-recordings")
+            work.cancelUniqueWork("nosmo-communications-recordings-now")
+        }
     }
     internal fun scanNow(context: Context) {
-        if (ArchiveSettings(context).enabled) WorkManager.getInstance(context).enqueue(OneTimeWorkRequestBuilder<RecordingImportWorker>().build())
+        if (ArchiveSettings(context).enabled) WorkManager.getInstance(context).enqueueUniqueWork(
+            "nosmo-communications-recordings-now", ExistingWorkPolicy.KEEP, OneTimeWorkRequestBuilder<RecordingImportWorker>().build())
     }
     internal fun record(context: Context, event: ArchiveEvent) {
         executor.execute {

@@ -13,14 +13,15 @@ class RecordingImportWorker(context: Context, parameters: WorkerParameters) : Wo
     override fun doWork(): Result = synchronized(importLock) {
         val settings = ArchiveSettings(applicationContext)
         if (!settings.enabled || settings.recordingsTree.isBlank()) return@synchronized Result.success()
+        val selectedTree = settings.recordingsTree
         try {
-            val tree = DocumentFile.fromTreeUri(applicationContext, Uri.parse(settings.recordingsTree))
+            val tree = DocumentFile.fromTreeUri(applicationContext, Uri.parse(selectedTree))
                 ?: error("Recording folder unavailable")
             check(tree.canRead())
             val cipher = ArchiveCipher()
             ArchiveStore(applicationContext, cipher).use { store ->
                 for (document in tree.listFiles()) {
-                    if (isStopped || !settings.enabled) break
+                    if (isStopped || !settings.enabled || settings.recordingsTree != selectedTree) break
                     if (!document.isFile || !document.type.orEmpty().startsWith("audio/")) continue
                     val size = document.length()
                     val modified = document.lastModified()
@@ -39,7 +40,7 @@ class RecordingImportWorker(context: Context, parameters: WorkerParameters) : Wo
                                     val buffer = ByteArray(65536)
                                     var readTotal = 0L
                                     while (true) {
-                                        if (isStopped || !settings.enabled) error("Import paused")
+                                        if (isStopped || !settings.enabled || settings.recordingsTree != selectedTree) error("Import paused")
                                         val read = input.read(buffer)
                                         if (read < 0) break
                                         readTotal += read
@@ -50,7 +51,7 @@ class RecordingImportWorker(context: Context, parameters: WorkerParameters) : Wo
                                 } ?: error("Cannot open recording")
                             }
                         }
-                        if (document.length() != size || document.lastModified() != modified || !settings.enabled || isStopped) continue
+                        if (document.length() != size || document.lastModified() != modified || !settings.enabled || settings.recordingsTree != selectedTree || isStopped) continue
                         check(temporary.renameTo(target))
                         val event = ArchiveEvent(id, "System call recording", "", "", "", "call_recording",
                             document.name.orEmpty(), modified, System.currentTimeMillis(), "user_selected_recording_folder",
@@ -59,13 +60,13 @@ class RecordingImportWorker(context: Context, parameters: WorkerParameters) : Wo
                     } finally { temporary.delete() }
                 }
             }
-            settings.lastError = ""
+            settings.recordingError = ""
             Result.success()
         } catch (_: SecurityException) {
-            settings.lastError = "Brak dostępu do folderu nagrań. Wybierz go ponownie."
+            settings.recordingError = "Brak dostępu do folderu nagrań. Wybierz go ponownie."
             Result.failure()
         } catch (_: Exception) {
-            if (settings.enabled && !isStopped) settings.lastError = "Import nagrań nie powiódł się. Sprawdź folder i wolne miejsce."
+            if (settings.enabled && !isStopped && settings.recordingsTree == selectedTree) settings.recordingError = "Import nagrań nie powiódł się. Sprawdź folder i wolne miejsce."
             if (runAttemptCount < 2) Result.retry() else Result.failure()
         }
     }

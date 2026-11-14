@@ -133,7 +133,7 @@ class ArchiveActivity : ComponentActivity() {
                     "Obserwacja wysłanych: ${if (settings.outgoingEnabled && OutgoingObservationService.connected) "test aktywny · kompletność niepotwierdzona" else "nieaktywna"}\n" +
                     "Nagrywanie połączeń: konfiguracja i test w aplikacji Telefon\n" +
                     "Folder nagrań: ${if (settings.recordingsTree.isBlank()) "niewybrany" else "wybrany"}\n" +
-                    "Zapisane zdarzenia: ${countAndLatest.getOrNull()?.first ?: "błąd odczytu"}\nOstatni zapis: $latest\n${settings.lastError}"
+                    "Zapisane zdarzenia: ${countAndLatest.getOrNull()?.first ?: "błąd odczytu"}\nOstatni zapis: $latest\n${settings.lastError}\n${settings.recordingError}"
             }
         }
     }
