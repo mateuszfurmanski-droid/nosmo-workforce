@@ -13,7 +13,9 @@ import javax.crypto.CipherInputStream
 
 /** Separate device-local archive. No account tokens, network client or automatic cloud upload. */
 class ArchiveStore(context: Context, private val cipher: ArchiveCipher = ArchiveCipher()) :
-    SQLiteOpenHelper(context, "nosmo-communications-archive.db", null, 1) {
+    SQLiteOpenHelper(context, "nosmo-communications-archive.db", null, 1), java.io.Closeable {
+    // SQLiteOpenHelper only implements AutoCloseable on newer Android releases.
+    override fun close() { super.close() }
     val audioDirectory = File(context.noBackupFilesDir, "communications-audio").apply { mkdirs() }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE events (id TEXT PRIMARY KEY, observed_at INTEGER NOT NULL, payload BLOB NOT NULL)")
