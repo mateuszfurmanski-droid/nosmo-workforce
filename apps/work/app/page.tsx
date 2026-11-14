@@ -409,7 +409,7 @@ type NativeShareConflict = {
 declare global {
   interface Window {
     __NOSMO_RECEIVE_NATIVE_SHARE__?: (payload: NativeSharePayload) => void;
-    NosmoAndroid?: { ackShare: (id: string) => void };
+    NosmoAndroid?: { ackShare: (id: string) => void; hasCommunicationsAddon?: () => boolean; openCommunicationsAddon?: () => void };
   }
 }
 type AgencyPackItemKey = "references" | "right_to_work" | "address" | "cscs" | "certificates" | "id";
@@ -3644,6 +3644,12 @@ export default function Home() {
                   <b>{importRecords.length ? `${importRecords.length} ${ui.imported}` : ui.setUp}</b>
                   <ChevronRight />
                 </button>
+                {ready && typeof window !== "undefined" && window.NosmoAndroid?.hasCommunicationsAddon?.() && (
+                  <button className="settings-action" onClick={() => window.NosmoAndroid?.openCommunicationsAddon?.()}>
+                    <span><MessageCircle /><span>{language === "pl" ? "Archiwum rozmów" : "Communications archive"}<small>{language === "pl" ? "Wiadomości i nagrania · opcjonalny dodatek" : "Messages and recordings · optional add-on"}</small></span></span>
+                    <ChevronRight />
+                  </button>
+                )}
                 <details className="settings-data-disclosure">
                   <summary>
                     <span className="theme-setting-label"><FolderOpen/><span><b>{ui.dataPrivacy}</b><small>{ui.dataHelp}</small></span></span>

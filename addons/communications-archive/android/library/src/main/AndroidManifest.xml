@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".ArchiveActivity" android:exported="false" android:label="NOSMO SYSTEM · Archiwum rozmów" />
+        <service android:name=".ArchiveNotificationListener" android:exported="true"
+            android:label="NOSMO SYSTEM · Kopia wiadomości"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
+        <service android:name=".OutgoingObservationService" android:exported="true"
+            android:label="NOSMO SYSTEM · Wysłane wiadomości (test)"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/nosmo_archive_accessibility" />
+        </service>
+    </application>
+</manifest>

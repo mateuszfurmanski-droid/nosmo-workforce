@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+    if (findProject(":communicationsArchive") != null) implementation(project(":communicationsArchive"))
     implementation("androidx.activity:activity-ktx:1.10.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.webkit:webkit:1.12.1")

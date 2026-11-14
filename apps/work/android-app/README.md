@@ -100,3 +100,15 @@ a v2-signed debug APK for `tech.nosmo.work` version `1.0104`.
 Real-device testing is still required before the APK can be called
 release-ready. The public Sites URL alone cannot appear in Android's system
 Share menu; the native app must be installed.
+
+## Optional Communications Archive add-on
+
+The separately requested opt-in archive lives in
+[`addons/communications-archive`](../../../addons/communications-archive/README.md).
+It is excluded by default. `-PnosmoCommunicationsArchive=true` includes its
+notification listener, experimental visible-screen outgoing observer and
+system-recording-folder importer. Those explicit add-on permissions are a
+scoped exception to the default Share-only behavior described above. Collection
+remains off until the owner enables the master switch, sources and Android
+permissions. The archive is device-local and does not write to Work/Agency
+account data. See the add-on README for limits and physical-device checks.
