@@ -61,4 +61,25 @@ class ArchiveStoreTest {
     @Test fun identitiesAreNotAmbiguousAcrossFieldBoundaries() {
         assertNotEquals(ArchiveEvent.digest("a|b", "c"), ArchiveEvent.digest("a", "b|c"))
     }
+    @Test fun exportedAudioPathResolvesToTheActualDecryptedZipEntry() {
+        val context: Context = RuntimeEnvironment.getApplication()
+        context.deleteDatabase("nosmo-communications-archive.db")
+        val cipher = cipher()
+        ArchiveStore(context, cipher).use { store ->
+            val name = "a".repeat(64) + ".bin"
+            val sample = "synthetic audio bytes".toByteArray()
+            java.io.File(store.audioDirectory, name).writeBytes(cipher.encrypt(sample))
+            assertTrue(store.append(message(200).copy(audioFile = name, attachmentMime = "audio/mp4")))
+            val output = ByteArrayOutputStream(); store.export(output)
+            val entries = linkedMapOf<String, ByteArray>()
+            ZipInputStream(output.toByteArray().inputStream()).use { zip ->
+                while (true) { val entry = zip.nextEntry ?: break; entries[entry.name] = zip.readBytes() }
+            }
+            val record = JSONObject(entries.getValue("messages-and-recordings.jsonl").toString(Charsets.UTF_8).trim())
+            assertArrayEquals(sample, entries.getValue(record.getString("audioFile")))
+            store.clear()
+            assertEquals(0L, store.count())
+            assertTrue(store.audioDirectory.listFiles().orEmpty().isEmpty())
+        }
+    }
 }

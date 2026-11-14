@@ -10,7 +10,9 @@ class ArchiveNotificationListener : NotificationListenerService() {
     override fun onDestroy() { connected = false; super.onDestroy() }
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (!ArchiveSettings(this).allowed(sbn.packageName)) return
-        NotificationEvents.parse(sbn, System.currentTimeMillis()).forEach { CommunicationsArchive.record(this, it) }
+        runCatching {
+            NotificationEvents.parse(sbn, System.currentTimeMillis()).forEach { CommunicationsArchive.record(this, it) }
+        }.onFailure { ArchiveSettings(this).lastError = "Nie udało się odczytać jednego z powiadomień. Kopia może być niepełna." }
     }
     companion object { @Volatile var connected = false; private set }
 }

@@ -7,7 +7,7 @@ on:
       - apps/work/app/page.tsx
       - .github/workflows/communications-archive-addon.yml
   push:
-    branches: [main, codex/communications-archive-addon]
+    branches: [main]
     paths:
       - addons/communications-archive/**
       - apps/work/android-app/**
@@ -28,7 +28,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Test, lint and build optional library
         run: bash apps/work/android-app/gradlew --no-daemon -p addons/communications-archive/android :library:testDebugUnitTest :library:lintDebug :library:assembleDebug
@@ -53,7 +52,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Check existing native share behavior
         working-directory: apps/work
