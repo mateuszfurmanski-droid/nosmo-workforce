@@ -61,6 +61,11 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The optional module installs a local settings shortcut, never enables capture.
+        runCatching {
+            Class.forName("tech.nosmo.addons.communications.CommunicationsArchive")
+                .getMethod("install", android.content.Context::class.java).invoke(null, this)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
@@ -441,6 +446,23 @@ class MainActivity : ComponentActivity() {
     }
 
     inner class AndroidBridge {
+        @JavascriptInterface
+        fun hasCommunicationsAddon(): Boolean = runCatching {
+            Class.forName("tech.nosmo.addons.communications.CommunicationsArchive")
+            true
+        }.getOrDefault(false)
+
+        @JavascriptInterface
+        fun openCommunicationsAddon() {
+            runOnUiThread {
+                val origin = webView.url?.let { Uri.parse(it) }
+                if (origin?.scheme != "https" || origin.host != APP_HOST) return@runOnUiThread
+                runCatching {
+                    startActivity(Intent().setClassName(this@MainActivity, "tech.nosmo.addons.communications.ArchiveActivity"))
+                }.onFailure { Toast.makeText(this@MainActivity, "Communications add-on is not included in this build.", Toast.LENGTH_LONG).show() }
+            }
+        }
+
         @JavascriptInterface
         fun ackShare(id: String) {
             runOnUiThread {

@@ -1,0 +1,1 @@
+-keep class tech.nosmo.addons.communications.CommunicationsArchive { public *; }

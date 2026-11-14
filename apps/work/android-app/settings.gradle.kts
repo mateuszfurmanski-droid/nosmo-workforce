@@ -7,3 +7,9 @@ dependencyResolutionManagement {
 }
 rootProject.name = "NOSMOWork"
 include(":app")
+
+// Optional native add-on. The default Work build does not contain its services.
+if (providers.gradleProperty("nosmoCommunicationsArchive").orNull == "true") {
+    include(":communicationsArchive")
+    project(":communicationsArchive").projectDir = file("../../../addons/communications-archive/android/library")
+}

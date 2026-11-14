@@ -1,0 +1,3 @@
+<resources>
+    <string name="nosmo_archive_accessibility_description">Opcjonalny test kopii własnych wysłanych wiadomości. Odczytuje widoczny ekran wyłącznie w wybranych komunikatorach po włączeniu dodatku. Przechowuje tekst dopiero po kliknięciu Wyślij i zaobserwowaniu nowego elementu rozmowy. Szkice pozostają tylko w pamięci przez maksymalnie 10 sekund. Nie obsługuje ekranów bez dostępnego tytułu rozmowy ani zaszyfrowanych baz aplikacji. Nie potwierdza dostarczenia wiadomości. Zapis lokalny, szyfrowany; można go wyłączyć w każdej chwili.</string>
+</resources>

@@ -1,0 +1,68 @@
+name: Communications Archive add-on
+on:
+  pull_request:
+    paths:
+      - addons/communications-archive/**
+      - apps/work/android-app/**
+      - apps/work/app/page.tsx
+      - .github/workflows/communications-archive-addon.yml
+  push:
+    branches: [main, codex/communications-archive-addon]
+    paths:
+      - addons/communications-archive/**
+      - apps/work/android-app/**
+      - .github/workflows/communications-archive-addon.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: communications-archive-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  library:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test, lint and build optional library
+        run: bash apps/work/android-app/gradlew --no-daemon -p addons/communications-archive/android :library:testDebugUnitTest :library:lintDebug :library:assembleDebug
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: communications-archive-library-and-reports
+          path: |
+            addons/communications-archive/android/library/build/outputs/aar/*.aar
+            addons/communications-archive/android/library/build/reports/
+            addons/communications-archive/android/library/build/test-results/
+  host:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        addon: ['false', 'true']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check existing native share behavior
+        working-directory: apps/work
+        run: node --test tests/android-share-target.test.mjs
+      - name: Build host with optional add-on flag
+        working-directory: apps/work/android-app
+        run: bash gradlew --no-daemon -PnosmoCommunicationsArchive=${{ matrix.addon }} :app:testDebugUnitTest :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nosmo-work-communications-addon-${{ matrix.addon }}
+          path: apps/work/android-app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
